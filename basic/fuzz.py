@@ -14,7 +14,6 @@ Test = list[Command]
 TestSuite = list[Test]
 TestConstraint = Callable[[Test], bool]
 CommandConstraint = Callable[[Command], bool]
-CommandConstraintOrString = CommandConstraint | str
 
 
 ########################
@@ -67,13 +66,6 @@ def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:
 # Auxiliary functions #
 #######################
 
-def pred_of(cmd_contraint: CommandConstraintOrString) -> CommandConstraint:
-    if type(cmd_contraint) == str:
-        return lambda c: c[0] == cmd_contraint
-    else:
-        return cmd_contraint
-
-
 def last_satisfying_index(test: Test, p: CommandConstraint) -> Optional[int]:
     indices = [i for i, x in enumerate(test) if p(x)]
     return indices[-1] if indices else None
@@ -82,6 +74,10 @@ def last_satisfying_index(test: Test, p: CommandConstraint) -> Optional[int]:
 def first_satisfying_index(test: Test, p: CommandConstraint) -> Optional[int]:
     indices = [i for i, x in enumerate(test) if p(x)]
     return indices[0] if indices else None
+
+
+def cmd(n: str) -> TestConstraint:
+    return lambda c: c[0] == n
 
 
 pp = pprint.PrettyPrinter(indent=4).pprint
@@ -111,27 +107,23 @@ def response(p: CommandConstraint, q: TestConstraint) -> TestConstraint:
     return constraint
 
 
-
 ######################
 # Constraint Library #
 ######################
 
-def contains_command_count(cmd_pred: CommandConstraintOrString, low: int, high: int) -> TestConstraint:
+def contains_command_count(cmd_pred: CommandConstraint, low: int, high: int) -> TestConstraint:
     # ... C1 ... C1 ...
     def constraint(test: Test) -> bool:
-        pred: TestConstraint = pred_of(cmd_pred)
-        commands = [c for c in test if pred(c)]
+        commands = [c for c in test if cmd_pred(c)]
         return low <= len(commands) <= high
     return constraint
 
 
-def command_preceeds_command(cmd_pred1: CommandConstraintOrString, cmd_pred2: CommandConstraintOrString) -> TestConstraint:
+def command_preceeds_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint) -> TestConstraint:
     # ... C1! ... C2? ...
     def constraint(test: Test) -> bool:
-        pred1 = pred_of(cmd_pred1)
-        pred2 = pred_of(cmd_pred2)
-        indexC1 = first_satisfying_index(test, pred1)
-        indexC2 = first_satisfying_index(test, pred2)
+        indexC1 = first_satisfying_index(test, cmd_pred1)
+        indexC2 = first_satisfying_index(test, cmd_pred2)
         if indexC2 is not None:
             return indexC1 is not None and indexC1 < indexC2
         else:
@@ -139,13 +131,11 @@ def command_preceeds_command(cmd_pred1: CommandConstraintOrString, cmd_pred2: Co
     return constraint
 
 
-def command_followed_by_command(cmd_pred1: CommandConstraintOrString, cmd_pred2: CommandConstraintOrString) -> bool:
+def command_followed_by_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint) -> bool:
     # ... C1? ... C2! ...
     def constraint(test: Test) -> bool:
-        pred1 = pred_of(cmd_pred1)
-        pred2 = pred_of(cmd_pred2)
-        indexC1 = last_satisfying_index(test, pred1)
-        indexC2 = last_satisfying_index(test, pred2)
+        indexC1 = last_satisfying_index(test, cmd_pred1)
+        indexC2 = last_satisfying_index(test, cmd_pred2)
         if indexC1 is not None:
             return indexC2 is not None and indexC1 < indexC2
         else:
@@ -153,15 +143,12 @@ def command_followed_by_command(cmd_pred1: CommandConstraintOrString, cmd_pred2:
     return constraint
 
 
-def command_followed_by_command_without(cmd_pred1: CommandConstraintOrString, cmd_pred2: CommandConstraintOrString, cmd_pred3: CommandConstraintOrString) -> bool:
+def command_followed_by_command_without(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint, cmd_pred3: CommandConstraint) -> bool:
     #  C1?   ...  C2!
     #  |__________|
     #     not C3
     def constraint(test: Test) -> bool:
-        pred1 = pred_of(cmd_pred1)
-        pred2 = pred_of(cmd_pred2)
-        pred3 = pred_of(cmd_pred3)
-        return response(pred1, until(pred3, pred2))(test)
+        return response(cmd_pred1, until(cmd_pred3, cmd_pred2))(test)
     return constraint
 
 
