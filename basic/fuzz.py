@@ -87,23 +87,36 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 # Temporal operators #
 ######################
 
-def until(p: CommandConstraint, q: CommandConstraint) -> TestConstraint:
+def notuntil(p: CommandConstraint, q: CommandConstraint) -> TestConstraint:
     def constraint(test: Test) -> bool:
         match test:
             case [cmd, *test_]:
-                q(cmd) or (p(cmd) and constraint(test_))
+                return q(cmd) or ((not p(cmd)) and constraint(test_))
             case []:
                 return False
     return constraint
 
 
-def response(p: CommandConstraint, q: TestConstraint) -> TestConstraint:
+def response(c: CommandConstraint, t: TestConstraint) -> TestConstraint:
+    """
+    [](p -> @t)
+    """
     def constraint(test: Test) -> bool:
         match test:
             case [cmd, *test_]:
-                not p(cmd) or q(test_)
+                return (not c(cmd) or t(test_)) and constraint(test_)
             case []:
                 return True
+    return constraint
+
+
+def eventually(p: CommandConstraint) -> TestConstraint:
+    def constraint(test: Test) -> bool:
+        match test:
+            case [cmd, *test_]:
+                return p(cmd) or constraint(test_)
+            case []:
+                return False
     return constraint
 
 
@@ -131,7 +144,7 @@ def command_preceeds_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandCon
     return constraint
 
 
-def command_followed_by_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint) -> bool:
+def command_followed_by_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint) -> TestConstraint:
     # ... C1? ... C2! ...
     def constraint(test: Test) -> bool:
         indexC1 = last_satisfying_index(test, cmd_pred1)
@@ -143,12 +156,12 @@ def command_followed_by_command(cmd_pred1: CommandConstraint, cmd_pred2: Command
     return constraint
 
 
-def command_followed_by_command_without(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint, cmd_pred3: CommandConstraint) -> bool:
+def command_followed_by_command_without(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint, cmd_pred3: CommandConstraint) -> TestConstraint:
     #  C1?   ...  C2!
     #  |__________|
     #     not C3
     def constraint(test: Test) -> bool:
-        return response(cmd_pred1, until(cmd_pred3, cmd_pred2))(test)
+        return response(cmd_pred1, notuntil(cmd_pred2, cmd_pred3))(test)
     return constraint
 
 

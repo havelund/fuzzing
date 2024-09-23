@@ -1,10 +1,11 @@
 
 from fuzz import *
-from dictionaries.dict_clipper1 import cmdDict, enumDict
+from dictionaries.dict_test1 import cmdDict, enumDict
+# from dictionaries.dict_clipper1 import cmdDict, enumDict
 
 constraints_test1: list[TestConstraint] = [
     contains_command_count(cmd('C5'), 1, 2),
-    command_preceeds_command(cmd('C1'), 'C2'),
+    command_preceeds_command(cmd('C1'), cmd('C2')),
     command_followed_by_command(cmd('C3'), cmd('C4')),
     command_followed_by_command_without(cmd('C5'), cmd('C6'), cmd('C7'))
 ]
@@ -17,6 +18,9 @@ constraints_clipper1: list[TestConstraint] = [
 ]
 
 if __name__ == '__main__':
-    tests = generate_tests(cmdDict, enumDict, constraints_clipper1, 10, 5)
+    tests = generate_tests(cmdDict, enumDict, constraints_test1, 1000, 50)
     pp(tests)
+
+
+
 
