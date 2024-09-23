@@ -21,12 +21,12 @@ CommandConstraintOrString = CommandConstraint | str
 # Generation Functions #
 ########################
 
-def generate_tests(cmdDict: dict, enumDict: dict, test_constraint: TestConstraint, nr_tests: int, nr_cmds: int) -> TestSuite:
+def generate_tests(cmdDict: dict, enumDict: dict, constraints: list[TestConstraint], nr_tests: int, nr_cmds: int) -> TestSuite:
     test_suite: TestSuite = []
     count: int = 0
     while count != nr_tests:
         test = generate_test(cmdDict, enumDict, nr_cmds)
-        if test_constraint(test) and test not in test_suite:
+        if test_constraints(test, constraints) and test not in test_suite:
             count += 1
             test_suite.append(test)
     return test_suite
@@ -56,17 +56,7 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
 # Main Constraint  #
 ####################
 
-def test_constraint(test : Test) -> bool:
-    constraints = [
-      # contains_command_count('C5', 1, 2),
-      # command_preceeds_command('C1', 'C2'),
-      # command_followed_by_command('C3', 'C4'),
-      # command_followed_by_command_without('C5', 'C6', 'C7')
-      contains_command_count('TIME_CORR_REQUEST', 1, 1),
-      contains_command_count('DDM_SET_DWN_TZ_CONFIG', 1, 1),
-      command_preceeds_command('DDM_CLEAR_DWN_DP_BUFFER', 'DDM_SET_DWN_TZ_CONFIG'),
-      command_followed_by_command('DDM_ENABLE_DWN_PB_ENTRY_GATE', 'DDM_ENABLE_DWN_PB_EXIT_GATE'),
-    ]
+def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:
     for constraint in constraints:
         if not constraint(test):
             return False
