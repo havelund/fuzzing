@@ -85,6 +85,10 @@ T: TestConstraint = lambda test: True
 F: TestConstraint = lambda test: False # Alternative semantics: Not(T)
 
 
+def N(name: str) -> TestConstraint:
+    return Now(Cmd(name))
+
+
 def Cmd(name: str) -> CommandConstraint:
     """
     name
@@ -200,7 +204,7 @@ def Always(tc: TestConstraint) -> TestConstraint:
 # Constraint Library #
 ######################
 
-def Response(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
+def response(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
     """
     [](tc1 -> <>tc2)
     """
