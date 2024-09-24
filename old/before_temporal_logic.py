@@ -74,6 +74,10 @@ def first_satisfying_index(test: Test, cc: CommandConstraint) -> Optional[int]:
     return indices[0] if indices else None
 
 
+def cmd(name: str) -> CommandConstraint:
+    return lambda c: c[0] == name
+
+
 pp = pprint.PrettyPrinter(indent=4).pprint
 
 
@@ -81,111 +85,35 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 # Temporal operators #
 ######################
 
-T: TestConstraint = lambda test: True
-F: TestConstraint = lambda test: False # Alternative semantics: Not(T)
-
-
-def Cmd(name: str) -> CommandConstraint:
+def notuntil(cc1: CommandConstraint, cc2: CommandConstraint) -> TestConstraint:
     """
-    name
-    """
-    return lambda c: c[0] == name
-
-
-def Now(cc: CommandConstraint) -> TestConstraint:
-    """
-    cc
+    !cc1 U cc2
     """
     def constraint(test: Test) -> bool:
         match test:
             case [cmd, *test_]:
-                return cc(cmd)
+                return cc2(cmd) or ((not cc1(cmd)) and constraint(test_))
             case []:
                 return False
     return constraint
 
 
-def Not(tc: TestConstraint) -> TestConstraint:
+def response(cc: CommandConstraint, tc: TestConstraint) -> TestConstraint:
     """
-    !tc
-    """
-    def constraint(test: Test) -> bool:
-        return not tc(test)
-    return constraint
-
-
-def And(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
-    """
-    tc1 & tc2
-    """
-    def constraint(test: Test) -> bool:
-        return tc1(test) and tc2(test)
-    return constraint
-
-
-def Or(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
-    """
-    tc1 | tc2
-    Alternative semantics: Not(And(Not(tc1), Not(tc2)))
-    """
-    def constraint(test: Test) -> bool:
-        return tc1(test) or tc2(test)
-    return constraint
-
-
-def Implies(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
-    """
-    tc1 -> tc2
-    """
-    return Or(Not(tc1), tc2)
-
-
-def Next(tc: TestConstraint) -> TestConstraint:
-    """
-    ()tc
+    [](cc -> ()tc)
     """
     def constraint(test: Test) -> bool:
         match test:
-            case [_, *test_]:
-                return tc(test_)
+            case [cmd, *test_]:
+                return (not cc(cmd) or tc(test_)) and constraint(test_)
             case []:
-                return False
+                return True
     return constraint
 
 
-# TODO:
-def Until(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
+def always(tc: TestConstraint) -> TestConstraint:
     """
-    tc1 U tc2
-    """
-    # This does not work: Or(tc2, And(tc1, Next(Until(tc1, tc2))))
-    def constraint(test: Test) -> bool:
-        match test:
-            case [_, *test_]:
-                return tc2(test) or (tc1(test) and constraint(test_))
-            case []:
-                return False
-    return constraint
-
-
-def Eventually(tc: TestConstraint) -> TestConstraint:
-    """
-    <> tc
-    Alternative semantics: Until(T, tc)
-    """
-    def constraint(test: Test) -> bool:
-        match test:
-            case [_, *test_]:
-                return tc(test) or constraint(test_)
-            case []:
-                return False
-    return constraint
-
-
-def Always(tc: TestConstraint) -> TestConstraint:
-    """
-    [] tc
-    Alternative semantics: Not(Eventually(Not(tc)))
+    []tc
     """
     def constraint(test: Test) -> bool:
         match test:
@@ -196,16 +124,134 @@ def Always(tc: TestConstraint) -> TestConstraint:
     return constraint
 
 
+def eventually(cc: CommandConstraint) -> TestConstraint:
+    """
+    <>cc
+    """
+    def constraint(test: Test) -> bool:
+        match test:
+            case [cmd, *test_]:
+                return cc(cmd) or constraint(test_)
+            case []:
+                return False
+    return constraint
+
+
+def implies(cc: CommandConstraint, tc: TestConstraint) -> TestConstraint:
+    """
+    cc -> tc
+    """
+    def constraint(test: Test) -> bool:
+        match test:
+            case [cmd, *test_]:
+                return not cc(cmd) or tc(test_)
+            case []:
+                return True
+    return constraint
+
+
+# ====
+
+true2: TestConstraint = lambda test: True
+false2: TestConstraint = lambda test: False
+# Rewrites to: not2(true2)
+
+
+def cmd2(cc: CommandConstraint) -> TestConstraint:
+    def constraint(test: Test) -> bool:
+        match test:
+            case [cmd, _]:
+                return cc(cmd)
+            case []:
+                return False
+    return constraint
+
+
+def not2(tc: TestConstraint) -> TestConstraint:
+    """
+    !tc
+    """
+    def constraint(test: Test) -> bool:
+        return not(tc(test))
+    return constraint
+
+
+def and2(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
+    """
+    tc1 & tc2
+    """
+    def constraint(test: Test) -> bool:
+        return tc1(test) and tc2(test)
+    return constraint
+
+
+def or2(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
+    """
+    tc1 | tc2
+    Rewrites to: not2(and2(not2(tc1), not2(tc2)))
+    """
+    def constraint(test: Test) -> bool:
+        return tc1(test) or tc2(test)
+    return constraint
+
+
+def implies2(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
+    """
+    tc1 -> tc2
+    """
+    return or2(not2(tc1), tc2)
+
+
+def next2(tc: TestConstraint) -> TestConstraint:
+    def constraint(test: Test) -> bool:
+        match test:
+            case [_, *test_]:
+                return tc(test_)
+            case []:
+                return False
+    return constraint
+
+
+def until2(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
+    """
+    tc1 U tc2
+    """
+    or2(tc2, and2(tc1,next2(until(tc1, tc2))))
+
+
+def eventually2(tc: TestConstraint) -> TestConstraint:
+    """
+    <> tc
+    Rewrites to: until2(true2, tc)
+    """
+    def constraint(test: Test) -> bool:
+        match test:
+            case [_, *test_]:
+                return tc(test) or tc(test_)
+            case []:
+                return False
+    return constraint
+
+
+def always2(tc: TestConstraint) -> TestConstraint:
+    """
+    [] tc
+    Rewrites to: not2(eventually(not2(tc)))
+    """
+    def constraint(test: Test) -> bool:
+        match test:
+            case [_, *test_]:
+                return tc(test) and tc(test_)
+            case []:
+                return True
+    return constraint
+
+# ====
+
+
 ######################
 # Constraint Library #
 ######################
-
-def Response(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
-    """
-    [](tc1 -> <>tc2)
-    """
-    return Always(Implies(tc1, Eventually(tc2)))
-
 
 def contains_command_count(cc: CommandConstraint, low: int, high: int) -> TestConstraint:
     """
@@ -235,12 +281,21 @@ def command_followed_by_command(cc1: CommandConstraint, cc2: CommandConstraint) 
     """
     [](cc1 -> <>cc2)
     """
-    return Always(Implies(Now(cc1), Eventually(Now(cc2))))
+    def constraint(test: Test) -> bool:
+        indexC1 = last_satisfying_index(test, cc1)
+        indexC2 = last_satisfying_index(test, cc2)
+        if indexC1 is not None:
+            return indexC2 is not None and indexC1 < indexC2
+        else:
+            return True
+    return constraint
 
 
 def command_followed_by_command_without(cc1: CommandConstraint, cc2: CommandConstraint, cc3: CommandConstraint) -> TestConstraint:
     """
     [](cc1 -> !cc2 U cc3)
     """
-    return Always(Implies(Now(cc1), Until(Not(cc2), cc3)))
+    def constraint(test: Test) -> bool:
+        return response(cc1, notuntil(cc2, cc3))(test)
+    return constraint
 
