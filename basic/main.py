@@ -10,6 +10,10 @@ constraints_test1: list[TestConstraint] = [
     command_followed_by_command_without(cmd('C5'), cmd('C6'), cmd('C7'))
 ]
 
+constraints_test2: list[TestConstraint] = [
+    always(implies(cmd('C1'), eventually(cmd('C2'))))
+]
+
 constraints_clipper1: list[TestConstraint] = [
     contains_command_count(cmd('TIME_CORR_REQUEST'), 1, 1),
     contains_command_count(cmd('DDM_SET_DWN_TZ_CONFIG'), 1, 1),
@@ -18,7 +22,7 @@ constraints_clipper1: list[TestConstraint] = [
 ]
 
 if __name__ == '__main__':
-    tests = generate_tests(cmdDict, enumDict, constraints_test1, 1000, 50)
+    tests = generate_tests(cmdDict, enumDict, constraints_test2, 10, 5)
     pp(tests)
 
 

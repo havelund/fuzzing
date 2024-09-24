@@ -66,18 +66,18 @@ def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:
 # Auxiliary functions #
 #######################
 
-def last_satisfying_index(test: Test, p: CommandConstraint) -> Optional[int]:
-    indices = [i for i, x in enumerate(test) if p(x)]
+def last_satisfying_index(test: Test, cc: CommandConstraint) -> Optional[int]:
+    indices = [i for i, x in enumerate(test) if cc(x)]
     return indices[-1] if indices else None
 
 
-def first_satisfying_index(test: Test, p: CommandConstraint) -> Optional[int]:
-    indices = [i for i, x in enumerate(test) if p(x)]
+def first_satisfying_index(test: Test, cc: CommandConstraint) -> Optional[int]:
+    indices = [i for i, x in enumerate(test) if cc(x)]
     return indices[0] if indices else None
 
 
-def cmd(n: str) -> TestConstraint:
-    return lambda c: c[0] == n
+def cmd(name: str) -> CommandConstraint:
+    return lambda c: c[0] == name
 
 
 pp = pprint.PrettyPrinter(indent=4).pprint
@@ -87,36 +87,68 @@ pp = pprint.PrettyPrinter(indent=4).pprint
 # Temporal operators #
 ######################
 
-def notuntil(p: CommandConstraint, q: CommandConstraint) -> TestConstraint:
+def notuntil(cc1: CommandConstraint, cc2: CommandConstraint) -> TestConstraint:
+    """
+    !cc1 U cc2
+    """
     def constraint(test: Test) -> bool:
         match test:
             case [cmd, *test_]:
-                return q(cmd) or ((not p(cmd)) and constraint(test_))
+                return cc2(cmd) or ((not cc1(cmd)) and constraint(test_))
             case []:
                 return False
     return constraint
 
 
-def response(c: CommandConstraint, t: TestConstraint) -> TestConstraint:
+def response(cc: CommandConstraint, tc: TestConstraint) -> TestConstraint:
     """
-    [](p -> @t)
+    [](cc -> ()tc)
     """
     def constraint(test: Test) -> bool:
         match test:
             case [cmd, *test_]:
-                return (not c(cmd) or t(test_)) and constraint(test_)
+                return (not cc(cmd) or tc(test_)) and constraint(test_)
             case []:
                 return True
     return constraint
 
 
-def eventually(p: CommandConstraint) -> TestConstraint:
+def always(tc: TestConstraint) -> TestConstraint:
+    """
+    []tc
+    """
+    def constraint(test: Test) -> bool:
+        match test:
+            case [_, *test_]:
+                return tc(test) and constraint(test_)
+            case []:
+                return True
+    return constraint
+
+
+def eventually(cc: CommandConstraint) -> TestConstraint:
+    """
+    <>cc
+    """
     def constraint(test: Test) -> bool:
         match test:
             case [cmd, *test_]:
-                return p(cmd) or constraint(test_)
+                return cc(cmd) or constraint(test_)
             case []:
                 return False
+    return constraint
+
+
+def implies(cc: CommandConstraint, tc: TestConstraint) -> TestConstraint:
+    """
+    cc -> tc
+    """
+    def constraint(test: Test) -> bool:
+        match test:
+            case [cmd, *test_]:
+                return not cc(cmd) or tc(test_)
+            case []:
+                return True
     return constraint
 
 
@@ -124,19 +156,23 @@ def eventually(p: CommandConstraint) -> TestConstraint:
 # Constraint Library #
 ######################
 
-def contains_command_count(cmd_pred: CommandConstraint, low: int, high: int) -> TestConstraint:
-    # ... C1 ... C1 ...
+def contains_command_count(cc: CommandConstraint, low: int, high: int) -> TestConstraint:
+    """
+    low <= |cc| <= high
+    """
     def constraint(test: Test) -> bool:
-        commands = [c for c in test if cmd_pred(c)]
+        commands = [c for c in test if cc(c)]
         return low <= len(commands) <= high
     return constraint
 
 
-def command_preceeds_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint) -> TestConstraint:
-    # ... C1! ... C2? ...
+def command_preceeds_command(cc1: CommandConstraint, cc2: CommandConstraint) -> TestConstraint:
+    """
+    [](cc2 -> <#>cc1)
+    """
     def constraint(test: Test) -> bool:
-        indexC1 = first_satisfying_index(test, cmd_pred1)
-        indexC2 = first_satisfying_index(test, cmd_pred2)
+        indexC1 = first_satisfying_index(test, cc1)
+        indexC2 = first_satisfying_index(test, cc2)
         if indexC2 is not None:
             return indexC1 is not None and indexC1 < indexC2
         else:
@@ -144,11 +180,13 @@ def command_preceeds_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandCon
     return constraint
 
 
-def command_followed_by_command(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint) -> TestConstraint:
-    # ... C1? ... C2! ...
+def command_followed_by_command(cc1: CommandConstraint, cc2: CommandConstraint) -> TestConstraint:
+    """
+    [](cc1 -> <>cc2)
+    """
     def constraint(test: Test) -> bool:
-        indexC1 = last_satisfying_index(test, cmd_pred1)
-        indexC2 = last_satisfying_index(test, cmd_pred2)
+        indexC1 = last_satisfying_index(test, cc1)
+        indexC2 = last_satisfying_index(test, cc2)
         if indexC1 is not None:
             return indexC2 is not None and indexC1 < indexC2
         else:
@@ -156,13 +194,11 @@ def command_followed_by_command(cmd_pred1: CommandConstraint, cmd_pred2: Command
     return constraint
 
 
-def command_followed_by_command_without(cmd_pred1: CommandConstraint, cmd_pred2: CommandConstraint, cmd_pred3: CommandConstraint) -> TestConstraint:
-    #  C1?   ...  C2!
-    #  |__________|
-    #     not C3
+def command_followed_by_command_without(cc1: CommandConstraint, cc2: CommandConstraint, cc3: CommandConstraint) -> TestConstraint:
+    """
+    [](cc1 -> !cc2 U cc3)
+    """
     def constraint(test: Test) -> bool:
-        return response(cmd_pred1, notuntil(cmd_pred2, cmd_pred3))(test)
+        return response(cc1, notuntil(cc2, cc3))(test)
     return constraint
-
-
 
