@@ -4,7 +4,7 @@
 This repository contains a framework for fuzz testing 
 commands. 
 
-## Organization of Folder
+## Organization of Repository
 
 - basic: the first Python approach
   - src: the source code for the fuzzing library
