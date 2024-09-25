@@ -7,7 +7,7 @@ import pprint
 #########
 
 CommandName = str
-Command = tuple[CommandName, list[str]]
+Command = {'name': CommandName, 'args': dict[str, str]} # not a correct type
 Test = list[Command]
 TestSuite = list[Test]
 TestConstraint = Callable[[Test], bool]
@@ -34,18 +34,18 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
     test: Test = []
     for nr in range(nr_cmds):
         command_name = random.choice(command_names)
+        args = {}
         arg_types = cmdDict[command_name]['args']
-        args = []
         for arg_type in arg_types:
             name = arg_type['name']
             type = arg_type['type']
             if type == 'unsigned_arg':
                 value = random.random()
             else:
-                values = enumDict[type]
-                value = random.choice(values)
-            args.append((name, value))
-        test.append((command_name, args))
+                value = random.choice(enumDict[type])
+            args[name] = value
+        command = {'name': command_name, 'args': args}
+        test.append(command)
     return test
 
 
@@ -54,6 +54,7 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
 ####################
 
 def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:
+    print(test)
     for constraint in constraints:
         if not constraint(test):
             return False
@@ -74,7 +75,7 @@ def first_satisfying_index(test: Test, cc: CommandConstraint) -> Optional[int]:
     return indices[0] if indices else None
 
 
-pp = pprint.PrettyPrinter(indent=4).pprint
+pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint
 
 
 ######################
@@ -93,7 +94,7 @@ def Cmd(name: str) -> CommandConstraint:
     """
     name
     """
-    return lambda c: c[0] == name
+    return lambda c: c['name'] == name
 
 
 def Now(cc: CommandConstraint) -> TestConstraint:
@@ -246,5 +247,5 @@ def command_followed_by_command_without(cc1: CommandConstraint, cc2: CommandCons
     """
     [](cc1 -> !cc2 U cc3)
     """
-    return Always(Implies(Now(cc1), Until(Not(cc2), cc3)))
+    return Always(Implies(Now(cc1), Until(Not(Now(cc2)), Now(cc3))))
 
