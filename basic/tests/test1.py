@@ -1,5 +1,5 @@
 import unittest
-from basic.fuzz import *
+from basic.src.fuzz import *
 
 
 class FuzzTestSuite(unittest.TestCase):
