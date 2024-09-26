@@ -54,7 +54,6 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
 ####################
 
 def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:
-    print(test)
     for constraint in constraints:
         if not constraint(test):
             return False

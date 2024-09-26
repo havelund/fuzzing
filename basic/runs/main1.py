@@ -7,6 +7,17 @@ from basic.src.fuzz import *
 from dictionaries.dict_test1 import cmdDict, enumDict
 
 
+NAME = 'name'
+ARGS = 'args'
+ZONE = 'zone'
+MODE = 'mode'
+
+def cc_C7(cmd: Command) -> bool:
+    name = cmd[NAME]
+    args = cmd[ARGS]
+    return name == 'C7' and args[ZONE] in {'b1', 'b2'} and args[MODE] != 'c3'
+
+
 constraints1: list[TestConstraint] = [
     contains_command_count(Cmd('C5'), 1, 2),
     command_preceeds_command(Cmd('C1'), Cmd('C2')),
@@ -15,7 +26,8 @@ constraints1: list[TestConstraint] = [
 ]
 
 constraints2: list[TestConstraint] = [
-    Always(Implies(Now(Cmd('C1')), Eventually(Now(Cmd('C2')))))
+    Eventually(N('C1')),
+    Always(Implies(Now(Cmd('C1')), Eventually(Now(cc_C7))))
 ]
 
 
