@@ -9,14 +9,15 @@ import pprint
 #########
 
 CommandName = str
-Command = {'name': CommandName, 'args': dict[str, str]} # not a correct type
+Command = dict[str, object]
 Test = list[Command]
 TestSuite = list[Test]
 
-Environment = dict[int, Command]
+FreezeId = int | str
+Environment = dict[FreezeId, object]
 TestConstraint = Callable[[Environment, Test], bool]
 CommandConstraint = Callable[[Environment, Command], bool]
-FreezeId = int | str
+
 
 
 ########################
@@ -38,8 +39,9 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
     command_names = list(cmdDict.keys())
     test: Test = []
     for nr in range(nr_cmds):
+        command: Command = {}
         command_name = random.choice(command_names)
-        args = {}
+        command['name'] = command_name
         arg_types = cmdDict[command_name]['args']
         for arg_type in arg_types:
             name = arg_type['name']
@@ -48,8 +50,7 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
                 value = random.random()
             else:
                 value = random.choice(enumDict[type])
-            args[name] = value
-        command = {'name': command_name, 'args': args}
+            command[name] = value
         test.append(command)
     return test
 
@@ -214,16 +215,16 @@ def FreezeCmdAs(id: FreezeId, tc: TestConstraint) -> TestConstraint:
     return constraint
 
 
-def FreezeArgAs(arg: str, id: str, tc: TestConstraint) -> TestConstraint:
+def FreezeVarAs(var: str, id: str, tc: TestConstraint) -> TestConstraint:
     def constraint(env: Environment, test: Test) -> bool:
-        env[id] = test[0]['args'][arg]
+        env[id] = test[0][var]
         return tc(env, test)
     return constraint
 
 
-def FreezeArg(arg: str, tc: TestConstraint) -> TestConstraint:
+def FreezeVar(var: str, tc: TestConstraint) -> TestConstraint:
     def constraint(env: Environment, test: Test) -> bool:
-        env[arg] = test[0]['args'][arg]
+        env[var] = test[0][var]
         return tc(env, test)
     return constraint
 
@@ -249,7 +250,6 @@ def contains_command_count(cc: CommandConstraint, low: int, high: int) -> TestCo
     return constraint
 
 
-# TODO:
 def command_preceeds_command(cc1: CommandConstraint, cc2: CommandConstraint) -> TestConstraint:
     """
     [](cc2 -> <#>cc1)

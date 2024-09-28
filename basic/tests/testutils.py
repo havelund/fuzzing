@@ -7,12 +7,12 @@ def name(cmd: Command) -> str:
     return cmd['name']
 
 
-def zone(cmd: Command) -> str:
-    return cmd['args']['zone']
+def zone(map: Command | Environment) -> str:
+    return map['zone']
 
 
-def mode(cmd: Command) -> str:
-    return cmd['args']['mode']
+def mode(map: Command | Environment) -> str:
+    return map['mode']
 
 
 class BaseTestSuite(unittest.TestCase):

@@ -7,16 +7,16 @@ class FuzzTestSuite1(BaseTestSuite):
     def setUp(self):
         # Set up the common test data (initial state)
         self.test = [
-            {'name': 'C0', 'args': {'zone': 'a0', 'mode': 'b0'}},
-            {'name': 'C1', 'args': {'zone': 'b1', 'mode': 'c1'}},
-            {'name': 'C2', 'args': {'zone': 'c2', 'mode': 'd2'}},
-            {'name': 'C3', 'args': {'zone': 'd3', 'mode': 'e3'}},
-            {'name': 'C4', 'args': {'zone': 'e4', 'mode': 'a4'}},
-            {'name': 'C5', 'args': {'zone': 'a5', 'mode': 'b5'}},
-            {'name': 'C6', 'args': {'zone': 'b6', 'mode': 'c6'}},
-            {'name': 'C7', 'args': {'zone': 'c7', 'mode': 'd7'}},
-            {'name': 'C8', 'args': {'zone': 'd8', 'mode': 'e8'}},
-            {'name': 'C9', 'args': {'zone': 'e9', 'mode': 'a9'}},
+            {'name': 'C0', 'zone': 'a0', 'mode': 'b0'},
+            {'name': 'C1', 'zone': 'a1', 'mode': 'b1'},
+            {'name': 'C2', 'zone': 'a2', 'mode': 'b2'},
+            {'name': 'C3', 'zone': 'a3', 'mode': 'b3'},
+            {'name': 'C4', 'zone': 'a4', 'mode': 'b4'},
+            {'name': 'C5', 'zone': 'a5', 'mode': 'b5'},
+            {'name': 'C6', 'zone': 'a6', 'mode': 'b6'},
+            {'name': 'C7', 'zone': 'a7', 'mode': 'b7'},
+            {'name': 'C8', 'zone': 'a8', 'mode': 'b8'},
+            {'name': 'C9', 'zone': 'a9', 'mode': 'b9'},
         ]
 
     def test_case_1(self):
