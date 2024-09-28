@@ -25,18 +25,17 @@ MODE = 'mode'
     'C10': EA
 """
 
-def C7_b1_or_b2_and_not_c3(cmd: Command) -> bool:
+def C7_b1_or_b2_and_not_c3(env: Environment, cmd: Command) -> bool:
     name = cmd[NAME]
     args = cmd[ARGS]
     return name == 'C7' and args[ZONE] in {'b1', 'b2'} and args[MODE] != 'c3'
 
 
 def C7_with_zone(zone: str) -> CommandConstraint:
-    def constraint(cmd: Command) -> bool:
+    def constraint(env: Environment, cmd: Command) -> bool:
         name = cmd[NAME]
         args = cmd[ARGS]
         return name == 'C7' and args[ZONE] == zone
-    print(f"C7_with_zone called with {zone}")
     return constraint
 
 constraints1: list[TestConstraint] = [
@@ -55,6 +54,6 @@ constraints2: list[TestConstraint] = [
 
 
 if __name__ == '__main__':
-    tests = generate_tests(cmdDict, enumDict, constraints2, 10, 5)
+    tests = generate_tests(cmdDict, enumDict, constraints1, 10, 5)
     pp(tests)
 

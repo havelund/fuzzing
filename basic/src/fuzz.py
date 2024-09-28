@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import random
 from typing import Callable, Optional
 import pprint
@@ -10,8 +12,11 @@ CommandName = str
 Command = {'name': CommandName, 'args': dict[str, str]} # not a correct type
 Test = list[Command]
 TestSuite = list[Test]
-TestConstraint = Callable[[Test], bool]
-CommandConstraint = Callable[[Command], bool]
+
+Environment = dict[int, Command]
+TestConstraint = Callable[[Environment, Test], bool]
+CommandConstraint = Callable[[Environment, Command], bool]
+FreezeId = int | str
 
 
 ########################
@@ -53,9 +58,13 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
 # Main Constraint  #
 ####################
 
+def apply_test_constraint(tc: TestConstraint, test: Test) -> bool:
+    return tc({}, test)
+
+
 def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:
     for constraint in constraints:
-        if not constraint(test):
+        if not apply_test_constraint(constraint, test):
             return False
     return True
 
@@ -64,13 +73,13 @@ def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:
 # Auxiliary functions #
 #######################
 
-def last_satisfying_index(test: Test, cc: CommandConstraint) -> Optional[int]:
-    indices = [i for i, x in enumerate(test) if cc(x)]
+def last_satisfying_index(env: Environment, test: Test, cc: CommandConstraint) -> Optional[int]:
+    indices = [i for i, cmd in enumerate(test) if cc(env, cmd)]
     return indices[-1] if indices else None
 
 
-def first_satisfying_index(test: Test, cc: CommandConstraint) -> Optional[int]:
-    indices = [i for i, x in enumerate(test) if cc(x)]
+def first_satisfying_index(env: Environment, test: Test, cc: CommandConstraint) -> Optional[int]:
+    indices = [i for i, cmd in enumerate(test) if cc(env, cmd)]
     return indices[0] if indices else None
 
 
@@ -81,8 +90,8 @@ pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint
 # Temporal operators #
 ######################
 
-T: TestConstraint = lambda test: True
-F: TestConstraint = lambda test: False # Alternative semantics: Not(T)
+T: TestConstraint = lambda env, test: True
+F: TestConstraint = lambda env, test: False  # Alternative semantics: Not(T)
 
 
 def N(name: str) -> TestConstraint:
@@ -93,17 +102,17 @@ def Cmd(name: str) -> CommandConstraint:
     """
     name
     """
-    return lambda c: c['name'] == name
+    return lambda e,c: c['name'] == name
 
 
 def Now(cc: CommandConstraint) -> TestConstraint:
     """
     cc
     """
-    def constraint(test: Test) -> bool:
+    def constraint(env: Environment, test: Test) -> bool:
         match test:
             case [cmd, *test_]:
-                return cc(cmd)
+                return cc(env, cmd)
             case []:
                 return False
     return constraint
@@ -113,8 +122,8 @@ def Not(tc: TestConstraint) -> TestConstraint:
     """
     !tc
     """
-    def constraint(test: Test) -> bool:
-        return not tc(test)
+    def constraint(env: Environment, test: Test) -> bool:
+        return not tc(env, test)
     return constraint
 
 
@@ -122,8 +131,8 @@ def And(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
     """
     tc1 & tc2
     """
-    def constraint(test: Test) -> bool:
-        return tc1(test) and tc2(test)
+    def constraint(env: Environment, test: Test) -> bool:
+        return tc1(env, test) and tc2(env, test)
     return constraint
 
 
@@ -132,8 +141,8 @@ def Or(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
     tc1 | tc2
     Alternative semantics: Not(And(Not(tc1), Not(tc2)))
     """
-    def constraint(test: Test) -> bool:
-        return tc1(test) or tc2(test)
+    def constraint(env: Environment, test: Test) -> bool:
+        return tc1(env, test) or tc2(env, test)
     return constraint
 
 
@@ -148,25 +157,23 @@ def Next(tc: TestConstraint) -> TestConstraint:
     """
     ()tc
     """
-    def constraint(test: Test) -> bool:
+    def constraint(env: Environment, test: Test) -> bool:
         match test:
             case [_, *test_]:
-                return tc(test_)
+                return tc(env, test_)
             case []:
                 return False
     return constraint
 
 
-# TODO:
 def Until(tc1: TestConstraint, tc2: TestConstraint) -> TestConstraint:
     """
     tc1 U tc2
     """
-    # This does not work: Or(tc2, And(tc1, Next(Until(tc1, tc2))))
-    def constraint(test: Test) -> bool:
+    def constraint(env: Environment, test: Test) -> bool:
         match test:
             case [_, *test_]:
-                return tc2(test) or (tc1(test) and constraint(test_))
+                return tc2(env, test) or (tc1(env, test) and constraint(env, test_))
             case []:
                 return False
     return constraint
@@ -177,10 +184,10 @@ def Eventually(tc: TestConstraint) -> TestConstraint:
     <> tc
     Alternative semantics: Until(T, tc)
     """
-    def constraint(test: Test) -> bool:
+    def constraint(env: Environment, test: Test) -> bool:
         match test:
             case [_, *test_]:
-                return tc(test) or constraint(test_)
+                return tc(env, test) or constraint(env, test_)
             case []:
                 return False
     return constraint
@@ -191,12 +198,33 @@ def Always(tc: TestConstraint) -> TestConstraint:
     [] tc
     Alternative semantics: Not(Eventually(Not(tc)))
     """
-    def constraint(test: Test) -> bool:
+    def constraint(env: Environment, test: Test) -> bool:
         match test:
             case [_, *test_]:
-                return tc(test) and constraint(test_)
+                return tc(env, test) and constraint(env, test_)
             case []:
                 return True
+    return constraint
+
+
+def FreezeCmdAs(id: FreezeId, tc: TestConstraint) -> TestConstraint:
+    def constraint(env: Environment, test: Test) -> bool:
+        env[id] = test[0]
+        return tc(env, test)
+    return constraint
+
+
+def FreezeArgAs(arg: str, id: str, tc: TestConstraint) -> TestConstraint:
+    def constraint(env: Environment, test: Test) -> bool:
+        env[id] = test[0]['args'][arg]
+        return tc(env, test)
+    return constraint
+
+
+def FreezeArg(arg: str, tc: TestConstraint) -> TestConstraint:
+    def constraint(env: Environment, test: Test) -> bool:
+        env[arg] = test[0]['args'][arg]
+        return tc(env, test)
     return constraint
 
 
@@ -215,19 +243,20 @@ def contains_command_count(cc: CommandConstraint, low: int, high: int) -> TestCo
     """
     low <= |cc| <= high
     """
-    def constraint(test: Test) -> bool:
-        commands = [c for c in test if cc(c)]
+    def constraint(env: Environment, test: Test) -> bool:
+        commands = [c for c in test if cc(env, c)]
         return low <= len(commands) <= high
     return constraint
 
 
+# TODO:
 def command_preceeds_command(cc1: CommandConstraint, cc2: CommandConstraint) -> TestConstraint:
     """
     [](cc2 -> <#>cc1)
     """
-    def constraint(test: Test) -> bool:
-        indexC1 = first_satisfying_index(test, cc1)
-        indexC2 = first_satisfying_index(test, cc2)
+    def constraint(env: Environment, test: Test) -> bool:
+        indexC1 = first_satisfying_index(env, test, cc1)
+        indexC2 = first_satisfying_index(env, test, cc2)
         if indexC2 is not None:
             return indexC1 is not None and indexC1 < indexC2
         else:
