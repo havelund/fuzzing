@@ -1,31 +1,22 @@
 import unittest
+from basic.tests.testutils import BaseTestSuite
 from basic.src.fuzz import *
 
 
-class FuzzTestSuite(unittest.TestCase):
-
-    def equal(self, tc: TestConstraint, result: bool):
-        self.assertEqual(apply_test_constraint(tc, self.test), result)
-
-    def true(self, tc: TestConstraint):
-        self.equal(tc, True)
-
-    def false(self, tc: TestConstraint):
-        self.equal(tc, False)
-
+class FuzzTestSuite1(BaseTestSuite):
     def setUp(self):
         # Set up the common test data (initial state)
         self.test = [
-            {'name': 'C0', 'args': {'zone': 'b1', 'mode': 'c3'}},
-            {'name': 'C1', 'args': {'zone': 'c3', 'mode': 'd1'}},
-            {'name': 'C2', 'args': {'zone': 'e1', 'mode': 'a2'}},
-            {'name': 'C3', 'args': {'zone': 'c3', 'mode': 'd1'}},
-            {'name': 'C4', 'args': {'zone': 'a3', 'mode': 'b3'}},
-            {'name': 'C5', 'args': {'zone': 'a3', 'mode': 'b3'}},
-            {'name': 'C6', 'args': {'zone': 'a3', 'mode': 'b3'}},
-            {'name': 'C7', 'args': {'zone': 'a3', 'mode': 'b3'}},
-            {'name': 'C8', 'args': {'zone': 'a3', 'mode': 'b3'}},
-            {'name': 'C9', 'args': {'zone': 'a3', 'mode': 'b3'}},
+            {'name': 'C0', 'args': {'zone': 'a0', 'mode': 'b0'}},
+            {'name': 'C1', 'args': {'zone': 'b1', 'mode': 'c1'}},
+            {'name': 'C2', 'args': {'zone': 'c2', 'mode': 'd2'}},
+            {'name': 'C3', 'args': {'zone': 'd3', 'mode': 'e3'}},
+            {'name': 'C4', 'args': {'zone': 'e4', 'mode': 'a4'}},
+            {'name': 'C5', 'args': {'zone': 'a5', 'mode': 'b5'}},
+            {'name': 'C6', 'args': {'zone': 'b6', 'mode': 'c6'}},
+            {'name': 'C7', 'args': {'zone': 'c7', 'mode': 'd7'}},
+            {'name': 'C8', 'args': {'zone': 'd8', 'mode': 'e8'}},
+            {'name': 'C9', 'args': {'zone': 'e9', 'mode': 'a9'}},
         ]
 
     def test_case_1(self):
