@@ -5,8 +5,7 @@ from basic.src.fuzz import *
 
 class FuzzTestSuite2(BaseTestSuite):
     def setUp(self):
-        # Set up the common test data (initial state)
-        self.test = [
+        self.test = mk_test(
             {'name': 'C0', 'zone': 'a0', 'mode': 'b0'},
             {'name': 'C1', 'zone': 'a1', 'mode': 'b1'},
             {'name': 'C2', 'zone': 'a2', 'mode': 'b2'},
@@ -16,8 +15,8 @@ class FuzzTestSuite2(BaseTestSuite):
             {'name': 'C6', 'zone': 'a6', 'mode': 'b6'},
             {'name': 'C7', 'zone': 'a2', 'mode': 'b7'},
             {'name': 'C8', 'zone': 'a8', 'mode': 'b8'},
-            {'name': 'C9', 'zone': 'a2', 'mode': 'b6'},
-        ]
+            {'name': 'C9', 'zone': 'a2', 'mode': 'b6'}
+        )
 
     def test_case_1(self):
         self.true(Always(
@@ -44,9 +43,9 @@ class FuzzTestSuite2(BaseTestSuite):
                             FreezeVar(
                                 'mode',
                                 Eventually(
-                                    Now(lambda e, c: name(c) == 'C9' and
-                                                     zone(c) == zone(e) and
-                                                     mode(c) == mode(e))
+                                    Now(lambda e, c: c.name == 'C9' and
+                                                     c.zone == e.zone and
+                                                     c.mode == e.mode)
                                 )
                             )
                         )

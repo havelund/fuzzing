@@ -1,6 +1,7 @@
 
 # TODO
  
-- Past time logic
+- Document
+- Past-time logic
 
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import random
 from typing import Callable, Optional
+from dotmap import DotMap
 import pprint
 
 #########
@@ -9,12 +10,12 @@ import pprint
 #########
 
 CommandName = str
-Command = dict[str, object]
+Command = DotMap
 Test = list[Command]
 TestSuite = list[Test]
 
 FreezeId = int | str
-Environment = dict[FreezeId, object]
+Environment = DotMap
 TestConstraint = Callable[[Environment, Test], bool]
 CommandConstraint = Callable[[Environment, Command], bool]
 
@@ -31,7 +32,7 @@ def generate_tests(cmdDict: dict, enumDict: dict, constraints: list[TestConstrai
         test = generate_test(cmdDict, enumDict, nr_cmds)
         if test_constraints(test, constraints) and test not in test_suite:
             count += 1
-            test_suite.append(test)
+            test_suite.append([cmd.toDict() for cmd in test])
     return test_suite
 
 
@@ -39,7 +40,7 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
     command_names = list(cmdDict.keys())
     test: Test = []
     for nr in range(nr_cmds):
-        command: Command = {}
+        command: Command = DotMap()
         command_name = random.choice(command_names)
         command['name'] = command_name
         arg_types = cmdDict[command_name]['args']
@@ -60,7 +61,7 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
 ####################
 
 def apply_test_constraint(tc: TestConstraint, test: Test) -> bool:
-    return tc({}, test)
+    return tc(DotMap(), test)
 
 
 def test_constraints(test : Test, constraints: list[TestConstraint]) -> bool:

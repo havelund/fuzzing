@@ -1,7 +1,7 @@
 
 import unittest
 from basic.src.fuzz import *
-
+from dotmap import DotMap
 
 def name(cmd: Command) -> str:
     return cmd['name']
@@ -13,6 +13,10 @@ def zone(map: Command | Environment) -> str:
 
 def mode(map: Command | Environment) -> str:
     return map['mode']
+
+
+def mk_test(*dict) -> Test:
+    return [DotMap(cmd) for cmd in dict]
 
 
 class BaseTestSuite(unittest.TestCase):
