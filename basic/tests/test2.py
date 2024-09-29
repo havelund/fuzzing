@@ -7,8 +7,8 @@ class FuzzTestSuite2(BaseTestSuite):
     def setUp(self):
         self.test = mk_test(
             {'name': 'C0', 'zone': 'a0', 'mode': 'b0'},
-            {'name': 'C1', 'zone': 'a1', 'mode': 'b1'},
-            {'name': 'C2', 'zone': 'a2', 'mode': 'b2'},
+            {'name': 'C1', 'zone': 'a5', 'mode': 'b8'},
+            {'name': 'C2', 'zone': 'a2', 'mode': 'b6'},
             {'name': 'C3', 'zone': 'a3', 'mode': 'b3'},
             {'name': 'C4', 'zone': 'a4', 'mode': 'b4'},
             {'name': 'C5', 'zone': 'a5', 'mode': 'b5'},
@@ -44,6 +44,29 @@ class FuzzTestSuite2(BaseTestSuite):
                                 'mode',
                                 Eventually(
                                     Now(lambda e, c: c.name == 'C9' and
+                                                     c.zone == e.zone and
+                                                     c.mode == e.mode)
+                                )
+                            )
+                        )
+                    )
+                )
+            )
+        ))
+
+    def test_case_3(self):
+        self.true(Always(
+            Implies(
+                N('C8'),
+                FreezeVar(
+                    'mode',
+                    Once(
+                        And(
+                            N('C5'),
+                            FreezeVar(
+                                'zone',
+                                Once(
+                                    Now(lambda e, c: c.name == 'C1' and
                                                      c.zone == e.zone and
                                                      c.mode == e.mode)
                                 )

@@ -2,6 +2,4 @@
 # TODO
  
 - Document
-- Past-time logic
-
-
+- Deep DSL rather than Shallow DSL
