@@ -12,31 +12,16 @@ ARGS = 'args'
 ZONE = 'zone'
 MODE = 'mode'
 
-""" Parameter types for zone and mode:
-    'C1': AB
-    'C2': BC
-    'C3': CD
-    'C4': DE
-    'C5': EA
-    'C6': AB
-    'C7': BC
-    'C8': CD
-    'C9': DE
-    'C10': EA
-"""
 
 def C7_b1_or_b2_and_not_c3(env: Environment, cmd: Command) -> bool:
-    name = cmd[NAME]
-    args = cmd[ARGS]
-    return name == 'C7' and args[ZONE] in {'b1', 'b2'} and args[MODE] != 'c3'
+    return cmd.name == 'C7' and cmd.zone in {'b1', 'b2'} and cmd.mode != 'c3'
 
 
 def C7_with_zone(zone: str) -> CommandConstraint:
     def constraint(env: Environment, cmd: Command) -> bool:
-        name = cmd[NAME]
-        args = cmd[ARGS]
-        return name == 'C7' and args[ZONE] == zone
+        return cmd.name == 'C7' and cmd.zone == zone
     return constraint
+
 
 constraints1: list[TestConstraint] = [
     contains_command_count(Cmd('C5'), 1, 2),
