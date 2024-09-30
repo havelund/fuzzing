@@ -58,6 +58,15 @@ class FuzzTestSuite1(BaseTestSuite):
     def test_case_13(self):
         self.false(FollowedBy(N('C3'), N('C2')))
 
+    def test_case_14(self):
+        self.true(CountFuture(Or(N('C1'), N('C3')), 2, 2))
+        self.false(CountFuture(Or(N('C1'), N('C3')), 3, 3))
+
+    def test_case_15(self):
+        count_formula = CounPast(Or(N('C2'), N('C4')), 2, 2)
+        formula = Always(Implies(N('C5'), count_formula))
+        self.true(formula)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -38,6 +38,6 @@ constraints2: list[Constraint] = [
 
 
 if __name__ == '__main__':
-    tests = generate_tests(cmdDict, enumDict, constraints1, 10, 5)
+    tests = generate_tests(cmdDict, enumDict, constraints2, 10, 5)
     pp(tests)
 

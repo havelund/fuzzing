@@ -22,18 +22,40 @@ CommandConstraint = Callable[[Environment, Command], bool]
 # Generation Functions #
 ########################
 
+class ArgumentConstraints:
+    def __init__(self, constraints: list[Constraint]):
+        self.commands: dict[str, dict[str, tuple[int, int]]] = {}
+        for constraint in constraints:
+            match constraint:
+                case Range(cmd_name, arg_name, min, max):
+                    if cmd_name not in self.commands:
+                        self.commands[cmd_name] = {}
+                    self.commands[cmd_name][arg_name] = (min, max)
+
+    def random(self, command: str, arg: str) -> int:
+        if command in self.commands:
+            arg_map = self.commands[command]
+            if arg in arg_map:
+                min, max = arg_map[arg]
+                return random.randrange(min, max)
+        return random.random()
+
+
 def generate_tests(cmdDict: dict, enumDict: dict, constraints: list[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
     test_suite: TestSuite = []
     count: int = 0
+    arg_constraints = ArgumentConstraints(constraints)
     while count != nr_tests:
-        test = generate_test(cmdDict, enumDict, nr_cmds)
+        test = generate_test(cmdDict, enumDict, arg_constraints, nr_cmds)
         if test_constraints(test, constraints) and test not in test_suite:
             count += 1
             test_suite.append([cmd.toDict() for cmd in test])
+        else:
+            print(f"failed")
     return test_suite
 
 
-def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
+def generate_test(cmdDict: dict, enumDict: dict, arg_constraints: ArgumentConstraints, nr_cmds: int) -> Test:
     command_names = list(cmdDict.keys())
     test: Test = []
     for nr in range(nr_cmds):
@@ -42,13 +64,13 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
         command['name'] = command_name
         arg_types = cmdDict[command_name]['args']
         for arg_type in arg_types:
-            name = arg_type['name']
-            type = arg_type['type']
-            if type == 'unsigned_arg':
-                value = random.random()
+            arg_name = arg_type['name']
+            arg_type = arg_type['type']
+            if arg_type == 'unsigned_arg':
+                value = arg_constraints.random(command_name, arg_name)
             else:
-                value = random.choice(enumDict[type])
-            command[name] = value
+                value = random.choice(enumDict[arg_type])
+            command[arg_name] = value
         test.append(command)
     return test
 
@@ -185,6 +207,15 @@ class Next(UnaryConstraint):
 
 
 @dataclass
+class WeakNext(UnaryConstraint):
+    """Represents the 'WeakNext' operator: X_weak φ"""
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        if within(index + 1, test):
+            return self.operand.evaluate(env, test, index + 1)
+        return True
+
+
+@dataclass
 class Until(BinaryConstraint):
     """Represents the 'Until' operator: φ U ψ"""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
@@ -224,6 +255,15 @@ class Previous(UnaryConstraint):
         if within(index - 1, test):
             return self.operand.evaluate(env, test, index - 1)
         return False
+
+
+@dataclass
+class WeakPrevious(UnaryConstraint):
+    """Represents the weak 'Previous' operator: P_weak φ"""
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        if within(index - 1, test):
+            return self.operand.evaluate(env, test, index - 1)
+        return True
 
 
 @dataclass
@@ -299,9 +339,9 @@ class FreezeVar(Constraint):
         return False
 
 
-#####################
-# Derived Functions #
-#####################
+######################
+# Derived Constructs #
+######################
 
 @dataclass
 class FollowedBy(BinaryConstraint):
@@ -320,12 +360,20 @@ class Precedes(BinaryConstraint):
         formula = Always(Implies(self.left, Once(self.right)))
         return formula.evaluate(env, test, index)
 
+
+####################
+# Other Constructs #
+####################
+
 @dataclass
 class CountFuture(Constraint):
     constraint: Constraint
     min: int
     max: int
-    """Counts the number of times in the future that the constraint holds"""
+    """
+    Verifies that the number of times a constraint holds in the future,
+    including now, is within a lower and an upper bound.
+    """
 
     def count(self, env: Environment, test: Test, index: int) -> int:
         if within(index, test):
@@ -336,3 +384,36 @@ class CountFuture(Constraint):
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         number = self.count(env, test, index)
         return self.min <= number <= self.max
+
+
+@dataclass
+class CounPast(Constraint):
+    constraint: Constraint
+    min: int
+    max: int
+    """
+    Verifies that the number of times a constraint holds in the past,
+    including now, is within a lower and an upper bound.
+    """
+
+    def count(self, env: Environment, test: Test, index: int) -> int:
+        if within(index, test):
+            number = 1 if self.constraint.evaluate(env, test, index) else 0
+            return number + self.count(env, test, index - 1)
+        return 0
+
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        number = self.count(env, test, index)
+        return self.min <= number <= self.max
+
+
+@dataclass
+class Range(Constraint):
+    cmd_name: str
+    arg_name: str
+    min: int
+    max: int
+
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        formula = Always(Implies(N(self.cmd_name), C(lambda e,c: self.min <= c[self.arg_name] <= self.max)))
+        return formula.evaluate(env, test, index)
