@@ -15,7 +15,6 @@ Test = list[Command]
 TestSuite = list[Test]
 Environment = DotMap
 FreezeId = int | str
-CommandConstraint = Callable[[Environment, Command], bool]
 
 
 ########################
@@ -29,7 +28,7 @@ def generate_tests(cmdDict: dict, enumDict: dict, constraints: list[Constraint],
         test = generate_test(cmdDict, enumDict, nr_cmds)
         if test_constraints(test, constraints) and test not in test_suite:
             count += 1
-            test_suite.append([cmd.toDict() for cmd in test])
+            test_suite.append(test)
     return test_suite
 
 
@@ -104,22 +103,18 @@ class BinaryConstraint(Constraint):
 #######################
 
 @dataclass
-class TRUE(Constraint):
+class T(Constraint):
     """Represents a constraint that always evaluates to True."""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         return True
 
 
-TRUE = TRUE()  # Turn it into a singleton
-
 @dataclass
-class FALSE(Constraint):
+class F(Constraint):
     """Represents a constraint that always evaluates to False."""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         return False
 
-
-FALSE = FALSE()  # Turn it into a singleton
 
 @dataclass
 class N(Constraint):
@@ -134,7 +129,7 @@ class N(Constraint):
 
 @dataclass
 class C(Constraint):
-    condition: CommandConstraint
+    condition: Callable[[Environment, Command], bool]
     """Represents command predicate p"""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         if within(index, test):

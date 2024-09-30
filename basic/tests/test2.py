@@ -25,7 +25,7 @@ class FuzzTestSuite2(BaseTestSuite):
                 FreezeVar(
                     'zone',
                     Eventually(
-                        Now(lambda e, c: name(c) == 'C7' and zone(c) == zone(e))
+                        C(lambda e, c: name(c) == 'C7' and zone(c) == zone(e))
                     )
                 )
             )
@@ -43,7 +43,7 @@ class FuzzTestSuite2(BaseTestSuite):
                             FreezeVar(
                                 'mode',
                                 Eventually(
-                                    Now(lambda e, c: c.name == 'C9' and
+                                    C(lambda e, c: c.name == 'C9' and
                                                      c.zone == e.zone and
                                                      c.mode == e.mode)
                                 )
@@ -66,7 +66,7 @@ class FuzzTestSuite2(BaseTestSuite):
                             FreezeVar(
                                 'zone',
                                 Once(
-                                    Now(lambda e, c: c.name == 'C1' and
+                                    C(lambda e, c: c.name == 'C1' and
                                                      c.zone == e.zone and
                                                      c.mode == e.mode)
                                 )

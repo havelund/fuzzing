@@ -32,10 +32,10 @@ class FuzzTestSuite1(BaseTestSuite):
         self.true(Always(Implies(N('C4'), Until(Not(N('C1')), N('C9')))))
 
     def test_case_5(self):
-        self.false(Until(T, N('C10')))
+        self.false(Until(TRUE, N('C10')))
 
     def test_case_6(self):
-        self.true(Until(T, N('C9')))
+        self.true(Until(TRUE, N('C9')))
 
     def test_case_7(self):
         self.true(Until(Not(N('C8')), And(N('C3'), Next(N('C4')))))
@@ -53,10 +53,10 @@ class FuzzTestSuite1(BaseTestSuite):
         self.true(Or(Eventually(N('C50')), Eventually(N('C5'))))
 
     def test_case_12(self):
-        self.true(response(N('C3'), N('C7')))
+        self.true(FollowedBy(N('C3'), N('C7')))
 
     def test_case_13(self):
-        self.false(response(N('C3'), N('C2')))
+        self.false(FollowedBy(N('C3'), N('C2')))
 
 
 if __name__ == '__main__':

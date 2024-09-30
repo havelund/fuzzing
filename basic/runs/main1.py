@@ -23,18 +23,17 @@ def C7_with_zone(zone: str) -> CommandConstraint:
     return constraint
 
 
-constraints1: list[TestConstraint] = [
-    contains_command_count(Cmd('C5'), 1, 2),
-    command_preceeds_command(Cmd('C1'), Cmd('C2')),
-    command_followed_by_command(Cmd('C3'), Cmd('C4')),
-    command_followed_by_command_without(Cmd('C5'), Cmd('C6'), Cmd('C7'))
+constraints1: list[Constraint] = [
+    CountFuture(N('C5'), 1, 2),
+    Precedes(N('C1'), N('C2')),
+    FollowedBy(N('C3'), N('C4'))
 ]
 
-constraints2: list[TestConstraint] = [
+constraints2: list[Constraint] = [
     Eventually(N('C1')),
-    Always(Implies(N('C1'), Eventually(Now(C7_b1_or_b2_and_not_c3)))),
-    Always(Implies(N('C2'), Eventually(Now(C7_with_zone('b2'))))),
-    Always(Implies(N('C2'), Eventually(Now(C7_with_zone('b2')))))
+    Always(Implies(N('C1'), Eventually(C(C7_b1_or_b2_and_not_c3)))),
+    Always(Implies(N('C2'), Eventually(C(C7_with_zone('b2'))))),
+    Always(Implies(N('C2'), Eventually(C(C7_with_zone('b2')))))
 ]
 
 

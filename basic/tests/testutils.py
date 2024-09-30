@@ -21,12 +21,12 @@ def mk_test(*dict) -> Test:
 
 class BaseTestSuite(unittest.TestCase):
 
-    def equal(self, tc: TestConstraint, result: bool):
-        self.assertEqual(apply_test_constraint(tc, self.test), result)
+    def equal(self, tc: Constraint, result: bool):
+        self.assertEqual(apply_constraint(tc, self.test), result)
 
-    def true(self, tc: TestConstraint):
+    def true(self, tc: Constraint):
         self.equal(tc, True)
 
-    def false(self, tc: TestConstraint):
+    def false(self, tc: Constraint):
         self.equal(tc, False)
 
