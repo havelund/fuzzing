@@ -1,8 +1,8 @@
 from z3 import *
-from typing import Callable, Dict
+from typing import Callable, Dict, Any
 
 # Define the Environment type
-Environment = Dict[str, Int]
+Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
 
 # Abstract Syntax Classes for Temporal Logic
 
@@ -28,6 +28,15 @@ class FreezeAsIn(Constraint):
         # Evaluate the subformula with the frozen value in the environment
         subformula_constraint = self.subformula.evaluate(env, t, end_time)
         return And(freeze_constraint, subformula_constraint)
+
+
+class ExpressionConstraint(Constraint):
+    """A generic constraint that evaluates an arbitrary expression on the environment and time point."""
+    def __init__(self, expression_fn: Callable[[Environment, int], BoolRef]):
+        self.expression_fn = expression_fn
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return self.expression_fn(env, t)  # The user-defined expression is evaluated here
 
 
 # Boolean Operators for the Abstract Syntax
@@ -62,17 +71,7 @@ class LogicImplies(Constraint):
         return Implies(self.left.evaluate(env, t, end_time), self.right.evaluate(env, t, end_time))
 
 
-class Equal(Constraint):
-    """Equal(x, y): x == y."""
-    def __init__(self, x: Int, y: Int):
-        self.x = x
-        self.y = y
-
-    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return self.x == self.y
-
-
-# Temporal Operators
+# Temporal Operators (Future Time)
 
 class Eventually(Constraint):
     """Eventually φ: at some point in the future, φ holds."""
@@ -126,7 +125,25 @@ class Until(Constraint):
                    for t_prime in range(t, end_time)])
 
 
-# Past-Time Operators
+# Past-Time Temporal Operators
+
+class Once(Constraint):
+    """Once φ: at some point in the past, φ held."""
+    def __init__(self, subformula: Constraint):
+        self.subformula = subformula
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
+
+
+class Historically(Constraint):
+    """Historically φ: φ has always held in the past."""
+    def __init__(self, subformula: Constraint):
+        self.subformula = subformula
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return And([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
+
 
 class Previous(Constraint):
     """Previous φ: φ holds at the previous time step."""
@@ -162,24 +179,6 @@ class Since(Constraint):
                    for t_prime in range(0, t + 1)])
 
 
-class Once(Constraint):
-    """Once φ: at some point in the past, φ held."""
-    def __init__(self, subformula: Constraint):
-        self.subformula = subformula
-
-    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
-
-
-class Historically(Constraint):
-    """Historically φ: φ has always held in the past."""
-    def __init__(self, subformula: Constraint):
-        self.subformula = subformula
-
-    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return And([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
-
-
 # Define the command datatype: Move(speed: Int), Turn(angle: Int), Cancel()
 Command = Datatype('Command')
 Command.declare('mk_move_cmd', ('move_speed', IntSort()))  # Move command has a speed argument
@@ -194,15 +193,26 @@ timeline = Function('timeline', IntSort(), Command)
 solver = Solver()
 
 # Define the end time of the trace
-end_time = 100
+end_time = 50
 
 # Define an environment for binding frozen values
 env: Environment = {}
 
-# Example: Eventually, we see a Move command with the same speed as frozen at t=8
-freeze_formula = FreezeAsIn(lambda t: Command.move_speed(timeline(t)), 'x',
-                            Eventually(Equal(Int('x'), Command.move_speed(timeline(t)))))  # Now using Int('x') for comparison
-formula = Always(freeze_formula)
+# Example: Eventually, we want to check if a frozen value x is greater than 5
+freeze_formula = FreezeAsIn(
+    lambda t: Command.move_speed(timeline(t)),  # Freeze the move speed at time t
+    'x',
+    Eventually(ExpressionConstraint(
+        lambda env, t: env['x'] > 5  # Check if the frozen value x is greater than 5
+    ))
+)
+
+# Define a more complex condition using addition and comparison
+complex_formula = Eventually(ExpressionConstraint(
+    lambda env, t: Command.move_speed(timeline(t)) + 10 > 15  # Check if speed + 10 > 15 at time t
+))
+
+formula = LogicAnd(Always(freeze_formula), complex_formula)
 
 # Add the Always constraint: always check the eventual condition
 for t in range(0, end_time):
@@ -222,7 +232,6 @@ if solver.check() == sat:
             print(f"At time {t_val}: Cancel command")
 else:
     print("No solution found.")
-
 
 
 if __name__ == '__main__':
