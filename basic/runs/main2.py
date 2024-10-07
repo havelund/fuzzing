@@ -13,6 +13,7 @@ for a minimum value for an argument? Nominally we would set this rate to  betwee
 
 from basic.src.fuzz import *
 from dictionaries.dict_clipper1 import cmdDict, enumDict
+import json
 
 constraints1: list[Constraint] = [
     CountFuture(N('TIME_CORR_REQUEST'), 1, 1),
@@ -25,3 +26,5 @@ constraints1: list[Constraint] = [
 if __name__ == '__main__':
     tests = generate_tests(cmdDict, enumDict, constraints1, 10, 5)
     pp(tests)
+    with open("testsuite.json", "w") as file:
+        json.dump(tests, file, indent=4)

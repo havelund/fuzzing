@@ -38,7 +38,7 @@ class ArgumentConstraints:
             if arg in arg_map:
                 min, max = arg_map[arg]
                 return random.randrange(min, max)
-        return random.random()
+        return random.randint(0,1000000)
 
 
 def generate_tests(cmdDict: dict, enumDict: dict, constraints: list[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
