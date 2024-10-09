@@ -4,16 +4,19 @@ from typing import Callable, Dict, Any
 # Define the Environment type
 Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
 
+
 # Abstract Syntax Classes for Temporal Logic
 
 class Constraint:
     """Base class for all constraints."""
+
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         raise NotImplementedError("Subclasses should implement this!")
 
 
 class FreezeAsIn(Constraint):
     """Freeze a value at time t, bind it to a name, and apply it in a subformula."""
+
     def __init__(self, value_fn: Callable[[int], Int], name: str, subformula: Constraint):
         self.value_fn = value_fn  # Function to extract the value to freeze
         self.name = name  # Name to bind the frozen value to
@@ -32,6 +35,7 @@ class FreezeAsIn(Constraint):
 
 class ExpressionConstraint(Constraint):
     """A generic constraint that evaluates an arbitrary expression on the environment and time point."""
+
     def __init__(self, expression_fn: Callable[[Environment, int], BoolRef]):
         self.expression_fn = expression_fn
 
@@ -41,8 +45,37 @@ class ExpressionConstraint(Constraint):
 
 # Boolean Operators for the Abstract Syntax
 
+class TRUE(Constraint):
+    """Represents a constraint that is True."""
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return True
+
+
+TRUE = TRUE()  # Turn it into a singleton
+
+
+class FALSE(Constraint):
+    """Represents a constraint that is False."""
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return False
+
+
+FALSE = FALSE()  # Turn it into a singleton
+
+
+class LogicNot(Constraint):
+    """LogicNot(φ): Logical negation !φ."""
+
+    def __init__(self, subformula: Constraint):
+        self.subformula = subformula
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return Not(self.subformula.evaluate(env, t, end_time))
+
+
 class LogicAnd(Constraint):
     """LogicAnd(φ, ψ): Logical conjunction (φ ∧ ψ)."""
+
     def __init__(self, left: Constraint, right: Constraint):
         self.left = left
         self.right = right
@@ -53,6 +86,7 @@ class LogicAnd(Constraint):
 
 class LogicOr(Constraint):
     """LogicOr(φ, ψ): Logical disjunction (φ ∨ ψ)."""
+
     def __init__(self, left: Constraint, right: Constraint):
         self.left = left
         self.right = right
@@ -63,6 +97,7 @@ class LogicOr(Constraint):
 
 class LogicImplies(Constraint):
     """LogicImplies(φ → ψ): Logical implication (φ → ψ)."""
+
     def __init__(self, left: Constraint, right: Constraint):
         self.left = left
         self.right = right
@@ -75,15 +110,18 @@ class LogicImplies(Constraint):
 
 class Eventually(Constraint):
     """Eventually φ: at some point in the future, φ holds."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        print(f"eventually @ {t}")
         return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(t, end_time)])
 
 
 class Always(Constraint):
     """Always φ: at every point in the future, φ holds."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
@@ -93,6 +131,7 @@ class Always(Constraint):
 
 class Next(Constraint):
     """Next φ: in the next time step, φ holds."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
@@ -104,6 +143,7 @@ class Next(Constraint):
 
 class WeakNext(Constraint):
     """Weak Next φ: either φ holds in the next time step or the timeline ends."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
@@ -115,6 +155,7 @@ class WeakNext(Constraint):
 
 class Until(Constraint):
     """φ U ψ: φ holds until ψ holds at some point."""
+
     def __init__(self, left: Constraint, right: Constraint):
         self.left = left  # φ
         self.right = right  # ψ
@@ -129,6 +170,7 @@ class Until(Constraint):
 
 class Once(Constraint):
     """Once φ: at some point in the past, φ held."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
@@ -138,6 +180,7 @@ class Once(Constraint):
 
 class Historically(Constraint):
     """Historically φ: φ has always held in the past."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
@@ -147,6 +190,7 @@ class Historically(Constraint):
 
 class Previous(Constraint):
     """Previous φ: φ holds at the previous time step."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
@@ -158,17 +202,19 @@ class Previous(Constraint):
 
 class WeakPrevious(Constraint):
     """Weak Previous φ: either φ holds at the previous time step or it's the start of the timeline."""
+
     def __init__(self, subformula: Constraint):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t - 1 >= 0:
             return self.subformula.evaluate(env, t - 1, end_time)
-        return True  # If no previous step, it's trivially true.
+        return True
 
 
 class Since(Constraint):
     """φ S ψ: ψ holds at some point in the past, and φ has held since that point."""
+
     def __init__(self, left: Constraint, right: Constraint):
         self.left = left  # φ
         self.right = right  # ψ
@@ -193,36 +239,54 @@ timeline = Function('timeline', IntSort(), Command)
 solver = Solver()
 
 # Define the end time of the trace
-end_time = 50
+end_time = 10
 
 # Define an environment for binding frozen values
 env: Environment = {}
 
-# Example: Eventually, we want to check if a frozen value x is greater than 5
-freeze_formula = FreezeAsIn(
-    lambda t: Command.move_speed(timeline(t)),  # Freeze the move speed at time t
-    'x',
-    Eventually(ExpressionConstraint(
-        lambda env, t: env['x'] > 5  # Check if the frozen value x is greater than 5
-    ))
+# --- Property begin ---
+
+formula = LogicAnd(
+    ExpressionConstraint(lambda env, t:
+                         And(Command.is_mk_turn_cmd(timeline(5)), Command.turn_angle(timeline(5)) == 42)),
+    Always(
+        LogicImplies(
+            ExpressionConstraint(lambda env, t: Command.is_mk_turn_cmd(timeline(t))),
+            FreezeAsIn(
+                lambda t: Command.turn_angle(timeline(t)),
+                'a',
+                LogicAnd(
+                    Eventually(
+                        ExpressionConstraint(lambda env, t:
+                                             And([
+                                                 Command.is_mk_move_cmd(timeline(t)),
+                                                 Command.move_speed(timeline(t)) == env['a']
+                                             ])
+                                             )
+                    ),
+                    Once(
+                        ExpressionConstraint(lambda env, t:
+                                             And([
+                                                 Command.is_mk_move_cmd(timeline(t)),
+                                                 Command.move_speed(timeline(t)) == env['a']
+                                             ])
+                                             )
+                    )
+                )
+            )
+        )
+    )
 )
 
-# Define a more complex condition using addition and comparison
-complex_formula = Eventually(ExpressionConstraint(
-    lambda env, t: Command.move_speed(timeline(t)) + 10 > 15  # Check if speed + 10 > 15 at time t
-))
+# --- Property end ---
 
-formula = LogicAnd(Always(freeze_formula), complex_formula)
-
-# Add the Always constraint: always check the eventual condition
-for t in range(0, end_time):
-    solver.add(formula.evaluate(env, t, end_time))
+solver.add(formula.evaluate(env, 0, end_time))
 
 # Solve and extract the model
 if solver.check() == sat:
     model = solver.model()
     print("Solution found!")
-    for t_val in range(10):
+    for t_val in range(100):
         cmd = model.eval(timeline(t_val))
         if model.eval(Command.is_mk_move_cmd(cmd)):
             print(f"At time {t_val}: Move command with speed = {model.eval(Command.move_speed(cmd))}")
@@ -232,7 +296,6 @@ if solver.check() == sat:
             print(f"At time {t_val}: Cancel command")
 else:
     print("No solution found.")
-
 
 if __name__ == '__main__':
     pass
