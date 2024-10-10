@@ -1,6 +1,5 @@
 import unittest
-from basic.tests.testutils import BaseTestSuite
-from basic.src.fuzz import *
+from tests.testutils import BaseTestSuite
 
 
 class FuzzTestSuite1(BaseTestSuite):

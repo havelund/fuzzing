@@ -1,5 +1,5 @@
 {
-    "enumDict": {
+    "enum_dict": {
         "dwn_framing_packet_buffer": [
             "REALTIME_EHA_1",
             "FATAL_EVR",
@@ -20,7 +20,7 @@
             "ENABLE"
         ]
     },
-    "cmdDict": {
+    "cmd_dict": {
         "TIME_CORR_REQUEST": {
             "opcode": "0xFBA1",
             "args": [

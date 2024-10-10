@@ -1,6 +1,5 @@
 
 import unittest
-from basic.src.fuzz import *
 from dotmap import DotMap
 
 def name(cmd: Command) -> str:

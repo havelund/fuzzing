@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import argparse
 import random
-from typing import Callable, Optional
+from typing import Callable
 from dotmap import DotMap
 from dataclasses import dataclass
 import pprint
+import json
 
 #########
 # Types #
@@ -15,24 +17,47 @@ Test = list[Command]
 TestSuite = list[Test]
 Environment = DotMap
 FreezeId = int | str
+CommandConstraint = Callable[[Environment, Command], bool]
 
 
 ########################
 # Generation Functions #
 ########################
 
-def generate_tests(cmdDict: dict, enumDict: dict, constraints: list[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
+class ArgumentConstraints:
+    def __init__(self, constraints: list[Constraint]):
+        self.commands: dict[str, dict[str, tuple[int, int]]] = {}
+        for constraint in constraints:
+            match constraint:
+                case Range(cmd_name, arg_name, min, max):
+                    if cmd_name not in self.commands:
+                        self.commands[cmd_name] = {}
+                    self.commands[cmd_name][arg_name] = (min, max)
+
+    def random(self, command: str, arg: str) -> int:
+        if command in self.commands:
+            arg_map = self.commands[command]
+            if arg in arg_map:
+                min, max = arg_map[arg]
+                return random.randrange(min, max)
+        return random.randint(0,1000000)
+
+
+def generate_testsuite(cmdDict: dict, enumDict: dict, constraints: list[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
     test_suite: TestSuite = []
     count: int = 0
+    arg_constraints = ArgumentConstraints(constraints)
     while count != nr_tests:
-        test = generate_test(cmdDict, enumDict, nr_cmds)
+        test = generate_test(cmdDict, enumDict, arg_constraints, nr_cmds)
         if test_constraints(test, constraints) and test not in test_suite:
             count += 1
-            test_suite.append(test)
+            test_suite.append([cmd.toDict() for cmd in test])
+        else:
+            print(f"failed")
     return test_suite
 
 
-def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
+def generate_test(cmdDict: dict, enumDict: dict, arg_constraints: ArgumentConstraints, nr_cmds: int) -> Test:
     command_names = list(cmdDict.keys())
     test: Test = []
     for nr in range(nr_cmds):
@@ -41,13 +66,13 @@ def generate_test(cmdDict: dict, enumDict: dict, nr_cmds: int) -> Test:
         command['name'] = command_name
         arg_types = cmdDict[command_name]['args']
         for arg_type in arg_types:
-            name = arg_type['name']
-            type = arg_type['type']
-            if type == 'unsigned_arg':
-                value = random.random()
+            arg_name = arg_type['name']
+            arg_type = arg_type['type']
+            if arg_type == 'unsigned_arg':
+                value = arg_constraints.random(command_name, arg_name)
             else:
-                value = random.choice(enumDict[type])
-            command[name] = value
+                value = random.choice(enumDict[arg_type])
+            command[arg_name] = value
         test.append(command)
     return test
 
@@ -103,18 +128,22 @@ class BinaryConstraint(Constraint):
 #######################
 
 @dataclass
-class T(Constraint):
+class TRUE(Constraint):
     """Represents a constraint that always evaluates to True."""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         return True
 
 
+TRUE = TRUE()  # Turn it into a singleton
+
 @dataclass
-class F(Constraint):
+class FALSE(Constraint):
     """Represents a constraint that always evaluates to False."""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         return False
 
+
+FALSE = FALSE()  # Turn it into a singleton
 
 @dataclass
 class N(Constraint):
@@ -129,7 +158,7 @@ class N(Constraint):
 
 @dataclass
 class C(Constraint):
-    condition: Callable[[Environment, Command], bool]
+    condition: CommandConstraint
     """Represents command predicate p"""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         if within(index, test):
@@ -180,6 +209,15 @@ class Next(UnaryConstraint):
 
 
 @dataclass
+class WeakNext(UnaryConstraint):
+    """Represents the 'WeakNext' operator: X_weak φ"""
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        if within(index + 1, test):
+            return self.operand.evaluate(env, test, index + 1)
+        return True
+
+
+@dataclass
 class Until(BinaryConstraint):
     """Represents the 'Until' operator: φ U ψ"""
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
@@ -219,6 +257,15 @@ class Previous(UnaryConstraint):
         if within(index - 1, test):
             return self.operand.evaluate(env, test, index - 1)
         return False
+
+
+@dataclass
+class WeakPrevious(UnaryConstraint):
+    """Represents the weak 'Previous' operator: P_weak φ"""
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        if within(index - 1, test):
+            return self.operand.evaluate(env, test, index - 1)
+        return True
 
 
 @dataclass
@@ -294,9 +341,9 @@ class FreezeVar(Constraint):
         return False
 
 
-#####################
-# Derived Functions #
-#####################
+######################
+# Derived Constructs #
+######################
 
 @dataclass
 class FollowedBy(BinaryConstraint):
@@ -315,12 +362,20 @@ class Precedes(BinaryConstraint):
         formula = Always(Implies(self.left, Once(self.right)))
         return formula.evaluate(env, test, index)
 
+
+####################
+# Other Constructs #
+####################
+
 @dataclass
 class CountFuture(Constraint):
     constraint: Constraint
     min: int
     max: int
-    """Counts the number of times in the future that the constraint holds"""
+    """
+    Verifies that the number of times a constraint holds in the future,
+    including now, is within a lower and an upper bound.
+    """
 
     def count(self, env: Environment, test: Test, index: int) -> int:
         if within(index, test):
@@ -331,3 +386,87 @@ class CountFuture(Constraint):
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         number = self.count(env, test, index)
         return self.min <= number <= self.max
+
+
+@dataclass
+class CounPast(Constraint):
+    constraint: Constraint
+    min: int
+    max: int
+    """
+    Verifies that the number of times a constraint holds in the past,
+    including now, is within a lower and an upper bound.
+    """
+
+    def count(self, env: Environment, test: Test, index: int) -> int:
+        if within(index, test):
+            number = 1 if self.constraint.evaluate(env, test, index) else 0
+            return number + self.count(env, test, index - 1)
+        return 0
+
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        number = self.count(env, test, index)
+        return self.min <= number <= self.max
+
+
+@dataclass
+class Range(Constraint):
+    cmd_name: str
+    arg_name: str
+    min: int
+    max: int
+
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        formula = Always(Implies(N(self.cmd_name), C(lambda e,c: self.min <= c[self.arg_name] <= self.max)))
+        return formula.evaluate(env, test, index)
+
+
+################
+# Main program #
+################
+
+def main(args = None):
+    # Obtain names of input file and output file:
+    parser = argparse.ArgumentParser(description="Test suite generator")
+    parser.add_argument("dictionary_file", help="command and enum dictionaries as a json file")
+    parser.add_argument("testsuite_file", help="test suite as a json file")
+    parser.add_argument("testsuite_size", help="number of tests to include in test suite", type=int)
+    parser.add_argument("test_size", help="number of commands to include in a test", type=int)
+    parsed_args = parser.parse_args(args)
+    cmd_enum_file = parsed_args.dictionary_file
+    testsuite_file = parsed_args.testsuite_file
+    testsuite_size = parsed_args.testsuite_size
+    test_size = parsed_args.test_size
+    print('Reading command and enum dictionaries from:')
+    print(f'  {cmd_enum_file}')
+    print('Writing test suite to:')
+    print(f'  {testsuite_file}')
+    print('Test suite size and test size')
+    print(f'  {testsuite_size} {test_size}')
+
+    # Read the command and enum json file:
+    with open(cmd_enum_file, 'r') as file:
+        cmd_enum_dictionaries = json.load(file)
+    cmd_dict = cmd_enum_dictionaries['cmd_dict']
+    enum_dict = cmd_enum_dictionaries['enum_dict']
+
+    # Define default constraints (fixed for now):
+    constraints: list[Constraint] = [
+        Range('DDM_SET_DWN_TZ_CONFIG', 'dwn_rate', 25_000, 2_000_000)
+    ]
+
+    # Generate test suite and write it to a file:
+    tests = generate_testsuite(cmd_dict, enum_dict, constraints, testsuite_size, test_size)
+    with open(testsuite_file, "w") as file:
+        json.dump(tests, file, indent=4)
+
+
+if __name__ == '__main__':
+    args = [
+        '/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/data/cmd_enum_dicts.json',
+        '/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/data/testsuite.json',
+        '2',
+        '3'
+    ]
+    main(args)
+
