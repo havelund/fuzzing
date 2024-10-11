@@ -45,8 +45,6 @@ except:
 #  CONSTANTS & GLOBALS
 ################################################################################
 
-GEN_ICMD_STRUCTS = False
-GEN_CMD_STRUCTS = False
 NA = 'None'
 
 INSTRUMENTS = ['uvs',
@@ -62,10 +60,11 @@ INSTRUMENTS = ['uvs',
                'eiswac',
                'ecm']
 
-ITLM_PATH = 'src/{}_mgr/{}_mgr_ai_itlm.xml'
-
-ICMD_PATH = 'src/{}_mgr/{}_mgr_ai_icmd.xml'
-CMD_PATH = 'src/{}_mgr/{}_mgr_ai_cmd.xml'
+CMD_PATH = ['src/{}_mgr/{}_mgr_ai_cmd.xml',
+            'src/{}_ctl/{}_ctl_ai_cmd.xml',
+            'src/{}_svc/{}_svc_ai_cmd.xml',
+            'src/{}_exe/{}_exe_ai_cmd.xml',
+            'src/{}_ptm/{}_ptm_ai_cmd.xml']
 
 HEADER_DATA = """
 ###############################################################################
@@ -117,20 +116,6 @@ class {}(SuperStruct):
     fields_desc = [
 """
 
-BITFIELD_DEF = "        BitField('{}', {}),\n"
-
-BITFIELD_DEFAULT_DEF = "        BitField('{}', {}, default={}),\n"
-
-STRUCTFIELD_DEF = "        StructField('{}', {}),\n"
-
-FIT_EXTRA_FIELD_NAME = 'FIT_SSTRUCT_PADDING'
-
-class MyStruct(SuperStruct):
-    fields_desc = []
-my_struct = MyStruct()
-SSTRUCT_RESERVED_TOKENS = dir(my_struct)
-
-global struct_fields
 global opcode_list
 
 
@@ -150,13 +135,22 @@ def str2bool(v):
 
         
 def gen_cmd_file(fswpath, outdir, instr):
-    # Find xml cmd definition file
-    cmd_path = os.path.join(fswpath, CMD_PATH.format(instr, instr))
 
-    if not os.path.isfile(cmd_path):
-        print('ERROR: File not found: {}'.format(cmd_path))
+    # Get command xml file
+    foundFile = False
+    for fswfmt in CMD_PATH:
+        # Find xml cmd definition file
+        cmd_path = os.path.join(fswpath, fswfmt.format(instr, instr))
+
+        if os.path.isfile(cmd_path):
+            print('Reading Command XML file: {}'.format(cmd_path))
+            foundFile = True
+            break
+
+    if not foundFile:
+        print('WARNING: Command XML file not found for: {}'.format(instr))
         return -1
-
+    
     # Reset list of cmd opcodes for this instrument
     global opcode_list
     opcode_list = []
@@ -166,9 +160,9 @@ def gen_cmd_file(fswpath, outdir, instr):
 
     # Open an output file for packets
     pktpath = os.path.join(outdir, '{}Command.py'.format(instr.capitalize()))
-    structpath = os.path.join(outdir, '{}CommandStructs.py'.format(instr.capitalize()))
-    with open(pktpath, 'w') as pktfile, open(structpath, 'w') as structfile:
-        # Create SuperStruct class for each defined packet
+    
+    with open(pktpath, 'w') as pktfile:
+
         root = tree.getroot()
 
         # Write Enum Structs
@@ -187,39 +181,27 @@ def gen_cmd_file(fswpath, outdir, instr):
         
         # Write common dictionary header data
         pktfile.write(DICT_DEF)
-        structfile.write(HEADER_DATA)
-#        if GEN_CMD_STRUCTS:
-#            pktfile.write('from {}CommandStructs import *\n'.format(instr.capitalize()))
- 
 
         pkts = root.find('command_definitions')
-        for pktroot in pkts.findall('fsw_command'):
-            print("in pktroot, %s"%pktroot.attrib['stem'])
+#TAC        for pktroot in pkts.findall('fsw_command'):
+#TAC            print("in pktroot, %s"%pktroot.attrib['stem'])
             
         for pktroot in pkts:
 
             # Generate python class definition
-            write_cmd_packet_class(pktfile, structfile, pktroot)
+            write_cmd_packet_class(pktfile, pktroot)
 
         # Close class definition
         pktfile.write('}\n')
 
     print('CREATED: {}'.format(pktpath))
-    if GEN_CMD_STRUCTS:
-        print('CREATED: {}'.format(structpath))
-    else:
-        os.remove(structpath)
 
 
 def write_enum_dicts(outfile,pktroot):
-    global struct_fields
     global opcode_list
     enumname = pktroot.attrib['name']
-    print("enum name is %s"%enumname)
+#    print("enum name is %s"%enumname)
 
-    # Reset struct_fields for this class
-    struct_fields = []
-    
     # Name of Command
     outfile.write("\t'%s':[\n"%enumname)
 
@@ -237,14 +219,11 @@ def write_enum_dicts(outfile,pktroot):
     else:
         outfile.write('\t\t[],\n')
 
-def write_cmd_packet_class(outfile, structfile, pktroot):
-    global struct_fields
+def write_cmd_packet_class(outfile, pktroot):
     global opcode_list
     cmdname = pktroot.attrib['stem']
-    print("cmdname is %s"%cmdname)
+#    print("cmdname is %s"%cmdname)
 
-    # Reset struct_fields for this class
-    struct_fields = []
     skip_these_commands = ["DDM_DMP_EHA_PERIODIC","DDM_UPDATE_NUM_TSR","DDM_UPDATE_STR_TSR",
                            "DDM_DMP_EHA_HISTORY","GNC_IMU_WRITE_MEM","SEQ_VAR_CMD",
                            "SEQ_VAR_SEQ_ACTIVATE","SEQ_VAR_SEQ_LOAD","SEQ_VAR_SEQ_REACTIVATE",
@@ -258,7 +237,7 @@ def write_cmd_packet_class(outfile, structfile, pktroot):
     # opcode
     # Add opcode field
     opcode = pktroot.attrib['opcode']
-    print("pktname is %s, opcode is %s"%(cmdname,opcode))
+#    print("pktname is %s, opcode is %s"%(cmdname,opcode))
     if opcode in opcode_list:
         print("WARNING: Duplicate opcodes in {}: opcode={}".format(outfile.name, opcode))
     opcode_list.append(opcode)
@@ -270,7 +249,7 @@ def write_cmd_packet_class(outfile, structfile, pktroot):
     if pktroot.find('arguments'):
         outfile.write(DICT_ARGS_BEGIN)
         for field in pktroot.find('arguments'):
-            print("pktroot arguments %s"%field.tag)
+#            print("pktroot arguments %s"%field.tag)
 
             name = write_field(outfile, field, reserved)
             reserved.append(name)
@@ -281,12 +260,11 @@ def write_cmd_packet_class(outfile, structfile, pktroot):
 
 
 def write_enum(outfile, node, enumName):
-    global struct_fields
 
     #argument name
 #    name = node.attrib['name']
     enumValue = node.attrib['symbol']
-    print("this is in write_enum with enumname %s and enumvalue %s"%(enumName,enumValue))
+#    print("this is in write_enum with enumname %s and enumvalue %s"%(enumName,enumValue))
     
 #    outfile.write("\t\t\t{'%s':["%(enumName))
 #    for field in node:
@@ -296,7 +274,6 @@ def write_enum(outfile, node, enumName):
     return
 
 def write_field(outfile, node, reserved=[]):
-    global struct_fields
 
     #argument name
     name = node.attrib['name']
@@ -307,30 +284,30 @@ def write_field(outfile, node, reserved=[]):
         type = node.tag
         min = "None"
         max = "None"
-        print("this is var string arg {} {} {}".format(name,node.tag,bit_length))
+#        print("this is var string arg {} {} {}".format(name,node.tag,bit_length))
     elif node.tag == "enum_arg":
         bit_length = node.attrib['bit_length']
         type = node.attrib['enum_name']
         min = "None"
         max = "None"
-        print("this is enum arg {} {} {}".format(name,node.tag, bit_length))
+#        print("this is enum arg {} {} {}".format(name,node.tag, bit_length))
     elif node.tag == "unsigned_arg":
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
-            print("this is unsigned arg, in field loop")
+#            print("this is unsigned arg, in field loop")
             if field.tag == 'range_of_values':
-                print("this is unsigned arg, in IF range of values")
+#                print("this is unsigned arg, in IF range of values")
                 for range in field:
                     min = range.attrib['min']
                     max = range.attrib['max']
             else:
                 min = "None"
                 max = "None"
-        print("this is unsigned arg {} {} {}".format(name,node.tag,bit_length))
+#        print("this is unsigned arg {} {} {}".format(name,node.tag,bit_length))
                 
     elif node.tag == "float_arg":
-        print("TAC TAC this is float arg")
+#        print("TAC TAC this is float arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
@@ -342,7 +319,7 @@ def write_field(outfile, node, reserved=[]):
                 min = "None"
                 max = "None"
     elif node.tag == "integer_arg":
-        print("TAC TAC this is integer arg")
+#        print("TAC TAC this is integer arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
@@ -354,7 +331,7 @@ def write_field(outfile, node, reserved=[]):
                 min = "None"
                 max = "None"
     elif node.tag == "repeat_arg":
-        print("TAC TAC TAC This needs work. There are 11 of these. Maybe ignore these commands until we have everything else working.  this is repeat arg")
+#        print("TAC TAC TAC This needs work. There are 11 of these. Maybe ignore these commands until we have everything else working.  this is repeat arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
         min = "None"
@@ -417,14 +394,14 @@ parser = argparse.ArgumentParser(description=desc, formatter_class=RawTextHelpFo
 parser.add_argument('fswpath', type=str, help='root of desired eurcfsw repo')
 parser.add_argument('-o', '--outdir', type=str, default='.',
     help='directory for output files (default: pwd)')
-parser.add_argument('-s', '--structs', action='store_true',
-    help='generate InstrCmdStructs.py files,\ncurrently unnecessary but capability exists')
-parser.add_argument('-i', '--instrument', type=str, default=None,
+parser.add_argument('-i', '--instrument', type=str, action='append', nargs='+', default=None,
     help='instrument name for single instrument generation mode (default: all instruments)')
-parser.add_argument('-p', '--padding', type=str2bool, default=True,
-    help='boolean to add FIT padding bits to ensure importable files, note that these will NOT be structured identically to the FSW packets (default: True)')
 
 args = parser.parse_args()
+
+fswAreaArray = []
+for i in args.instrument:
+    fswAreaArray.append(i[0])
 
 if not os.path.exists(args.fswpath):
     print('ERROR: Path not found: {}'.format(args.fswpath))
@@ -434,18 +411,6 @@ if not os.path.exists(args.outdir):
     os.mkdir(args.outdir)
     print('Created output directory: {}'.format(args.outdir))
 
-if args.structs:
-    GEN_ICMD_STRUCTS = True
-    GEN_CMD_STRUCTS = True
+for i in fswAreaArray:
+    gen_cmd_file(args.fswpath, args.outdir, i)
 
-
-if args.padding:
-    print('INFO: Adding FIT padding bits to structs as needed to ensure importability of .py files')
-else:
-    print('NFO: NOT Adding FIT padding bits to structs')
-
-if args.instrument is not None:
-    gen_cmd_file(args.fswpath, args.outdir, args.instrument)
-else:
-    for instr in INSTRUMENTS:
-        gen_cmd_file(args.fswpath, args.outdir, instr)
