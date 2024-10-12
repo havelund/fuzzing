@@ -1,8 +1,16 @@
 
+"""
+Script Name: cmds_to_json.py
+Description: This script converts a collection of Python modules in a given
+directory, each defining a `enumDict` and a `cmdDict`, to a Json file.
+Usage: python cmds_to_json.py input_dir output_file.json
+"""
+
 import argparse
 import json
 import importlib.util
 import os
+
 
 def import_all_from_directory(directory: str):
     """ Imports and returns all Python modules in a given directory.
@@ -54,6 +62,13 @@ def write_json_file(py_dir: str, json_file: str):
 
 
 def main(args = None):
+    """
+     Main function to parse command-line arguments and process the data.
+
+     Command-line arguments:
+         --input (str): Path to the input directory.
+         --output (str): Path to the output json file.
+     """
     # Define input arguments to script:
     parser = argparse.ArgumentParser(description="Dictionary json file generator")
     parser.add_argument("py_dir", help="path to directory containing Python modules with dictionaries")
