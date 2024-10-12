@@ -10,7 +10,7 @@ Current snapshot:
 
 - data (_inputs to and outputs from running scripts_)
   - input
-    - clipper1 (_example Europa Clipper input module_)
+    - clipper1 (_example Europa Clipper input modules_)
     - tests
   - output (_for example test suites_)
     - testsuite_baseline.json
@@ -29,7 +29,7 @@ Current snapshot:
   - testutils.py (_test utilities_)
 - zigzag (_various fuzzing experiments_)
   - grammars (_generating tests from a grammar_)
-  - smt (_generating tests using the Z3 MT solver_)
+  - smt (_generating tests using the Z3 SMT solver_)
 
 ## Design
 
