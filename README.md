@@ -6,24 +6,33 @@ commands.
 
 ## Organization of Repository
 
-- basic: the first Python approach
-  - src: the source code for the fuzzing library
-  - runs: running the library
-  - tests: testing the library
-  - dictionaries: command and enum dictionaries
-- grammars: a former solution based on grammars
-- README.md: this file
+Current snapshot:
+
+- data (_inputs to and outputs from running scripts_)
+  - input
+    - clipper1 (_example Europa Clipper input module_)
+    - tests
+  - output (_for example test suites_)
+    - testsuite_baseline.json
+- material (_various material such as images, papers, ..._)
+  - papers
+  - ...
+- src (_the tool itself represented as a collection of scripts_)
+  - autogen_cmds.py (_conversion from enum and cmd dicts in XML to Python modules_)
+  - cmds_to_json.py (_conversion from enum and cmd dicts in Python modules to Json_)
+  - fuzz.py (_generation of test suite_)
+- tests
+  - runs (_a collection of runs, not part of testing_)
+  - test1.py (_a test_)
+  - test2.py (_a test_)
+  - ...
+  - testutils.py (_test utilities_)
+- zigzag (_various fuzzing experiments_)
+  - grammars (_generating tests from a grammar_)
+  - smt (_generating tests using the Z3 MT solver_)
 
 ## Design
 
 See wiki for discussion of design space.
 
-my_project/
-│
-├── src/
-│   ├── main.py
-│   └── utils.py
-├── tests/
-│   └── test_main.py
-├── README.md
-└── requirements.txt
+
