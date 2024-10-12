@@ -17,3 +17,13 @@ commands.
 ## Design
 
 See wiki for discussion of design space.
+
+my_project/
+│
+├── src/
+│   ├── main.py
+│   └── utils.py
+├── tests/
+│   └── test_main.py
+├── README.md
+└── requirements.txt
