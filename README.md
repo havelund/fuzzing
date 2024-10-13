@@ -1,5 +1,5 @@
 
-# fuzzFSW
+# FSWfuzzer
  
 This repository contains a framework for fuzz testing 
 commands. 
