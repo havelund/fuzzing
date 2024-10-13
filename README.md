@@ -1,5 +1,5 @@
 
-# LogicFuzz
+# fuzzFSW
  
 This repository contains a framework for fuzz testing 
 commands. 
