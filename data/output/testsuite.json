@@ -1,0 +1,453 @@
+[
+    [
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 809594,
+            "tc_spacing": 741238,
+            "tc_consecutive_frames": 23257
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 1102373
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        }
+    ],
+    [
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "FATAL_EVR",
+            "enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "FATAL_EVR",
+            "dwn_framing_pb_entry_gate_enable_disable": "DISABLE"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 359732,
+            "tc_spacing": 683082,
+            "tc_consecutive_frames": 405049
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 443791,
+            "tc_spacing": 152019,
+            "tc_consecutive_frames": 576219
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "DIAGNOSTIC_EVR",
+            "enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 919128,
+            "tc_spacing": 355460,
+            "tc_consecutive_frames": 311847
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "CFDP_CLASS_2",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_1",
+            "enable_disable": "DISABLE"
+        }
+    ],
+    [
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_2",
+            "dwn_framing_pb_enable_disable": "ENABLE"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 186369,
+            "tc_spacing": 996167,
+            "tc_consecutive_frames": 35704
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 832583
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_3",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 808234,
+            "tc_spacing": 250622,
+            "tc_consecutive_frames": 960520
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_2",
+            "enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        }
+    ],
+    [
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "DATA_PRODUCTS",
+            "dwn_framing_pb_entry_gate_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "CMD_EVR",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 91047,
+            "tc_spacing": 856573,
+            "tc_consecutive_frames": 831851
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 60636,
+            "tc_spacing": 793687,
+            "tc_consecutive_frames": 5286
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        }
+    ],
+    [
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_1",
+            "dwn_framing_pb_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "ACTIVITY_HI_EVR",
+            "enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "ACTIVITY_LO_EVR",
+            "dwn_framing_pb_entry_gate_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 330690,
+            "tc_spacing": 874224,
+            "tc_consecutive_frames": 499820
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 1151058
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 992644
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 281979,
+            "tc_spacing": 329919,
+            "tc_consecutive_frames": 512601
+        }
+    ],
+    [
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "CMD_EVR",
+            "enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 1066568
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "ACTIVITY_HI_EVR",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 335820,
+            "tc_spacing": 770962,
+            "tc_consecutive_frames": 542361
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "WARNING_LO_EVR",
+            "dwn_framing_pb_entry_gate_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        }
+    ],
+    [
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 848828,
+            "tc_spacing": 836557,
+            "tc_consecutive_frames": 846750
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "ACTIVITY_HI_EVR",
+            "dwn_framing_pb_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 265289
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 1647904
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "FATAL_EVR",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 140171,
+            "tc_spacing": 357975,
+            "tc_consecutive_frames": 277359
+        },
+        {
+            "name": "DDM_CLEAR_DWN_DP_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 351694,
+            "tc_spacing": 626325,
+            "tc_consecutive_frames": 658291
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        }
+    ],
+    [
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 379716,
+            "tc_spacing": 908981,
+            "tc_consecutive_frames": 196774
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "WARNING_LO_EVR",
+            "dwn_framing_pb_entry_gate_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "FATAL_EVR",
+            "dwn_framing_pb_entry_gate_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "DATA_PRODUCTS",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_3",
+            "dwn_framing_pb_entry_gate_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_3",
+            "dwn_framing_pb_entry_gate_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "DATA_PRODUCTS",
+            "enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_2",
+            "enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_ENTRY_GATE",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_2",
+            "dwn_framing_pb_entry_gate_enable_disable": "ENABLE"
+        }
+    ],
+    [
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 270019
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "FATAL_EVR",
+            "dwn_framing_pb_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "ACTIVITY_HI_EVR",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "ACTIVITY_LO_EVR",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "CFDP_CLASS_2",
+            "dwn_framing_pb_enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 516848
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "CMD_EVR",
+            "dwn_framing_pb_enable_disable": "DISABLE"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 122246,
+            "tc_spacing": 353181,
+            "tc_consecutive_frames": 612688
+        },
+        {
+            "name": "DDM_MANAGE_DWN_PB",
+            "dwn_framing_packet_buffer": "FATAL_EVR",
+            "dwn_framing_pb_enable_disable": "ENABLE"
+        }
+    ],
+    [
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "WARNING_HI_EVR",
+            "enable_disable": "ENABLE"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 841414,
+            "tc_spacing": 82204,
+            "tc_consecutive_frames": 290941
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_CLEAR_DWN_BUFFER"
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 299214
+        },
+        {
+            "name": "DDM_SET_DWN_TZ_CONFIG",
+            "dwn_rate": 624692
+        },
+        {
+            "name": "DDM_CLEAR_DWN_PACKET_BUFFER"
+        },
+        {
+            "name": "TIME_CORR_REQUEST",
+            "tc_generation_duration": 919339,
+            "tc_spacing": 357312,
+            "tc_consecutive_frames": 311184
+        }
+    ]
+]

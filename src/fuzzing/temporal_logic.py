@@ -1,102 +1,15 @@
-from __future__ import annotations
 
-import argparse
-import random
-from typing import Callable
-from dotmap import DotMap
 from dataclasses import dataclass
-import pprint
-import json
 
-#########
-# Types #
-#########
-
-Command = DotMap
-Test = list[Command]
-TestSuite = list[Test]
-Environment = DotMap
-FreezeId = int | str
-CommandConstraint = Callable[[Environment, Command], bool]
+from utils import *
 
 
-########################
-# Generation Functions #
-########################
-
-class ArgumentConstraints:
-    def __init__(self, constraints: list[Constraint]):
-        self.commands: dict[str, dict[str, tuple[int, int]]] = {}
-        for constraint in constraints:
-            match constraint:
-                case Range(cmd_name, arg_name, min, max):
-                    if cmd_name not in self.commands:
-                        self.commands[cmd_name] = {}
-                    self.commands[cmd_name][arg_name] = (min, max)
-
-    def random(self, command: str, arg: str) -> int:
-        if command in self.commands:
-            arg_map = self.commands[command]
-            if arg in arg_map:
-                min, max = arg_map[arg]
-                return random.randrange(min, max)
-        return random.randint(0,1000000)
-
-
-def generate_testsuite(cmdDict: dict, enumDict: dict, constraints: list[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
-    test_suite: TestSuite = []
-    count: int = 0
-    arg_constraints = ArgumentConstraints(constraints)
-    while count != nr_tests:
-        test = generate_test(cmdDict, enumDict, arg_constraints, nr_cmds)
-        if test_constraints(test, constraints) and test not in test_suite:
-            count += 1
-            test_suite.append([cmd.toDict() for cmd in test])
-        else:
-            print(f"failed")
-    return test_suite
-
-
-def generate_test(cmdDict: dict, enumDict: dict, arg_constraints: ArgumentConstraints, nr_cmds: int) -> Test:
-    command_names = list(cmdDict.keys())
-    test: Test = []
-    for nr in range(nr_cmds):
-        command: Command = DotMap()
-        command_name = random.choice(command_names)
-        command['name'] = command_name
-        arg_types = cmdDict[command_name]['args']
-        for arg_type in arg_types:
-            arg_name = arg_type['name']
-            arg_type = arg_type['type']
-            if arg_type == 'unsigned_arg':
-                value = arg_constraints.random(command_name, arg_name)
-            else:
-                value = random.choice(enumDict[arg_type])
-            command[arg_name] = value
-        test.append(command)
-    return test
-
-
-########################
-# Auxiliary functions  #
-########################
-
-def apply_constraint(tc: Constraint, test: Test) -> bool:
-    return tc.evaluate(DotMap(), test, 0)
-
-
-def test_constraints(test : Test, constraints: list[Constraint]) -> bool:
-    for constraint in constraints:
-        if not apply_constraint(constraint, test):
-            return False
-    return True
-
+#######################
+# Auxiliary Functions #
+#######################
 
 def within(index: int, test: Test) -> bool:
     return 0 <= index < len(test)
-
-
-pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint
 
 
 ################
@@ -421,52 +334,16 @@ class Range(Constraint):
         return formula.evaluate(env, test, index)
 
 
-################
-# Main program #
-################
+#############
+# Semantics #
+#############
 
-def main(args = None):
-    # Obtain names of input file and output file:
-    parser = argparse.ArgumentParser(description="Test suite generator")
-    parser.add_argument("dictionary_file", help="command and enum dictionaries as a json file")
-    parser.add_argument("testsuite_file", help="test suite as a json file")
-    parser.add_argument("testsuite_size", help="number of tests to include in test suite", type=int)
-    parser.add_argument("test_size", help="number of commands to include in a test", type=int)
-    parsed_args = parser.parse_args(args)
-    cmd_enum_file = parsed_args.dictionary_file
-    testsuite_file = parsed_args.testsuite_file
-    testsuite_size = parsed_args.testsuite_size
-    test_size = parsed_args.test_size
-    print('Reading command and enum dictionaries from:')
-    print(f'  {cmd_enum_file}')
-    print('Writing test suite to:')
-    print(f'  {testsuite_file}')
-    print('Test suite size and test size')
-    print(f'  {testsuite_size} {test_size}')
-
-    # Read the command and enum json file:
-    with open(cmd_enum_file, 'r') as file:
-        cmd_enum_dictionaries = json.load(file)
-    cmd_dict = cmd_enum_dictionaries['cmd_dict']
-    enum_dict = cmd_enum_dictionaries['enum_dict']
-
-    # Define default constraints (fixed for now):
-    constraints: list[Constraint] = [
-        Range('DDM_SET_DWN_TZ_CONFIG', 'dwn_rate', 25_000, 2_000_000)
-    ]
-
-    # Generate test suite and write it to a file:
-    tests = generate_testsuite(cmd_dict, enum_dict, constraints, testsuite_size, test_size)
-    with open(testsuite_file, "w") as file:
-        json.dump(tests, file, indent=4)
+def apply_constraint(tc: Constraint, test: Test) -> bool:
+    return tc.evaluate(DotMap(), test, 0)
 
 
-if __name__ == '__main__':
-    args = [
-        '/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/data/cmd_enum_dicts.json',
-        '/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/data/testsuite.json',
-        '2',
-        '3'
-    ]
-    main(args)
-
+def test_constraints(test : Test, constraints: list[Constraint]) -> bool:
+    for constraint in constraints:
+        if not apply_constraint(constraint, test):
+            return False
+    return True

@@ -3,7 +3,7 @@
 Run using Europa Clipper directories.
 """
 
-from src.fuzz import *
+from src.fuzzing import *
 from dictionaries.dict_clipper1 import cmdDict, enumDict
 import json
 

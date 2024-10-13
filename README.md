@@ -20,7 +20,11 @@ Current snapshot:
 - src (_the tool itself represented as a collection of scripts_)
   - autogen_cmds.py (_conversion from enum and cmd dicts in XML to Python modules_)
   - cmds_to_json.py (_conversion from enum and cmd dicts in Python modules to Json_)
-  - fuzz.py (_generation of test suite_)
+  - fuzzing (_generation of test suite_)
+    - fuzz.py (_main script_)
+    - core.py (_core functionality_)
+    - temporal_logic.py (_abstract syntax and semantics for temporal logic_)
+    - utils.py (_utilities_)
 - tests
   - runs (_a collection of runs, not part of testing_)
   - test1.py (_a test_)

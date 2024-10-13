@@ -1,0 +1,14 @@
+
+{
+  "testsuite_size": 10,
+  "test_size": 10,
+  "constraints": [
+    {
+      "kind": "int_parameter",
+      "command": "DDM_SET_DWN_TZ_CONFIG",
+      "parameter": "dwn_rate",
+      "min": 25000,
+      "max": 2000000
+    }
+  ]
+}
