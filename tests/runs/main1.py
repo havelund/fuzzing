@@ -3,7 +3,8 @@
 Run using simplified test directories.
 """
 
-from dictionaries.dict_test1 import cmdDict, enumDict
+from src.fuzzing.core import *
+from data.input.tests.dict_test1 import cmdDict, enumDict
 
 
 NAME = 'name'

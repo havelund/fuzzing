@@ -1,3 +1,6 @@
+import unittest
+from tests.testutils import *
+
 class FuzzTestSuite2(BaseTestSuite):
     def setUp(self):
         self.test = mk_test(

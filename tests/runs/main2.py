@@ -3,9 +3,11 @@
 Run using Europa Clipper directories.
 """
 
-from src.fuzzing import *
-from dictionaries.dict_clipper1 import cmdDict, enumDict
 import json
+
+from src.fuzzing.core import *
+from data.input.clipper1.dict import cmdDict, enumDict
+
 
 constraints1: list[Constraint] = [
     CountFuture(N('TIME_CORR_REQUEST'), 1, 1),

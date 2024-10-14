@@ -4,8 +4,8 @@ from __future__ import annotations
 import random
 import json
 
-from temporal_logic import *
-from utils import *
+from src.fuzzing.temporal_logic import *
+from src.fuzzing.utils import *
 
 
 class Constants:

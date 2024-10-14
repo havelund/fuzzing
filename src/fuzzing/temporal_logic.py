@@ -1,7 +1,12 @@
 
+"""
+These are the temporal operators (abstract syntax with semanticss)
+that can be used in a generate-and-accept/reject strategy.
+"""
+
 from dataclasses import dataclass
 
-from utils import *
+from src.fuzzing.utils import *
 
 
 #######################
@@ -9,6 +14,12 @@ from utils import *
 #######################
 
 def within(index: int, test: Test) -> bool:
+    """Checks whether an index is withing a test.
+
+    :param index: the index.
+    :param test: the test.
+    :return: true iff the index is within the bounds of the test.
+    """
     return 0 <= index < len(test)
 
 
@@ -338,12 +349,24 @@ class Range(Constraint):
 # Semantics #
 #############
 
-def apply_constraint(tc: Constraint, test: Test) -> bool:
-    return tc.evaluate(DotMap(), test, 0)
+def apply_constraint(test: Test, constraint: Constraint) -> bool:
+    """Checks whether a test satisfies a constraint.
+
+    :param test: the test.
+    :param constraint: the constraint.
+    :return: true iff. the test satisfies the constraint.
+    """
+    return constraint.evaluate(DotMap(), test, 0)
 
 
 def test_constraints(test : Test, constraints: list[Constraint]) -> bool:
+    """Checks whether a test satisfies a collection of constraints.
+
+    :param test: the test.
+    :param constraints: the constraints.
+    :return: true iff. the test satisfies all the constraints.
+    """
     for constraint in constraints:
-        if not apply_constraint(constraint, test):
+        if not apply_constraint(test, constraint):
             return False
     return True

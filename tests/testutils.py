@@ -2,6 +2,7 @@
 import unittest
 from dotmap import DotMap
 
+from src.fuzzing.temporal_logic import *
 def name(cmd: Command) -> str:
     return cmd['name']
 
@@ -21,7 +22,7 @@ def mk_test(*dict) -> Test:
 class BaseTestSuite(unittest.TestCase):
 
     def equal(self, tc: Constraint, result: bool):
-        self.assertEqual(apply_constraint(tc, self.test), result)
+        self.assertEqual(apply_constraint(self.test, tc), result)
 
     def true(self, tc: Constraint):
         self.equal(tc, True)
