@@ -16,12 +16,39 @@ class Constants:
     MAX_INTEGER = 1_000_000
 
 
+class INDEX:
+    """
+    Constants for indexing pre-defined fields of dictionaries.
+    """
+    ARGS = 'args'
+    ARGUMENT = 'argument'
+    CMD_DICT = 'cmd_dict'
+    COMMAND = 'command'
+    CONSTRAINTS = 'constraints'
+    ENUM_DICT = 'enum_dict'
+    KIND = 'kind'
+    NAME = 'name'
+    RANGE_MAX = 'range_max'
+    RANGE_MIN = 'range_min'
+    TEST_SIZE = 'test_size'
+    TESTSUITE_SIZE = 'testsuite_size'
+    TYPE = 'type'
+
+
+class VALUE:
+    """
+    Constants representing pre-defined contents of dictionaries.
+    """
+    RANGE = 'range'
+    UNSIGNED_ARG = 'unsigned_arg'
+
+
 def testsuite_generation(config_file: str, cmd_enum_file: str, testsuite_file: str):
     """ Reads configuration file and cmd/enum dictionary file and generates a test suite.
 
-    :param config_file: the configuration file json.
-    :param cmd_enum_file: the command and enum dictionary json file
-    :param testsuite_file: the output testsuite json file.
+    :param config_file: input configuration json file.
+    :param cmd_enum_file: input command and enum dictionary json file
+    :param testsuite_file: output testsuite json file.
     """
     # Read configuration file:
     try:
@@ -30,15 +57,15 @@ def testsuite_generation(config_file: str, cmd_enum_file: str, testsuite_file: s
     except:
         error(f'ill-formed configuration file {config_file}')
     # Extract test suite and test size:
-    testsuite_size: int = lookup_dict(config, "testsuite_size")
-    test_size: int = lookup_dict(config, "test_size")
+    testsuite_size: int = lookup_dict(config, INDEX.TESTSUITE_SIZE)
+    test_size: int = lookup_dict(config, INDEX.TEST_SIZE)
     # Extract constraints:
-    constraints: list[Constraint] = extract_constraints(lookup_dict(config, "constraints"))
+    constraints: list[Constraint] = extract_constraints(lookup_dict(config, INDEX.CONSTRAINTS))
     # Read the command and enum json file:
     with open(cmd_enum_file, 'r') as file:
         cmd_enum_dictionaries = json.load(file)
-    cmd_dict = lookup_dict(cmd_enum_dictionaries, 'cmd_dict')
-    enum_dict = lookup_dict(cmd_enum_dictionaries, 'enum_dict')
+    cmd_dict = lookup_dict(cmd_enum_dictionaries, INDEX.CMD_DICT)
+    enum_dict = lookup_dict(cmd_enum_dictionaries, INDEX.ENUM_DICT)
     # Generate test suite and write it to a file:
     tests = generate_testsuite(cmd_dict, enum_dict, constraints, testsuite_size, test_size)
     with open(testsuite_file, "w") as file:
@@ -54,12 +81,12 @@ def extract_constraints(constraint_objects: list[dict]) -> list[Constraint]:
     """
     constraints: list[Constraint] = []
     for constraint_obj in constraint_objects:
-        if lookup_dict(constraint_obj, "kind") == "int_parameter":
-            command = lookup_dict(constraint_obj, "command")
-            parameter = lookup_dict(constraint_obj, "parameter")
-            min = lookup_dict(constraint_obj, "min")
-            max = lookup_dict(constraint_obj, "max")
-            constraint = Range(command, parameter, min, max)
+        if lookup_dict(constraint_obj, INDEX.KIND) == VALUE.RANGE:
+            command = lookup_dict(constraint_obj, INDEX.COMMAND)
+            argument = lookup_dict(constraint_obj, INDEX.ARGUMENT)
+            min = lookup_dict(constraint_obj, INDEX.RANGE_MIN)
+            max = lookup_dict(constraint_obj, INDEX.RANGE_MAX)
+            constraint = Range(command, argument, min, max)
             constraints.append(constraint)
         else:
             error(f'unknown constraint: {constraint_obj}')
@@ -85,10 +112,10 @@ def generate_testsuite(cmd_dict: dict, enum_dict: dict, constraints: list[Constr
         test = generate_test(cmd_dict, enum_dict, nr_cmds)
         if test_constraints(test, constraints) and test not in test_suite:
             count += 1
-            test_suite.append([cmd.toDict() for cmd in test])
+            test_suite.append([cmd.toDict() for cmd in test])  # convert from dotMaps
         else:
             failed += 1
-    print(f'Tests violating constraints: {failed} out of {count + failed} = {failed * 100 / (count + failed):.2f}%')
+    print(f'Tried tests violating constraints: {failed} out of {count + failed} = {failed * 100 / (count + failed):.2f}%')
     return test_suite
 
 
@@ -104,26 +131,26 @@ def constrain_dicts(cmd_dict: dict, enum_dict: dict, constraints: list[Constrain
     for constraint in constraints:
         match constraint:
             case Range(cmd_name, arg_name, min, max):
-                update_range_of_int_parameter(cmd_dict, cmd_name, arg_name, min, max)
+                update_range_of_int_argument(cmd_dict, cmd_name, arg_name, min, max)
 
 
-def update_range_of_int_parameter(cmd_dict: dict, cmd_name: str, arg_name: int, min: int, max: int):
-    """Constrains the lower and upper bound of a command parameter in the command dictionary.
+def update_range_of_int_argument(cmd_dict: dict, cmd_name: str, arg_name: int, min: int, max: int):
+    """Constrains the lower and upper bound of a command argument in the command dictionary.
 
     :param cmd_dict: the command dictionary.
     :param cmd_name: the command name.
-    :param arg_name: the parameter name.
+    :param arg_name: the argument name.
     :param min: the minimal value it can take.
     :param max: the maximal value it can take.
 
     The function has side effects, by updating the `cmd_dict`.
     """
     command = lookup_dict(cmd_dict, cmd_name)
-    parameter_list = lookup_dict(command, 'args')
-    for parameter in parameter_list:
-        if lookup_dict(parameter, "name") == arg_name:
-            parameter["range_min"] = min
-            parameter["range_max"] = max
+    argument_list = lookup_dict(command, INDEX.ARGS)
+    for argument in argument_list:
+        if lookup_dict(argument, INDEX.NAME) == arg_name:
+            argument[INDEX.RANGE_MIN] = min
+            argument[INDEX.RANGE_MAX] = max
 
 
 def generate_test(cmd_dict: dict, enum_dict: dict, nr_cmds: int) -> Test:
@@ -139,15 +166,15 @@ def generate_test(cmd_dict: dict, enum_dict: dict, nr_cmds: int) -> Test:
     for nr in range(nr_cmds):
         generated_command: Command = DotMap()
         command_name = random.choice(command_names)
-        generated_command['name'] = command_name
+        generated_command[INDEX.NAME] = command_name
         dict_command = lookup_dict(cmd_dict, command_name)
-        arguments = lookup_dict(dict_command, 'args')
+        arguments = lookup_dict(dict_command, INDEX.ARGS)
         for arg in arguments:
-            arg_name = lookup_dict(arg, 'name')
-            arg_type = lookup_dict(arg, 'type')
-            if arg_type == 'unsigned_arg':
-                min = lookup_dict(arg, 'range_min')
-                max = lookup_dict(arg, 'range_max')
+            arg_name = lookup_dict(arg, INDEX.NAME)
+            arg_type = lookup_dict(arg, INDEX.TYPE)
+            if arg_type == VALUE.UNSIGNED_ARG:
+                min = lookup_dict(arg, INDEX.RANGE_MIN)
+                max = lookup_dict(arg, INDEX.RANGE_MAX)
                 if min is None:
                     min = Constants.MIN_INTEGER
                 if max is None:

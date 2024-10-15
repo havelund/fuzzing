@@ -4,11 +4,11 @@
   "test_size": 10,
   "constraints": [
     {
-      "kind": "int_parameter",
+      "kind": "range",
       "command": "DDM_SET_DWN_TZ_CONFIG",
-      "parameter": "dwn_rate",
-      "min": 25000,
-      "max": 2000000
+      "argument": "dwn_rate",
+      "range_min": 25000,
+      "range_max": 2000000
     }
   ]
 }

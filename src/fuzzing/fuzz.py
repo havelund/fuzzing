@@ -24,9 +24,9 @@ def main(args = None):
      """
     # Define input arguments to script:
     parser = argparse.ArgumentParser(description="Test suite generator")
-    parser.add_argument("config_file", help="configuration file as a json file")
-    parser.add_argument("dictionary_file", help="command and enum dictionaries as a json file")
-    parser.add_argument("testsuite_file", help="test suite as a json file")
+    parser.add_argument("config_file", help="input configuration file as a json file")
+    parser.add_argument("dictionary_file", help="input command and enum dictionaries as a json file")
+    parser.add_argument("testsuite_file", help="output test suite as a json file")
     # Parse provided input arguments:
     parsed_args = parser.parse_args(args)
     config_file = parsed_args.config_file
