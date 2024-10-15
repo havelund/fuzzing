@@ -8,41 +8,6 @@ from src.fuzzing.temporal_logic import *
 from src.fuzzing.utils import *
 
 
-class Constants:
-    """
-    Constants used in randomization, if not provided by user.
-    """
-    MIN_INTEGER = 0
-    MAX_INTEGER = 1_000_000
-
-
-class INDEX:
-    """
-    Constants for indexing pre-defined fields of dictionaries.
-    """
-    ARGS = 'args'
-    ARGUMENT = 'argument'
-    CMD_DICT = 'cmd_dict'
-    COMMAND = 'command'
-    CONSTRAINTS = 'constraints'
-    ENUM_DICT = 'enum_dict'
-    KIND = 'kind'
-    NAME = 'name'
-    RANGE_MAX = 'range_max'
-    RANGE_MIN = 'range_min'
-    TEST_SIZE = 'test_size'
-    TESTSUITE_SIZE = 'testsuite_size'
-    TYPE = 'type'
-
-
-class VALUE:
-    """
-    Constants representing pre-defined contents of dictionaries.
-    """
-    RANGE = 'range'
-    UNSIGNED_ARG = 'unsigned_arg'
-
-
 def testsuite_generation(config_file: str, cmd_enum_file: str, testsuite_file: str):
     """ Reads configuration file and cmd/enum dictionary file and generates a test suite.
 
@@ -81,12 +46,17 @@ def extract_constraints(constraint_objects: list[dict]) -> list[Constraint]:
     """
     constraints: list[Constraint] = []
     for constraint_obj in constraint_objects:
-        if lookup_dict(constraint_obj, INDEX.KIND) == VALUE.RANGE:
+        kind = lookup_dict(constraint_obj, INDEX.KIND)
+        if kind == VALUE.RANGE:
             command = lookup_dict(constraint_obj, INDEX.COMMAND)
             argument = lookup_dict(constraint_obj, INDEX.ARGUMENT)
             min = lookup_dict(constraint_obj, INDEX.RANGE_MIN)
             max = lookup_dict(constraint_obj, INDEX.RANGE_MAX)
             constraint = Range(command, argument, min, max)
+            constraints.append(constraint)
+        elif kind == VALUE.INCLUDE:
+            commands = lookup_dict(constraint_obj, INDEX.COMMANDS)
+            constraint = Include(commands)
             constraints.append(constraint)
         else:
             error(f'unknown constraint: {constraint_obj}')

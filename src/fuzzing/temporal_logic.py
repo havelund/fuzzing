@@ -313,7 +313,7 @@ class CountFuture(Constraint):
 
 
 @dataclass
-class CounPast(Constraint):
+class CountPast(Constraint):
     constraint: Constraint
     min: int
     max: int
@@ -333,6 +333,10 @@ class CounPast(Constraint):
         return self.min <= number <= self.max
 
 
+#######################################
+# Constructs that change dictionaries #
+#######################################
+
 @dataclass
 class Range(Constraint):
     cmd_name: str
@@ -342,6 +346,15 @@ class Range(Constraint):
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         formula = Always(Implies(N(self.cmd_name), C(lambda e,c: self.min <= c[self.arg_name] <= self.max)))
+        return formula.evaluate(env, test, index)
+
+
+@dataclass
+class Include(Constraint):
+    cmd_names: list[str]
+
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        formula = Always(C(lambda e,c:  c[INDEX.NAME] in self.cmd_names))
         return formula.evaluate(env, test, index)
 
 

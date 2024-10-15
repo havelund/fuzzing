@@ -63,7 +63,7 @@ class FuzzTestSuite1(BaseTestSuite):
         self.false(CountFuture(Or(N('C1'), N('C3')), 3, 3))
 
     def test_case_15(self):
-        count_formula = CounPast(Or(N('C2'), N('C4')), 2, 2)
+        count_formula = CountPast(Or(N('C2'), N('C4')), 2, 2)
         formula = Always(Implies(N('C5'), count_formula))
         self.true(formula)
 
