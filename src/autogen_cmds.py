@@ -278,18 +278,17 @@ def write_field(outfile, node, reserved=[]):
     #argument name
     name = node.attrib['name']
 
+    min = "None"
+    max = "None"
+    found = False
     if node.tag == "var_string_arg":
 #        print("this is var string arg")
         bit_length = node.attrib['max_bit_length']
         type = node.tag
-        min = "None"
-        max = "None"
 #        print("this is var string arg {} {} {}".format(name,node.tag,bit_length))
     elif node.tag == "enum_arg":
         bit_length = node.attrib['bit_length']
         type = node.attrib['enum_name']
-        min = "None"
-        max = "None"
 #        print("this is enum arg {} {} {}".format(name,node.tag, bit_length))
     elif node.tag == "unsigned_arg":
         bit_length = node.attrib['bit_length']
@@ -297,13 +296,13 @@ def write_field(outfile, node, reserved=[]):
         for field in node:
 #            print("this is unsigned arg, in field loop")
             if field.tag == 'range_of_values':
-#                print("this is unsigned arg, in IF range of values")
                 for range in field:
                     min = range.attrib['min']
                     max = range.attrib['max']
-            else:
-                min = "None"
-                max = "None"
+                    found = True
+                    break
+            if found:
+                break
 #        print("this is unsigned arg {} {} {}".format(name,node.tag,bit_length))
                 
     elif node.tag == "float_arg":
@@ -315,9 +314,11 @@ def write_field(outfile, node, reserved=[]):
                 for range in field:
                     min = range.attrib['min']
                     max = range.attrib['max']
-            else:
-                min = "None"
-                max = "None"
+                    found = True
+                    break
+            if found:
+                break
+
     elif node.tag == "integer_arg":
 #        print("TAC TAC this is integer arg")
         bit_length = node.attrib['bit_length']
@@ -327,9 +328,10 @@ def write_field(outfile, node, reserved=[]):
                 for range in field:
                     min = range.attrib['min']
                     max = range.attrib['max']
-            else:
-                min = "None"
-                max = "None"
+                    found = True
+                    break
+            if found:
+                break
     elif node.tag == "repeat_arg":
 #        print("TAC TAC TAC This needs work. There are 11 of these. Maybe ignore these commands until we have everything else working.  this is repeat arg")
         bit_length = node.attrib['bit_length']
