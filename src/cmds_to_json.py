@@ -92,4 +92,5 @@ if __name__ == '__main__':
         datadir + 'input/clipper1',
         datadir + 'output/cmd_enum.json'
     ]
-    main(args)
+    # main(args)
+    main()
