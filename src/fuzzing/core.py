@@ -23,7 +23,7 @@ def testsuite_generation(config_file: str, cmd_enum_file: str, testsuite_file: s
     testsuite_size: int = lookup_dict(config, INDEX.TESTSUITE_SIZE)
     test_size: int = lookup_dict(config, INDEX.TEST_SIZE)
     # Extract constraints:
-    constraints: list[Constraint] = extract_constraints(lookup_dict(config, INDEX.CONSTRAINTS))
+    constraints: List[Constraint] = extract_constraints(lookup_dict(config, INDEX.CONSTRAINTS))
     # Read the command and enum json file:
     with open(cmd_enum_file, 'r') as file:
         cmd_enum_dictionaries = json.load(file)
@@ -35,14 +35,14 @@ def testsuite_generation(config_file: str, cmd_enum_file: str, testsuite_file: s
         json.dump(tests, file, indent=4)
 
 
-def extract_constraints(constraint_objects: list[dict]) -> list[Constraint]:
+def extract_constraints(constraint_objects: List[dict]) -> List[Constraint]:
     """Reads user defined constraints from a list of json constraint objects and returns
     the list of corresponding constraints".
 
     :param constraint_objects: the list of constraint json objects.
     :return: the list of constraints matching the constraint objects.
     """
-    constraints: list[Constraint] = []
+    constraints: List[Constraint] = []
     for constraint_obj in constraint_objects:
         kind = lookup_dict(constraint_obj, INDEX.KIND)
         if kind == VALUE.RANGE:
@@ -61,7 +61,7 @@ def extract_constraints(constraint_objects: list[dict]) -> list[Constraint]:
     return constraints
 
 
-def generate_testsuite(cmd_dict: dict, enum_dict: dict, constraints: list[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
+def generate_testsuite(cmd_dict: dict, enum_dict: dict, constraints: List[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
     """Generates a test suite given and command dictionary, an enum dictionary, a list of constraints,
     and how many tests to generate and how many commands in a test to generate.
 
@@ -87,7 +87,7 @@ def generate_testsuite(cmd_dict: dict, enum_dict: dict, constraints: list[Constr
     return test_suite
 
 
-def constrain_dicts(cmd_dict: dict, enum_dict: dict, constraints: list[Constraint]):
+def constrain_dicts(cmd_dict: dict, enum_dict: dict, constraints: List[Constraint]):
     """Constrains a command dictionary and enum dictionary according to a list of constraints.
 
     :param cmd_dict: the command dictionary.

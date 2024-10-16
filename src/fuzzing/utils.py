@@ -1,6 +1,6 @@
 
 import sys
-from typing import Callable
+from typing import Callable, List
 from dotmap import DotMap
 import pprint
 
@@ -10,8 +10,8 @@ import pprint
 #########
 
 Command = DotMap
-Test = list[Command]
-TestSuite = list[Test]
+Test = List[Command]
+TestSuite = List[Test]
 Environment = DotMap
 FreezeId = int | str
 CommandConstraint = Callable[[Environment, Command], bool]

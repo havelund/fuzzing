@@ -351,7 +351,7 @@ class Range(Constraint):
 
 @dataclass
 class Include(Constraint):
-    cmd_names: list[str]
+    cmd_names: List[str]
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         formula = Always(C(lambda e,c:  c[INDEX.NAME] in self.cmd_names))
@@ -372,7 +372,7 @@ def apply_constraint(test: Test, constraint: Constraint) -> bool:
     return constraint.evaluate(DotMap(), test, 0)
 
 
-def test_constraints(test : Test, constraints: list[Constraint]) -> bool:
+def test_constraints(test : Test, constraints: List[Constraint]) -> bool:
     """Checks whether a test satisfies a collection of constraints.
 
     :param test: the test.
