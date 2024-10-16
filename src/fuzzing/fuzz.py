@@ -50,5 +50,6 @@ if __name__ == '__main__':
         data + 'output/cmd_enum.json',
         data + 'output/testsuite.json'
     ]
-    main(args)
+    # main(args)
+    main()
 
