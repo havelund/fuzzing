@@ -99,9 +99,16 @@ def constrain_dicts(cmd_dict: dict, enum_dict: dict, constraints: list[Constrain
     The function has side effects, by updating the `cmd_dict` and the `enum_dict`.
     """
     for constraint in constraints:
-        match constraint:
-            case Range(cmd_name, arg_name, min, max):
-                update_range_of_int_argument(cmd_dict, cmd_name, arg_name, min, max)
+        # match constraint:
+        #     case Range(cmd_name, arg_name, min, max):
+        #         update_range_of_int_argument(cmd_dict, cmd_name, arg_name, min, max)
+        if isinstance(constraint, Range):
+            cmd_name = constraint.cmd_name
+            arg_name = constraint.arg_name
+            min = constraint.min
+            max = constraint.max
+            update_range_of_int_argument(cmd_dict, cmd_name, arg_name, min, max)
+
 
 
 def update_range_of_int_argument(cmd_dict: dict, cmd_name: str, arg_name: int, min: int, max: int):
