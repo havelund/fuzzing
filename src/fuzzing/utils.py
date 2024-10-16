@@ -74,4 +74,4 @@ def lookup_dict(dictionary: dict, name: str) -> object:
         error(f"'{name}' is not a key in {dictionary}")
 
 
-pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint
+# pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint

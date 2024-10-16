@@ -19,6 +19,6 @@ constraints1: list[Constraint] = [
 
 if __name__ == '__main__':
     tests = generate_testsuite(cmdDict, enumDict, constraints1, 10, 5)
-    pp(tests)
+    # pp(tests)
     with open("testsuite.json", "w") as file:
         json.dump(tests, file, indent=4)
