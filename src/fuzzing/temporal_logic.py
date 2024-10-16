@@ -358,6 +358,15 @@ class Include(Constraint):
         return formula.evaluate(env, test, index)
 
 
+@dataclass
+class Exclude(Constraint):
+    cmd_names: List[str]
+
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        formula = Always(C(lambda e,c:  c[INDEX.NAME] not in self.cmd_names))
+        return formula.evaluate(env, test, index)
+
+
 #############
 # Semantics #
 #############

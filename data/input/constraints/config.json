@@ -1,16 +1,9 @@
-
 {
   "testsuite_size": 10,
   "test_size": 10,
   "constraints": [
     {
-      "kind": "range",
-      "command": "DDM_SET_DWN_TZ_CONFIG",
-      "argument": "dwn_rate",
-      "range_min": 25000,
-      "range_max": 2000000
-    },
-    {
+      "active": true,
       "kind": "include",
       "commands": [
         "TIME_CORR_REQUEST",
@@ -18,6 +11,21 @@
         "DDM_MANAGE_DWN_PB",
         "DDM_SET_DWN_TZ_CONFIG"
       ]
+    },
+    {
+      "active": true,
+      "kind": "exclude",
+      "commands": [
+        "TIME_CORR_REQUEST",
+        "DDM_SET_DWN_TZ_CONFIG"
+      ]
+    },
+    {
+      "kind": "range",
+      "command": "DDM_SET_DWN_TZ_CONFIG",
+      "argument": "dwn_rate",
+      "range_min": 25000,
+      "range_max": 2000000
     }
   ]
 }

@@ -45,19 +45,25 @@ def extract_constraints(constraint_objects: List[dict]) -> List[Constraint]:
     constraints: List[Constraint] = []
     for constraint_obj in constraint_objects:
         kind = lookup_dict(constraint_obj, INDEX.KIND)
-        if kind == VALUE.RANGE:
-            command = lookup_dict(constraint_obj, INDEX.COMMAND)
-            argument = lookup_dict(constraint_obj, INDEX.ARGUMENT)
-            min = lookup_dict(constraint_obj, INDEX.RANGE_MIN)
-            max = lookup_dict(constraint_obj, INDEX.RANGE_MAX)
-            constraint = Range(command, argument, min, max)
-            constraints.append(constraint)
-        elif kind == VALUE.INCLUDE:
-            commands = lookup_dict(constraint_obj, INDEX.COMMANDS)
-            constraint = Include(commands)
-            constraints.append(constraint)
-        else:
-            error(f'unknown constraint: {constraint_obj}')
+        active = constraint_obj.get(INDEX.ACTIVE, True)
+        if active:
+            if kind == VALUE.RANGE:
+                command = lookup_dict(constraint_obj, INDEX.COMMAND)
+                argument = lookup_dict(constraint_obj, INDEX.ARGUMENT)
+                min = lookup_dict(constraint_obj, INDEX.RANGE_MIN)
+                max = lookup_dict(constraint_obj, INDEX.RANGE_MAX)
+                constraint = Range(command, argument, min, max)
+                constraints.append(constraint)
+            elif kind == VALUE.INCLUDE:
+                commands = lookup_dict(constraint_obj, INDEX.COMMANDS)
+                constraint = Include(commands)
+                constraints.append(constraint)
+            elif kind == VALUE.EXCLUDE:
+                commands = lookup_dict(constraint_obj, INDEX.COMMANDS)
+                constraint = Exclude(commands)
+                constraints.append(constraint)
+            else:
+                error(f'unknown constraint: {constraint_obj}')
     return constraints
 
 
@@ -97,16 +103,20 @@ def constrain_dicts(cmd_dict: dict, enum_dict: dict, constraints: List[Constrain
     The function has side effects, by updating the `cmd_dict` and the `enum_dict`.
     """
     for constraint in constraints:
-        # match constraint:
-        #     case Range(cmd_name, arg_name, min, max):
-        #         update_range_of_int_argument(cmd_dict, cmd_name, arg_name, min, max)
         if isinstance(constraint, Range):
             cmd_name = constraint.cmd_name
             arg_name = constraint.arg_name
             min = constraint.min
             max = constraint.max
             update_range_of_int_argument(cmd_dict, cmd_name, arg_name, min, max)
-
+        elif isinstance(constraint, Include):
+            commands = constraint.cmd_names
+            commands_to_delete = [cmd for cmd in cmd_dict.keys() if cmd not in commands]
+            for cmd in commands_to_delete:
+                del cmd_dict[cmd]
+        elif isinstance(constraint, Exclude):
+            for cmd in constraint.cmd_names:
+                del cmd_dict[cmd]
 
 
 def update_range_of_int_argument(cmd_dict: dict, cmd_name: str, arg_name: int, min: int, max: int):
@@ -147,16 +157,43 @@ def generate_test(cmd_dict: dict, enum_dict: dict, nr_cmds: int) -> Test:
         for arg in arguments:
             arg_name = lookup_dict(arg, INDEX.NAME)
             arg_type = lookup_dict(arg, INDEX.TYPE)
+            arg_length = lookup_dict(arg, INDEX.LENGTH)
             if arg_type == VALUE.UNSIGNED_ARG:
+                default_min, default_max = limits_unsigned_int(arg_length)
                 min = lookup_dict(arg, INDEX.RANGE_MIN)
                 max = lookup_dict(arg, INDEX.RANGE_MAX)
                 if min is None:
-                    min = Constants.MIN_INTEGER
+                    min = default_min
                 if max is None:
-                    max = Constants.MAX_INTEGER
+                    max = default_max
                 value = random.randrange(min, max)
+            elif arg_type == VALUE.INTEGER_ARG:
+                default_min, default_max = limits_signed_int(arg_length)
+                min = lookup_dict(arg, INDEX.RANGE_MIN)
+                max = lookup_dict(arg, INDEX.RANGE_MAX)
+                if min is None:
+                    min = default_min
+                if max is None:
+                    max = default_max
+                value = random.randrange(min, max)
+            elif arg_type == VALUE.FLOAT_ARG:
+                default_min, default_max = limits_floating_point(arg_length)
+                min = lookup_dict(arg, INDEX.RANGE_MIN)
+                max = lookup_dict(arg, INDEX.RANGE_MAX)
+                if min is None:
+                    min = default_min
+                if max is None:
+                    max = default_max
+                value = random.uniform(min, max)
+            elif arg_type == VALUE.VAR_STRING_ARG:
+                number_of_chars = arg_length / 8
+                value = '?' * number_of_chars
             else:
                 value = random.choice(lookup_dict(enum_dict, arg_type))
             generated_command[arg_name] = value
         test.append(generated_command)
     return test
+
+
+def generate_random_argument(arg: dict) -> Union[int, float, str]:
+    ...

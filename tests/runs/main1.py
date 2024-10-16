@@ -40,4 +40,5 @@ constraints2: list[Constraint] = [
 if __name__ == '__main__':
     tests = generate_testsuite(cmdDict, enumDict, constraints2, 10, 5)
     # pp(tests)
+    print(tests)
 
