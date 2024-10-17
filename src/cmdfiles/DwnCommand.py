@@ -1,0 +1,77 @@
+
+enumDict = {
+	'dwn_framing_packet_buffer':[
+			'REALTIME_EHA_1',
+			'FATAL_EVR',
+			'WARNING_HI_EVR',
+			'CFDP_CLASS_2',
+			'WARNING_LO_EVR',
+			'REALTIME_EHA_2',
+			'CMD_EVR',
+			'ACTIVITY_HI_EVR',
+			'ACTIVITY_LO_EVR',
+			'REALTIME_EHA_3',
+			'DATA_PRODUCTS',
+			'DIAGNOSTIC_EVR',
+			'REALTIME_EHA_4',
+			],
+	'enable_disable':[
+			'DISABLE',
+			'ENABLE',
+			],
+}
+
+cmdDict = {
+	'TIME_CORR_REQUEST':{
+		'opcode':'0xFBA1',
+		'args': [
+			{'name':'tc_generation_duration','type':'unsigned_arg','length':32,'range_min':1,'range_max':86400},
+			{'name':'tc_spacing','type':'unsigned_arg','length':16,'range_min':1,'range_max':3600},
+			{'name':'tc_consecutive_frames','type':'unsigned_arg','length':8,'range_min':1,'range_max':10},
+
+		      ]
+		},
+	'DDM_CLEAR_DWN_DP_BUFFER':{
+		'opcode':'0xFBBB',
+		'args': []
+		},
+	'DDM_MANAGE_DWN_PB':{
+		'opcode':'0xFBBC',
+		'args': [
+			{'name':'dwn_framing_packet_buffer','type':'dwn_framing_packet_buffer','length':8,'range_min':None,'range_max':None},
+			{'name':'dwn_framing_pb_enable_disable','type':'enable_disable','length':8,'range_min':None,'range_max':None},
+
+		      ]
+		},
+	'DDM_SET_DWN_TZ_CONFIG':{
+		'opcode':'0xFBBD',
+		'args': [
+			{'name':'dwn_rate','type':'unsigned_arg','length':32,'range_min':10,'range_max':2000000},
+
+		      ]
+		},
+	'DDM_ENABLE_DWN_PB_ENTRY_GATE':{
+		'opcode':'0xFBBE',
+		'args': [
+			{'name':'dwn_framing_packet_buffer','type':'dwn_framing_packet_buffer','length':8,'range_min':None,'range_max':None},
+			{'name':'dwn_framing_pb_entry_gate_enable_disable','type':'enable_disable','length':8,'range_min':None,'range_max':None},
+
+		      ]
+		},
+	'DDM_ENABLE_DWN_PB_EXIT_GATE':{
+		'opcode':'0xFBBF',
+		'args': [
+			{'name':'dwn_framing_packet_buffer','type':'dwn_framing_packet_buffer','length':8,'range_min':None,'range_max':None},
+			{'name':'enable_disable','type':'enable_disable','length':8,'range_min':None,'range_max':None},
+
+		      ]
+		},
+	'DDM_CLEAR_DWN_PACKET_BUFFER':{
+		'opcode':'0xFD85',
+		'args': []
+		},
+	'DDM_CLEAR_DWN_BUFFER':{
+		'opcode':'0xFED0',
+		'args': []
+		},
+}
