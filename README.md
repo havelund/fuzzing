@@ -56,7 +56,9 @@ following format:
 }
 ```
 
-Each constraint must be one of the following kinds of objects:
+Each constraint must be one of the following kinds of objects.
+
+### Range
 
 ```json
    {
@@ -69,6 +71,15 @@ Each constraint must be one of the following kinds of objects:
     }
 ```
 
+The `range` constraint limits the range of a particular argument of
+a particular command.
+
+The `active` field indicates whether the constraint should be applied
+(`true`) or not (`false`). It can be used to switch off or on constraints. If this field 
+is not present, it is the same as `"active": true`. 
+
+### Include
+
 ```json
     {
       "active": bool,
@@ -77,6 +88,11 @@ Each constraint must be one of the following kinds of objects:
     }
 ```
 
+The `include` constraint restricts generated commands to a given subset.
+Only those commands will be generated.
+
+### Exclude
+
 ```json
     {
       "active": bool,
@@ -84,6 +100,12 @@ Each constraint must be one of the following kinds of objects:
       "commands": List[str]
     }
 ```
+
+The `exclude` constraint restricts generated commands to those not in 
+a given subset. The command in the provided set will not be
+generated.
+
+### Followedby
 
 ```json
     {
@@ -94,6 +116,12 @@ Each constraint must be one of the following kinds of objects:
     }
 ```
 
+The `followedby` constraint restricts tests to such where: if there is a 
+`cmd1` in the test, it will be followed eventually by a `cmd2` in the test.
+It is not one-to-one. That is, a single `cmd2` can match two `cmd1`s for example.
+
+### Precedes
+
 ```json
     {
       "active": bool,
@@ -102,4 +130,8 @@ Each constraint must be one of the following kinds of objects:
       "cmd2": str
     }
 ```
+
+The `precedes` constraint restricts tests to such where: if there is a 
+`cmd2` in the test, it will be preceded earlier in the test by a `cmd1` in the test.
+It is not one-to-one. That is, a single `cmd1` can match two `cmd2`s for example.
 
