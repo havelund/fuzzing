@@ -1,6 +1,5 @@
 
 Todo:
 
-[ ] Document constraint language
-[ ] Other constraints
+
 
