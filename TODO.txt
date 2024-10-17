@@ -1,5 +1,6 @@
 
 Todo:
 
-- exclude constraint + others
+[ ] Document constraint language
+[ ] Other constraints
 

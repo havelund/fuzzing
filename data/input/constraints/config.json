@@ -4,6 +4,14 @@
   "constraints": [
     {
       "active": true,
+      "kind": "range",
+      "command": "DDM_SET_DWN_TZ_CONFIG",
+      "argument": "dwn_rate",
+      "range_min": 25000,
+      "range_max": 2000000
+    },
+    {
+      "active": false,
       "kind": "include",
       "commands": [
         "TIME_CORR_REQUEST",
@@ -13,7 +21,7 @@
       ]
     },
     {
-      "active": true,
+      "active": false,
       "kind": "exclude",
       "commands": [
         "TIME_CORR_REQUEST",
@@ -21,11 +29,16 @@
       ]
     },
     {
-      "kind": "range",
-      "command": "DDM_SET_DWN_TZ_CONFIG",
-      "argument": "dwn_rate",
-      "range_min": 25000,
-      "range_max": 2000000
+      "active": false,
+      "kind": "followedby",
+      "cmd1": "TIME_CORR_REQUEST",
+      "cmd2": "DDM_MANAGE_DWN_PB"
+    },
+    {
+      "active": false,
+      "kind": "precedes",
+      "cmd1": "DDM_CLEAR_DWN_DP_BUFFER",
+      "cmd2": "DDM_MANAGE_DWN_PB"
     }
   ]
 }

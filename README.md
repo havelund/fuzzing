@@ -39,4 +39,67 @@ Current snapshot:
 
 See wiki for discussion of design space.
 
+## Constraint Language
+
+The `fuzz.py` script takes as argument a configuration file which must have the 
+following format:
+
+```json
+{
+  "testsuite_size": int,
+  "test_size": int,
+  "constraints": [
+    constraint_1,
+    ...
+    constraint_n
+  ]
+}
+```
+
+Each constraint must be one of the following kinds of objects:
+
+```json
+   {
+      "active": bool,
+      "kind": "range",
+      "command": str,
+      "argument": str,
+      "range_min": int,
+      "range_max": int
+    }
+```
+
+```json
+    {
+      "active": bool,
+      "kind": "include",
+      "commands": List[str]
+    }
+```
+
+```json
+    {
+      "active": bool,
+      "kind": "exclude",
+      "commands": List[str]
+    }
+```
+
+```json
+    {
+      "active": bool,
+      "kind": "followedby",
+      "cmd1": str,
+      "cmd2": str
+    }
+```
+
+```json
+    {
+      "active": bool,
+      "kind": "precedes",
+      "cmd1": str,
+      "cmd2": str
+    }
+```
 

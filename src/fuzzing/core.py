@@ -62,6 +62,16 @@ def extract_constraints(constraint_objects: List[dict]) -> List[Constraint]:
                 commands = lookup_dict(constraint_obj, INDEX.COMMANDS)
                 constraint = Exclude(commands)
                 constraints.append(constraint)
+            elif kind == VALUE.FOLLOWEDBY:
+                cmd1 = lookup_dict(constraint_obj, INDEX.CMD1)
+                cmd2 = lookup_dict(constraint_obj, INDEX.CMD2)
+                constraint = Always(Implies(N(cmd1), Eventually(N(cmd2))))
+                constraints.append(constraint)
+            elif kind == VALUE.PRECEDES:
+                cmd1 = lookup_dict(constraint_obj, INDEX.CMD1)
+                cmd2 = lookup_dict(constraint_obj, INDEX.CMD2)
+                constraint = Always(Implies(N(cmd2), Once(N(cmd1))))
+                constraints.append(constraint)
             else:
                 error(f'unknown constraint: {constraint_obj}')
     return constraints

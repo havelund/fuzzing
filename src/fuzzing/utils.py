@@ -29,6 +29,8 @@ class INDEX:
     ARGS = 'args'
     ARGUMENT = 'argument'
     CMD_DICT = 'cmd_dict'
+    CMD1 = 'cmd1'
+    CMD2 = 'cmd2'
     COMMAND = 'command'
     COMMANDS = 'commands'
     CONSTRAINTS = 'constraints'
@@ -48,6 +50,8 @@ class VALUE:
     Constants representing pre-defined contents of dictionaries.
     """
     EXCLUDE = 'exclude'
+    FOLLOWEDBY = 'followedby'
+    PRECEDES = 'precedes'
     INCLUDE = 'include'
     RANGE = 'range'
     UNSIGNED_ARG = 'unsigned_arg'
