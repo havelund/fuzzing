@@ -10,7 +10,7 @@ Usage: python fuzz.py config.json cmd_enum_dict_file.json testsuite_file.json
 
 import argparse
 
-from core import testsuite_generation
+from src.fuzzing.core import testsuite_generation
 
 
 def main(args = None):

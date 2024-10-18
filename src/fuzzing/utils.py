@@ -2,7 +2,7 @@
 import sys
 from typing import Callable, List, Union
 from dotmap import DotMap
-import pprint
+# import pprint
 
 
 #########
@@ -27,12 +27,12 @@ class INDEX:
     """
     ACTIVE = 'active'
     ARGS = 'args'
-    ARGUMENT = 'argument'
+    ARG = 'arg'
     CMD_DICT = 'cmd_dict'
     CMD1 = 'cmd1'
     CMD2 = 'cmd2'
-    COMMAND = 'command'
-    COMMANDS = 'commands'
+    CMD = 'cmd'
+    CMDS = 'cmds'
     CONSTRAINTS = 'constraints'
     ENUM_DICT = 'enum_dict'
     KIND = 'kind'
@@ -50,8 +50,11 @@ class VALUE:
     Constants representing pre-defined contents of dictionaries.
     """
     EXCLUDE = 'exclude'
-    FOLLOWEDBY = 'followedby'
+    EVENTUALLY = 'eventually'
+    FOLLOWED_BY = 'followed_by'
+    FOLLOWED_BY_NEXT = 'followed_by_next'
     PRECEDES = 'precedes'
+    PRECEDES_PREV = 'precedes_prev'
     INCLUDE = 'include'
     RANGE = 'range'
     UNSIGNED_ARG = 'unsigned_arg'

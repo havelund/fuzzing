@@ -64,8 +64,8 @@ Each constraint must be one of the following kinds of objects.
    {
       "active": bool,
       "kind": "range",
-      "command": str,
-      "argument": str,
+      "cmd": str,
+      "arg": str,
       "range_min": int,
       "range_max": int
     }
@@ -84,7 +84,7 @@ is not present, it is the same as `"active": true`.
     {
       "active": bool,
       "kind": "include",
-      "commands": List[str]
+      "cmds": List[str]
     }
 ```
 
@@ -97,7 +97,7 @@ Only those commands will be generated.
     {
       "active": bool,
       "kind": "exclude",
-      "commands": List[str]
+      "cmds": List[str]
     }
 ```
 
@@ -105,18 +105,18 @@ The `exclude` constraint restricts generated commands to those not in
 a given subset. The command in the provided set will not be
 generated.
 
-### Followedby
+### Followed_by
 
 ```json
     {
       "active": bool,
-      "kind": "followedby",
+      "kind": "followed_by",
       "cmd1": str,
       "cmd2": str
     }
 ```
 
-The `followedby` constraint restricts tests to such where: if there is a 
+The `followed_by` constraint restricts tests to such where: if there is a 
 `cmd1` in the test, it will be followed eventually by a `cmd2` in the test.
 It is not one-to-one. That is, a single `cmd2` can match two `cmd1`s for example.
 
@@ -134,4 +134,45 @@ It is not one-to-one. That is, a single `cmd2` can match two `cmd1`s for example
 The `precedes` constraint restricts tests to such where: if there is a 
 `cmd2` in the test, it will be preceded earlier in the test by a `cmd1` in the test.
 It is not one-to-one. That is, a single `cmd1` can match two `cmd2`s for example.
+
+# Followed_by_next
+
+```json
+    {
+      "active": bool,
+      "kind": "precedes_prev",
+      "cmd1": str,
+      "cmd2": str
+    }
+```
+
+The `followed_by_next` constraint restricts tests to such where: if there is a 
+`cmd1` in the test, it will be followed immediately after by a `cmd2` in the test.
+
+# Precedes_prev
+
+```json
+    {
+      "active": bool,
+      "kind": "precedes_prev",
+      "cmd1": str,
+      "cmd2": str
+    }
+```
+
+The `precedes_prev` constraint restricts tests to such where: if there is a 
+`cmd2` in the test, it will be preceded immediately before in the test by a `cmd1` in the test.
+
+# Eventually
+
+```json
+    {
+      "active": bool,
+      "kind": "eventually",
+      "cmd": str
+    }
+```
+
+The `eventually` constraint restricts tests to such where there is at least one 
+`cmd` in the test.
 

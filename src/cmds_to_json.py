@@ -87,10 +87,10 @@ def main(args = None):
 
 if __name__ == '__main__':
     # Testing script:
-    datadir = '/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/data/'
+    datadir = '/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/'
     args = [
-        datadir + 'input/clipper1',
-        datadir + 'output/cmd_enum.json'
+        datadir + 'src/cmdfiles',
+        datadir + 'data/output/cmd_enum.json'
     ]
-    # main(args)
-    main()
+    main(args)
+    # main()

@@ -48,21 +48,21 @@ def extract_constraints(constraint_objects: List[dict]) -> List[Constraint]:
         active = constraint_obj.get(INDEX.ACTIVE, True)
         if active:
             if kind == VALUE.RANGE:
-                command = lookup_dict(constraint_obj, INDEX.COMMAND)
-                argument = lookup_dict(constraint_obj, INDEX.ARGUMENT)
+                command = lookup_dict(constraint_obj, INDEX.CMD)
+                argument = lookup_dict(constraint_obj, INDEX.ARG)
                 min = lookup_dict(constraint_obj, INDEX.RANGE_MIN)
                 max = lookup_dict(constraint_obj, INDEX.RANGE_MAX)
                 constraint = Range(command, argument, min, max)
                 constraints.append(constraint)
             elif kind == VALUE.INCLUDE:
-                commands = lookup_dict(constraint_obj, INDEX.COMMANDS)
+                commands = lookup_dict(constraint_obj, INDEX.CMDS)
                 constraint = Include(commands)
                 constraints.append(constraint)
             elif kind == VALUE.EXCLUDE:
                 commands = lookup_dict(constraint_obj, INDEX.COMMANDS)
                 constraint = Exclude(commands)
                 constraints.append(constraint)
-            elif kind == VALUE.FOLLOWEDBY:
+            elif kind == VALUE.FOLLOWED_BY:
                 cmd1 = lookup_dict(constraint_obj, INDEX.CMD1)
                 cmd2 = lookup_dict(constraint_obj, INDEX.CMD2)
                 constraint = Always(Implies(N(cmd1), Eventually(N(cmd2))))
@@ -71,6 +71,20 @@ def extract_constraints(constraint_objects: List[dict]) -> List[Constraint]:
                 cmd1 = lookup_dict(constraint_obj, INDEX.CMD1)
                 cmd2 = lookup_dict(constraint_obj, INDEX.CMD2)
                 constraint = Always(Implies(N(cmd2), Once(N(cmd1))))
+                constraints.append(constraint)
+            elif kind == VALUE.FOLLOWED_BY_NEXT:
+                cmd1 = lookup_dict(constraint_obj, INDEX.CMD1)
+                cmd2 = lookup_dict(constraint_obj, INDEX.CMD2)
+                constraint = Always(Implies(N(cmd1), Next(N(cmd2))))
+                constraints.append(constraint)
+            elif kind == VALUE.PRECEDES_PREV:
+                cmd1 = lookup_dict(constraint_obj, INDEX.CMD1)
+                cmd2 = lookup_dict(constraint_obj, INDEX.CMD2)
+                constraint = Always(Implies(N(cmd2), Previous(N(cmd1))))
+                constraints.append(constraint)
+            elif kind == VALUE.EVENTUALLY:
+                command = lookup_dict(constraint_obj, INDEX.CMD)
+                constraint = Eventually(N(command))
                 constraints.append(constraint)
             else:
                 error(f'unknown constraint: {constraint_obj}')
@@ -99,7 +113,7 @@ def generate_testsuite(cmd_dict: dict, enum_dict: dict, constraints: List[Constr
             test_suite.append([cmd.toDict() for cmd in test])  # convert from dotMaps
         else:
             failed += 1
-    print(f'Tried tests violating constraints: {failed} out of {count + failed} = {failed * 100 / (count + failed):.2f}%')
+    print(f'Generated {count} tests - rejected {failed} tests ({failed * 100 / (count + failed):.2f}%)')
     return test_suite
 
 
@@ -196,7 +210,7 @@ def generate_test(cmd_dict: dict, enum_dict: dict, nr_cmds: int) -> Test:
                     max = default_max
                 value = random.uniform(min, max)
             elif arg_type == VALUE.VAR_STRING_ARG:
-                number_of_chars = arg_length / 8
+                number_of_chars = int(arg_length / 8)
                 value = '?' * number_of_chars
             else:
                 value = random.choice(lookup_dict(enum_dict, arg_type))

@@ -5,15 +5,15 @@
     {
       "active": true,
       "kind": "range",
-      "command": "DDM_SET_DWN_TZ_CONFIG",
-      "argument": "dwn_rate",
+      "cmd": "DDM_SET_DWN_TZ_CONFIG",
+      "arg": "dwn_rate",
       "range_min": 25000,
       "range_max": 2000000
     },
     {
       "active": false,
       "kind": "include",
-      "commands": [
+      "cmds": [
         "TIME_CORR_REQUEST",
         "DDM_CLEAR_DWN_DP_BUFFER",
         "DDM_MANAGE_DWN_PB",
@@ -23,20 +23,37 @@
     {
       "active": false,
       "kind": "exclude",
-      "commands": [
+      "cmds": [
         "TIME_CORR_REQUEST",
         "DDM_SET_DWN_TZ_CONFIG"
       ]
     },
     {
       "active": false,
-      "kind": "followedby",
+      "kind": "followed_by",
       "cmd1": "TIME_CORR_REQUEST",
       "cmd2": "DDM_MANAGE_DWN_PB"
     },
     {
       "active": false,
       "kind": "precedes",
+      "cmd1": "DDM_CLEAR_DWN_DP_BUFFER",
+      "cmd2": "DDM_MANAGE_DWN_PB"
+    },
+    {
+      "active": false,
+      "kind": "precedes",
+      "cmd1": "DDM_MANAGE_DWN_PB",
+      "cmd2": "DDM_CLEAR_DWN_DP_BUFFER"
+    },
+    {
+      "active": false,
+      "kind": "eventually",
+      "cmd": "DDM_CLEAR_DWN_DP_BUFFER"
+    },
+    {
+      "active": false,
+      "kind": "followed_by_next",
       "cmd1": "DDM_CLEAR_DWN_DP_BUFFER",
       "cmd2": "DDM_MANAGE_DWN_PB"
     }
