@@ -3,7 +3,7 @@
 Run using simplified test directories.
 """
 
-from src.fuzzing.core import *
+from src.fuzz.core import *
 from data.input.tests.dict_test1 import cmdDict, enumDict
 
 

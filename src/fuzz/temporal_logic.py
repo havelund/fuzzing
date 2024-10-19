@@ -6,7 +6,7 @@ that can be used in a generate-and-accept/reject strategy.
 
 from dataclasses import dataclass
 
-from src.fuzzing.utils import *
+from src.fuzz.utils import *
 
 
 #######################

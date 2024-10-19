@@ -5,7 +5,7 @@ Run using Europa Clipper directories.
 
 import json
 
-from src.fuzzing.core import *
+from src.fuzz.core import *
 from data.input.clipper1.dict import cmdDict, enumDict
 
 

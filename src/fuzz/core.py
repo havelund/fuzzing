@@ -2,8 +2,8 @@
 import random
 import json
 
-from src.fuzzing.temporal_logic import *
-from src.fuzzing.utils import *
+from src.fuzz.temporal_logic import *
+from src.fuzz.utils import *
 
 
 def testsuite_generation(config_file: str, cmd_enum_file: str, testsuite_file: str):

@@ -1,6 +1,6 @@
 import unittest
 from tests.testutils import *
-from src.fuzzing.temporal_logic import *
+from src.fuzz.temporal_logic import *
 
 
 class FuzzTestSuite1(BaseTestSuite):

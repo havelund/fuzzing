@@ -2,7 +2,7 @@
 import unittest
 from dotmap import DotMap
 
-from src.fuzzing.temporal_logic import *
+from src.fuzz.temporal_logic import *
 def name(cmd: Command) -> str:
     return cmd['name']
 
