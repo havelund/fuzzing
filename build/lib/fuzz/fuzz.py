@@ -13,12 +13,12 @@ from src.fuzz.gencmds import generate_commands
 from src.fuzz.core import *
 
 
-def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[str,dict]] = None):
+def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[str,dict]] = None) -> List[List[dict]]:
     """Generates a test suite, which is a list of tests, each consisiting of a list of commands.
 
     It reads definitions of commands and their argument types, including enumerations,
     from XML files stored in a given directory. It only generates commands for certain FSW areas,
-    provided as an argument as well. A configuration file defines how many tests should be generated,
+    provided as an argument as well. A configuration defines how many tests should be generated,
     how many commands in each test, and constraints on what sequences of commands should be generated.
 
     :param fsw_dir: the directory containing command and enumeration descriptions in XML format.
@@ -27,7 +27,7 @@ def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[st
         named `config.json` stored in the same place the script is run. If provided, it can be
         provided in one of two forms: (1) as a string, which indicates the path to a `.json`
         file containing the configuration; (2) as a dictionary representing the configuration.
-    :return: the generated test suite, a sequence of tests, each being a sequence of commands.
+    :return: the generated test suite, a list of tests, each being a list of commands.
     """
     if config is None:
         config = 'config.json'

@@ -1,25 +1,74 @@
 
-# FSWfuzzer
+# fuzz
  
-This repository contains a framework for fuzz testing 
-commands. 
+This repository contains a library `fuzz` for fuzz testing 
+flight software. The main
+function, `generate_tests`, provided by the library, generates a test suite,
+which is a list of tests. Each test is a list of commands, which can be sent
+to the flight software from a FIT script, either as a command list,
+or one by one, as preferred. Each test is randomly generated, potentially 
+restricted by user provided constraints.
 
-### Prerequisites
+The objective of fuzzing is to invoke unlikely, untried, command sequences on the flight
+software in an attempt to break it.
+
+`generate_tests` takes as input a description of possible commands in XML format, 
+a description of what particular flight software modules should be tested (areas), 
+and a configuration which guides how tests are generated.
+
+```
++--------------------------------------------------+
+|                Test fuzz Module                  |
+|                                                  |
+|  +------------------+   +--------------------+   |
+|  | commands + areas |   |    Configuration   |   |
+|  +--------+---------+   +---------+----------+   |
+|           |                       |              |
+|           V                       V              |
+|        /-----------------------------\           |
+|       |         generate_tests        |          |
+|        \-----------------------------/           |
+|                        |                         |
+|                        V                         |
+|  +-----------------------------------------+     |
+|  |          List of Generated Tests        |     |
+|  +-----------------------------------------+     |
++--------------------------------------------------+
+```
+A generated test suite is a list of tests, each being a list of commands,
+each being represented as  a dictionary containing the name of the command and any arguments:
+
+```
+[
+  [cmd_11, cmd_12, ...,cmd_1n],
+  [cmd_21, cmd_22, ...,cmd_2n],
+  
+  [cmd_m1, cmd_m2, ...,cmd_mn],
+]
+```
+
+### Installation
+
+The suggested approach is to install the library with `pip install` and then import and use it 
+in a Python FTT module, as shown below.
+
+#### Prerequisites
 
 - Python 3.6 or higher installed on your system.
 - A working installation of pip.
 
-### Installation
-
 #### Obtain the Project
 
-Clone or copy the fuzzing project to your local machine.
+Clone or copy the fuzzing project to your local machine, say in:
+
+```
+/path/to/fuzzing/
+```
 
 #### Activate the Virtual Environment
 
-Open a terminal and activate the pre-configured virtual environment 
-provided with the project. This step ensures that you are using the 
-isolated environment with the correct dependencies.
+Activate the pre-configured virtual environment 
+provided with the project:
 
 ```
 source /path/to/fuzzing/venv/bin/activate
@@ -33,7 +82,7 @@ pip install -e .
 ```
 
 
-## Use
+## Usage
 
 #### Create and/or Go to a New Directory
 
@@ -42,13 +91,13 @@ mkdir /path/to/testfuzz
 cd /path/to/testfuzz
 ```
 
-Sometimes one has to do this (not sure):
+One may have to do this in that dirctory (not sure):
 
 ```
 pip install /path/to/fuzzing
 ```
 
-#### Create a Script (fit.py):
+#### Create a Script, named e.g. `fit.py`:
 
 ```python
 from fuzz import generate_tests, print_tests
@@ -61,51 +110,56 @@ tests = generate_tests(path_to_xml, fsw_areas)
 print_tests(tests)
 ```
 
+In this case we just print it out. But the idea is that the `fit.py` module above
+should then walk through the tests and submit then to the simulator.
+
 #### Run the Script
 
 ```
 python fit.py
 ```
 
-## Organization of Repository
+## The Functions in the `fuzz` library
 
-Current snapshot:
+### generate_test
 
-- data (_inputs to and outputs from running scripts_)
-  - input
-    - clipper1 (_example Europa Clipper input modules_)
-    - tests
-  - output (_for example test suites_)
-    - testsuite_baseline.json
-- material (_various material such as images, papers, ..._)
-  - papers
-  - ...
-- src (_the tool itself represented as a collection of scripts_)
-  - autogen_cmds.py (_conversion from enum and cmd dicts in XML to Python modules_)
-  - cmds_to_json.py (_conversion from enum and cmd dicts in Python modules to Json_)
-  - fuzzing (_generation of test suite_)
-    - fuzz.py (_main script_)
-    - core.py (_core functionality_)
-    - temporal_logic.py (_abstract syntax and semantics for temporal logic_)
-    - utils.py (_utilities_)
-- tests
-  - runs (_a collection of runs, not part of testing_)
-  - test1.py (_a test_)
-  - test2.py (_a test_)
-  - ...
-  - testutils.py (_test utilities_)
-- zigzag (_various fuzzing experiments_)
-  - grammars (_generating tests from a grammar_)
-  - smt (_generating tests using the Z3 SMT solver_)
+```python
+def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[str,dict]] = None) -> List[List[dict]]:
+```
 
-## Design
+Generates a test suite, which is a list of tests, each consisting of a list of commands.
 
-See wiki for discussion of design space.
+It reads definitions of commands and their argument types, including enumerations,
+from XML files stored in a given directory. It only generates commands for certain FSW areas,
+provided as an argument as well. A configuration defines how many tests should be generated,
+how many commands in each test, and constraints on what sequences of commands should be generated.
+
+Parameters:
+- fsw_dir: the directory containing command and enumeration descriptions in XML format.
+- fsw_areas: the FSW areas commands should be generated for.
+- config: configuration. If not provided, it is assumed that it is defined in a file
+  named `config.json` stored in the same place the script is run. If provided, it can be
+  provided in one of two forms: (1) as a string, which indicates the path to a `.json`
+  file containing the configuration; (2) as a dictionary representing the configuration.
+
+Returns
+- the generated test suite, a list of tests, each being a list of commands.
+
+### print_tests
+
+```python
+def print_tests(tests: List[List[dict]]):
+```  
+Pretty prints a generated test. A test can also be printed with just calling `print`. However, this will
+result in all tests being printed on one line, which is difficult to read.
+
+Parameter:
+
+- tests: the test to be printed.
 
 ## Constraint Language
 
-The `fuzz.py` script takes as argument a configuration file which must have the 
-following format:
+The configuration must have the following format (either as a `.json` file or as a dictionary):
 
 ```json
 {
@@ -198,7 +252,7 @@ The `precedes` constraint restricts tests to such where: if there is a
 `cmd2` in the test, it will be preceded earlier in the test by a `cmd1` in the test.
 It is not one-to-one. That is, a single `cmd1` can match two `cmd2`s for example.
 
-# Followed_by_next
+### Followed_by_next
 
 ```json
     {
@@ -212,7 +266,7 @@ It is not one-to-one. That is, a single `cmd1` can match two `cmd2`s for example
 The `followed_by_next` constraint restricts tests to such where: if there is a 
 `cmd1` in the test, it will be followed immediately after by a `cmd2` in the test.
 
-# Precedes_prev
+### Precedes_prev
 
 ```json
     {
@@ -226,7 +280,7 @@ The `followed_by_next` constraint restricts tests to such where: if there is a
 The `precedes_prev` constraint restricts tests to such where: if there is a 
 `cmd2` in the test, it will be preceded immediately before in the test by a `cmd1` in the test.
 
-# Eventually
+### Eventually
 
 ```json
     {
