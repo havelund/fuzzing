@@ -350,6 +350,30 @@ The `eventually` constraint restricts tests to such where there is at least one
 
 Here is an example of a [config.json](https://github.jpl.nasa.gov/lars/fuzzing/blob/main/data/input/constraints/config.json) file.
 
+### A Few Words on Constraints
+
+#### Two Categories
+
+The constraints above can be classified into two categories:
+
+- Command modifying constraints: these include `range`, `include`, and `exclude`. These are applyed immediately before
+  test case generation begins, limiting the commands and their arguments. Such constraints are therefore very efficient.
+- Test modifying constraints: these include the rest. These are applied after each test has been generated. If the generated test
+  does not satisfy one of these constraints it is rejected (the number of rejected tests are printed out). This can therefore be
+  ineffecient, depending on the constraints. The more constraining they are, the less likely it is that the random test generator
+  will generate a test that satisfies them, resulting in more computation time, and in worst case non-termination.
+
+#### Temporal Logic
+
+Behind the scenes `fuzz` uses an advanced temporal logic with future and past time operators, and a so-called freeze operator enabling capturing data values in commands and relate them across commands. However, this temporal logic is currently not made available to
+the user. At some point it will be.
+
+#### Algorithm
+
+As mentioned, the test case algorithm works by repeatedly generate a test randomly and then check whether it satisfies 
+the constraints. A more efficient approach is if the two phases are merged. We are working on such an approach using
+SMT solving using the [z3](https://github.com/Z3Prover/z3) SMT solver.
+
 ## Contributing
 
 - Tracy Clark (348B)
