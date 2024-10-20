@@ -336,6 +336,10 @@ The `precedes_prev` constraint restricts tests to such where: if there is a
 The `eventually` constraint restricts tests to such where there is at least one 
 `cmd` in the test.
 
+### Example
+
+Here is an example of a [config.json](https://github.jpl.nasa.gov/lars/fuzzing/blob/main/data/input/constraints/config.json) file.
+
 ## Contributing
 
 - Tracy Clark (348B)
