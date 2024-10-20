@@ -47,7 +47,9 @@ each being represented as  a dictionary containing the name of the command and a
 ]
 ```
 
-Here is an example of a generated test suite consisting of two tests, each containing three commands:
+Below is an example of a generated test suite consisting of two tests, each containing three commands.
+The name of the command is denoted by `"name"`, and the rest of the fields in a command are the arguments,
+in the order in which they must be provided (it is an ordered dictionary).
 
 ```python
 [
