@@ -36,7 +36,8 @@ and a configuration which guides how tests are generated.
 +--------------------------------------------------+
 ```
 A generated test suite is a list of tests, each being a list of commands,
-each being represented as  a dictionary containing the name of the command and any arguments:
+each being represented as  a dictionary containing the name of the command and any arguments,
+Here this is shown in schematic form with _m_ tests with _n_ commands in each test.
 
 ```
 [
