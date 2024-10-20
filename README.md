@@ -371,8 +371,8 @@ the user. At some point it will be.
 #### Algorithm
 
 As mentioned, the test case algorithm works by repeatedly generate a test randomly and then check whether it satisfies 
-the constraints. A more efficient approach is if the two phases are merged. We are working on such an approach using
-SMT solving using the [z3](https://github.com/Z3Prover/z3) SMT solver.
+the constraints. A more efficient approach is if the two phases are merged. We are working on such an approach
+using the [z3](https://github.com/Z3Prover/z3) SMT solver. We are also considering a rule-based approach.
 
 ## Contributing
 
