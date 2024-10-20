@@ -164,8 +164,8 @@ for test in tests:
         print(f'send {cmd}')
 ```
 
-In this case we just print it out. But the idea is that the `fit.py` module above
-should then walk through the tests and submit then to the simulator.
+The idea is that the `fit.py` module above
+should walk through the generated tests and submit them to the flight software.
 
 #### Run the Script
 
