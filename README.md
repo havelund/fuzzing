@@ -21,7 +21,7 @@ and a configuration which guides how tests are generated.
 |                Test fuzz Module                  |
 |                                                  |
 |  +------------------+   +--------------------+   |
-|  | commands + areas |   |    Configuration   |   |
+|  | commands + areas |   |    configuration   |   |
 |  +--------+---------+   +---------+----------+   |
 |           |                       |              |
 |           V                       V              |
@@ -31,7 +31,7 @@ and a configuration which guides how tests are generated.
 |                        |                         |
 |                        V                         |
 |  +-----------------------------------------+     |
-|  |          List of Generated Tests        |     |
+|  |          list of generated tests        |     |
 |  +-----------------------------------------+     |
 +--------------------------------------------------+
 ```
