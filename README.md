@@ -151,7 +151,17 @@ fsw_areas = ['area1', 'area2', 'area3']
 
 tests = generate_tests(path_to_xml, fsw_areas)
 
-print_tests(tests)
+print_tests(tests)  
+
+# Example showing intended use:
+
+for test in tests:
+    print('=========')
+    print('reset fsw')
+    print('=========')    
+    for cmd in test:
+        print('---')
+        print(f'send {cmd}')
 ```
 
 In this case we just print it out. But the idea is that the `fit.py` module above
