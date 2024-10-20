@@ -356,7 +356,7 @@ Here is an example of a [config.json](https://github.jpl.nasa.gov/lars/fuzzing/b
 
 The constraints above can be classified into two categories:
 
-- Command modifying constraints: these include `range`, `include`, and `exclude`. These are applyed immediately before
+- Command modifying constraints: these include `range`, `include`, and `exclude`. These are applied immediately before
   test case generation begins, limiting the commands and their arguments. Such constraints are therefore very efficient.
 - Test modifying constraints: these include the rest. These are applied after each test has been generated. If the generated test
   does not satisfy one of these constraints it is rejected (the number of rejected tests are printed out). This can therefore be
