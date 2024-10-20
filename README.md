@@ -18,7 +18,7 @@ and a configuration which guides how tests are generated.
 
 ```
 +--------------------------------------------------+
-|                Test fuzz Module                  |
+|                The fuzz Module                   |
 |                                                  |
 |  +------------------+   +--------------------+   |
 |  | commands + areas |   |    configuration   |   |
