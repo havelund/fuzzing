@@ -47,6 +47,47 @@ each being represented as  a dictionary containing the name of the command and a
 ]
 ```
 
+Here is an example of a generated test suite consisting of two tests, each containing three commands:
+
+```python
+[
+    [
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "DIAGNOSTIC_EVR",
+            "enable_disable": "ENABLE"
+        },
+        {
+            "name": "GNC_SRU_SET_EXT_OH_REF_FRAME",
+            "which_sru_eu": "NON_PRIME_SRU_EU",
+            "which_sru_oh": "BOTH"
+        },
+        {
+            "name": "GNC_SRU_READ_DIAG_DATA",
+            "which_sru_eu": "SRU_EU_B"
+        }
+    ],
+    [
+        {
+            "name": "DDM_CLOSE_OPEN_CONT_DP"
+        },
+        {
+            "name": "DDM_DEL_DP",
+            "apid": 268,
+            "time_type": "DVT",
+            "filter_time_start": 2262188308,
+            "filter_time_end": 1622977556,
+            "sent_status": "ALL"
+        },
+        {
+            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
+            "dwn_framing_packet_buffer": "REALTIME_EHA_4",
+            "enable_disable": "ENABLE"
+        }
+    ]
+]
+```
+
 ### Installation
 
 The suggested approach is to install the library with `pip install` and then import and use it 
