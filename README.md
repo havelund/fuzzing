@@ -368,7 +368,7 @@ The constraints above can be classified into two categories:
 Behind the scenes `fuzz` uses an advanced temporal logic with future and past time operators, and a so-called freeze operator enabling capturing data values in commands and relate them across commands. However, this temporal logic is currently not made available to
 the user. At some point it will be.
 
-#### Algorithm
+#### Algorithms
 
 As mentioned, the test case algorithm works by repeatedly generate a test randomly and then check whether it satisfies 
 the constraints. A more efficient approach is if the two phases are merged. We are working on such an approach
