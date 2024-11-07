@@ -14,7 +14,7 @@ import json
 import os
 import sys
 
-from typing import List
+from typing import List,Tuple
 
 ################################################################################
 #  CONSTANTS & GLOBALS
@@ -250,8 +250,8 @@ def write_enum(node, enumName):
     return enumValue
 
 
-def generate_commands(fsw_path, areas):
-#def generate_commands(fsw_path: str, areas: List[str]) -> tuple[dict, dict]:
+#def generate_commands(fsw_path, areas):
+def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
     
     global enumEntireList
     global cmdEntireList
