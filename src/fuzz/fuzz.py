@@ -70,9 +70,9 @@ def print_tests(tests: List[List[dict]]):
 
 if __name__ == '__main__':
     # Brief test:
-    fsw_path = '...'
-    fsw_areas = []
-    config_file = '/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/data/input/constraints/config.json'
+    fsw_path = '/proj/fswcore/fsw/builds/releases/eurcfsw-R10.5.0_20241030'
+    fsw_areas = ['uvs']
+    config_file = '../../data/input/constraints/config.json'
     tests = generate_tests(fsw_path, fsw_areas, config_file)
     print_tests(tests)
 

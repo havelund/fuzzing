@@ -20,8 +20,8 @@ from typing import List,Tuple
 #  CONSTANTS & GLOBALS
 ################################################################################
 
-debug0 = True
-debug = True
+debug0 = False
+debug = False
 
 CMD_PATH = ['src/{}_mgr/{}_mgr_ai_cmd.xml',
             'src/{}_ctl/{}_ctl_ai_cmd.xml',
@@ -140,8 +140,8 @@ def write_field(node, reserved=[]):
     #argument name
     name = node.attrib['name']
     tmpDict = {}
-    min = "None"
-    max = "None"
+    min = None
+    max = None
     found = False
     if node.tag == "var_string_arg":
         bit_length = node.attrib['max_bit_length']
@@ -201,16 +201,16 @@ def write_field(node, reserved=[]):
 #        print("TAC TAC TAC This needs work. There are 11 of these. Maybe ignore these commands until we have everything else working.  this is repeat arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
-        min = "None"
-        max = "None"
+        min = None
+        max = None
     else:
         bit_length = 0
 
     tmpDict['name'] = name
     tmpDict['type'] = type
-    tmpDict['length'] = bit_length
-    tmpDict['range_min'] = min
-    tmpDict['range_max'] = max
+    tmpDict['length'] = int(bit_length)
+    tmpDict['range_min'] = int(min) if min else None
+    tmpDict['range_max'] = int(max) if max else None
         
     return tmpDict
 

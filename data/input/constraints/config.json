@@ -3,7 +3,7 @@
   "test_size": 10,
   "constraints": [
     {
-      "active": true,
+      "active": false,
       "kind": "range",
       "cmd": "DDM_SET_DWN_TZ_CONFIG",
       "arg": "dwn_rate",

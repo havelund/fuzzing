@@ -29,13 +29,14 @@ from argparse import RawTextHelpFormatter
 import os
 import sys
 import re
+from typing import List,Tuple
 
 ################################################################################
 #  CONSTANTS & GLOBALS
 ################################################################################
 
-NA = 'None'
-
+debug0 = False
+debug = False
 
 CMD_PATH = ['src/{}_mgr/{}_mgr_ai_cmd.xml',
             'src/{}_ctl/{}_ctl_ai_cmd.xml',
@@ -68,7 +69,8 @@ DICT_ARGS_END = """
 
 
 global opcode_list
-
+enumEntireList = []
+cmdEntireList = []
 
 ################################################################################
 #  FUNCTIONS
@@ -86,6 +88,8 @@ def str2bool(v):
 
         
 def gen_cmd_file(fswpath, outdir, area):
+    global enumEntireList
+    global cmdEntireList
 
     # Get command xml file
     foundFile = False
@@ -115,60 +119,52 @@ def gen_cmd_file(fswpath, outdir, area):
     with open(pktpath, 'w') as pktfile:
 
         root = tree.getroot()
-
+        enumArray = []
+        
         # Write Enum Structs
         enumStructs = root.find('enum_definitions')
         if enumStructs:
             pktfile.write(ENUM_DEF)
             
             for enumroot in enumStructs.findall('enum_table'):
-#                print("in enumroot, %s"%enumroot.attrib['name'])
+                if debug0:
+                    print("in enumroot, %s"%enumroot.attrib['name'])
             
                 # Generate python class definition
-                write_enum_dicts(pktfile, enumroot)
+                retEnumDict = write_enum_dicts(pktfile, enumroot)
+                enumEntireList.append(retEnumDict)
+                enumArray.append(retEnumDict)
 
             # Close class definition
             pktfile.write('}\n')
+
         
         # Write common dictionary header data
         pktfile.write(DICT_DEF)
+        
 
         pkts = root.find('command_definitions')
-#TAC        for pktroot in pkts.findall('fsw_command'):
-#TAC            print("in pktroot, %s"%pktroot.attrib['stem'])
-            
+
+        cmdArray = []
+        retCmdDict = {}
         for pktroot in pkts:
 
             # Generate python class definition
-            write_cmd_packet_class(pktfile, pktroot)
+            retCmdDict = write_cmd_packet_class(pktfile, pktroot)
+            if retCmdDict:
+                cmdEntireList.append(retCmdDict)
+            else:
+                print("WARNING: command dict for {} returned None ".format(pktroot.attrib['stem']))
+
+        if debug:
+            print("\n\n\n GLOBAL cmdarray")
+            for i in cmdEntireList:
+                print(i)
 
         # Close class definition
         pktfile.write('}\n')
 
     print('CREATED: {}'.format(pktpath))
-
-
-def write_enum_dicts(outfile,pktroot):
-    global opcode_list
-    enumname = pktroot.attrib['name']
-#    print("enum name is %s"%enumname)
-
-    # Name of Command
-    outfile.write("\t'%s':[\n"%enumname)
-
-    # Add values
-    reserved = []
-    if pktroot.find('values'):
-#        outfile.write("'DICT_ARGS_BEGIN)
-        for field in pktroot.find('values'):
-#            print("enumroot arguments %s"%field.tag)
-
-            write_enum(outfile, field, enumname)
-
-#        outfile.write(DICT_ARGS_END)
-        outfile.write("\t\t\t],\n")
-    else:
-        outfile.write('\t\t[],\n')
 
 def write_cmd_packet_class(outfile, pktroot):
     global opcode_list
@@ -181,71 +177,67 @@ def write_cmd_packet_class(outfile, pktroot):
                            "GNC_SRU_WRITE_MEMORY"]
     if cmdname in skip_these_commands:
         return
+    newCmdKey = cmdname
     
     # Name of Command
     outfile.write("\t'%s':{\n"%cmdname)
-
+    outerDict = {}
+    innerDict = {}
     # opcode
     # Add opcode field
     opcode = pktroot.attrib['opcode']
+    innerDict['opcode'] = opcode
+    
 #    print("pktname is %s, opcode is %s"%(cmdname,opcode))
     if opcode in opcode_list:
         print("WARNING: Duplicate opcodes in {}: opcode={}".format(outfile.name, opcode))
     opcode_list.append(opcode)
     outfile.write(DICT_ITEMS.format('opcode', opcode))
 
-    # # # # TAC I DON'T THINK I NEED THE crc16 field
+
     # Add arguments
     reserved = []
     if pktroot.find('arguments'):
         outfile.write(DICT_ARGS_BEGIN)
         for field in pktroot.find('arguments'):
-#            print("pktroot arguments %s"%field.tag)
+            if debug0:
+                print("pktroot arguments %s"%field.tag)
 
             name = write_field(outfile, field, reserved)
+
             reserved.append(name)
 
         outfile.write(DICT_ARGS_END)
     else:
         outfile.write('\t\t\'args\': []\n\t\t},\n')
 
+    innerDict['args'] = reserved
+    outerDict[cmdname] = innerDict
 
-def write_enum(outfile, node, enumName):
-
-    #argument name
-#    name = node.attrib['name']
-    enumValue = node.attrib['symbol']
-#    print("this is in write_enum with enumname %s and enumvalue %s"%(enumName,enumValue))
-    
-#    outfile.write("\t\t\t{'%s':["%(enumName))
-#    for field in node:
-    outfile.write("\t\t\t'%s',\n"%enumValue)
-
-        
-    return
+    return outerDict
 
 def write_field(outfile, node, reserved=[]):
 
     #argument name
     name = node.attrib['name']
-
+    tmpDict = {}
     min = "None"
     max = "None"
     found = False
     if node.tag == "var_string_arg":
-#        print("this is var string arg")
         bit_length = node.attrib['max_bit_length']
         type = node.tag
-#        print("this is var string arg {} {} {}".format(name,node.tag,bit_length))
+        if debug0:
+            print("this is var string arg {} {} {}".format(name,node.tag,bit_length))
     elif node.tag == "enum_arg":
         bit_length = node.attrib['bit_length']
         type = node.attrib['enum_name']
-#        print("this is enum arg {} {} {}".format(name,node.tag, bit_length))
+        if debug0:
+            print("this is enum arg {} {} {}".format(name,node.tag, bit_length))
     elif node.tag == "unsigned_arg":
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
-#            print("this is unsigned arg, in field loop")
             if field.tag == 'range_of_values':
                 for range in field:
                     min = range.attrib['min']
@@ -254,10 +246,12 @@ def write_field(outfile, node, reserved=[]):
                     break
             if found:
                 break
-#        print("this is unsigned arg {} {} {}".format(name,node.tag,bit_length))
+        if debug0:
+            print("this is unsigned arg {} {} {}".format(name,node.tag,bit_length))
                 
     elif node.tag == "float_arg":
-#        print("TAC TAC this is float arg")
+        if debug0:
+            print("TAC TAC this is float arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
@@ -271,7 +265,8 @@ def write_field(outfile, node, reserved=[]):
                 break
 
     elif node.tag == "integer_arg":
-#        print("TAC TAC this is integer arg")
+        if debug0:
+            print("TAC TAC this is integer arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
@@ -293,8 +288,57 @@ def write_field(outfile, node, reserved=[]):
         bit_length = 0
 
     outfile.write("\t\t\t{'name':'%s','type':'%s','length':%s,'range_min':%s,'range_max':%s},\n"%(name,type,bit_length,min,max))
+    tmpDict['name'] = name
+    tmpDict['type'] = type
+    tmpDict['length'] = bit_length
+    tmpDict['range_min'] = min
+    tmpDict['range_max'] = max
         
-    return
+    return tmpDict
+
+
+def write_enum_dicts(outfile,pktroot):
+    global opcode_list
+    enumname = pktroot.attrib['name']
+    newEnumKey = enumname
+    if debug0:
+        print("enum name is %s"%enumname)
+
+    # Name of Command
+    outfile.write("\t'%s':[\n"%enumname)
+
+    # Add values
+    enumVals = []
+    newEnumDef = {}
+    if pktroot.find('values'):
+
+        for field in pktroot.find('values'):
+            if debug0:
+                print("enumroot arguments %s"%field.tag)
+
+            enumVals.append(write_enum(outfile, field, enumname))
+
+        outfile.write("\t\t\t],\n")
+    else:
+        print("ERROR ERROR ERROR, no enum valus associated with {}".format(enumname))
+        outfile.write('\t\t[],\n')
+        
+    newEnumDef[newEnumKey] = enumVals
+    return newEnumDef
+
+def write_enum(outfile, node, enumName):
+
+    #argument name
+#    name = node.attrib['name']
+    enumValue = node.attrib['symbol']
+#    print("this is in write_enum with enumname %s and enumvalue %s"%(enumName,enumValue))
+    
+#    outfile.write("\t\t\t{'%s':["%(enumName))
+#    for field in node:
+    outfile.write("\t\t\t'%s',\n"%enumValue)
+
+        
+    return enumValue
 
 
 def write_eha_dict_mapping(outfile, pktroot):
@@ -316,61 +360,64 @@ def write_eha_dict_mapping(outfile, pktroot):
     outfile.write('\n{} = \\\n'.format(dictname))
     outfile.write(json.dumps(ehadict, indent=4) + '\n')
 
+#def generate_commands(fsw_path, areas):
+def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
+    
+    global enumEntireList
+    global cmdEntireList
+
+    # This function  generates python enum and command dictionaries that 
+    # contain commands for a specified fsw area and the using the following xml 
+    # definition files:
+    # src/<fsw area>_mgr/<fsw area>_mgr_ai_cmd.xml',
+    # src/<fsw area>_ctl/<fsw area>_ctl_ai_cmd.xml
+    # src/<fsw area>_svc/<fsw area>_svc_ai_cmd.xml
+    # src/<fsw area>_exe/<fsw area>_exe_ai_cmd.xml
+    # src/<fsw area>_ptm/<fsw area>_ptm_ai_cmd.xml
+    
+    # fsw_path - path to the desired fsw version directory
+    
+    # This function will print the following to stdout:
+    # INFO: informational message
+    # CREATED: <new_file_path>
+    # -- when a new file is created
+    # WARNING: XML File not found
+    # -- when the input XML file for a specified FSW area is not found
+    # ERROR: error message
+    # -- when the tool was not able to run successfully
+
+    if not os.path.exists(fsw_path):
+        print('ERROR: Path not found: {}'.format(fsw_path))
+        exit(-1)
+
+    for i in areas:
+        gen_cmd_file(fsw_path, ".", i)
+
+    d1 = {}
+    for i in enumEntireList:
+        d1.update(i)
+        
+    d2 = {}
+    for j in cmdEntireList:
+        d2.update(j)
+    
+    return d1,d2
 
 ################################################################################
 #  MAIN
-################################################################################
+################################################################################                                                   
 
-desc = """This tool generates python enum and command dictionaries that 
-contain commands for a specified fsw area and the using the following xml 
-definition files:
-            src/<fsw area>_mgr/<fsw area>_mgr_ai_cmd.xml',
-            src/<fsw area>_ctl/<fsw area>_ctl_ai_cmd.xml
-            src/<fsw area>_svc/<fsw area>_svc_ai_cmd.xml
-            src/<fsw area>_exe/<fsw area>_exe_ai_cmd.xml
-            src/<fsw area>_ptm/<fsw area>_ptm_ai_cmd.xml
+debug1 = True
+#enumDict,cmdDict = generate_commands("/proj/fswcore/fsw/builds/releases/eurcfsw-R10.5.0_20241023",["dwn","sru","uvs"])
+enumDict,cmdDict = generate_commands("/proj/fswcore/fsw/builds/releases/eurcfsw-R10.5.0_20241023",["uvs","dpc","shell"])
 
+if debug1:
+    print("\n\n\nGLOBAL enumarray")
+     
+    for i in enumDict:
+        print(i)
+    
+    print("\n\n\nGLOBAL cmdarray")
 
-A path to the desired fsw version directory is required.
-
-The following output files will be generated for each fsw area:
-    <fsw Area>Command.py
-
-This tool will print the following to stdout:
-    INFO: informational message
-    CREATED: <new_file_path>
-        -- when a new file is created
-    WARNING: XML File not found
-        -- when the input XML file for a specified FSW area is not found
-    ERROR: error message
-        -- when the tool was not able to run successfully
-"""
-parser = argparse.ArgumentParser(description=desc, formatter_class=RawTextHelpFormatter)
-parser.add_argument('fswpath', type=str, help='root of desired eurcfsw repo')
-parser.add_argument('-o', '--outdir', type=str, default='.',
-    help='directory for output files (default: pwd)')
-parser.add_argument('-i', '--fswArea', type=str, action='append', nargs='+', default=None,
-    help='fsw area, requires at least one fsw area')
-
-args = parser.parse_args()
-
-if not args.fswArea:
-    print('ERROR: No FSW Areas specified')
-    exit(-1)
-
-fswAreaArray = []
-for i in args.fswArea:
-    fswAreaArray.append(i[0])
-
-if not os.path.exists(args.fswpath):
-    print('ERROR: Path not found: {}'.format(args.fswpath))
-    exit(-1)
-
-if not os.path.exists(args.outdir):
-    os.mkdir(args.outdir)
-    print('INFO: Created output directory: {}'.format(args.outdir))
-
-
-for i in fswAreaArray:
-    gen_cmd_file(args.fswpath, args.outdir, i)
-
+    for i in cmdDict:
+        print(i)
