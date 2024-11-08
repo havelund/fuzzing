@@ -141,10 +141,10 @@ cd /path/to/testfuzz
 ```python
 from fuzz import generate_tests, print_tests
 
-path_to_xml = 'path/to/xml'
-fsw_areas = ['area1', 'area2', 'area3']
+path_to_fsw = 'path/to/fsw'
+fsw_areas = ['area1','area2','area3']
 
-tests = generate_tests(path_to_xml, fsw_areas)
+tests = generate_tests(path_to_fsw, fsw_areas)
 
 print_tests(tests)  
 
@@ -205,9 +205,45 @@ Parameter:
 
 - tests: the test to be printed.
 
+## The Command and Enumeration XML Dictionaries
+
+The first argument to the `generate_tests` function is a path to the flight software, where
+XML files describing commands and enumeration types of command arguments are described. The structure
+of the flight software directory is assumed to be the following (amongst other information):
+
+```
+fsw
+  |__ src
+        |___ area1_xxx/area1_xxx_ai_cmd.xml
+        |___ area2_yyy/area2_yyy_ai_cmd.xml
+        |___ area3_zzz/area3_zzz_ai_cmd.xml
+        |___ ...
+```
+
+where `xxx`, `yyy`, `zzz` is each one of `mgr`, `ctl`, `svc`, `exe`, and `ptm`.
+Each of the XML files have the following format, defining an entry of enumeration
+types and an entry of command definitions, with arguments having types which include 
+the enumeration types:
+
+TO BE DETAILED:
+
+```xml
+<command_dictionary>
+    ...
+    <enum_definitions>
+       ... 
+    </enum_definitions>
+    <command_definitions>
+       ...   
+    </command_definitions>
+</command_dictionary>
+```
+
 ## Constraint Language
 
-The configuration must have the following format (either as a `.json` file or as a dictionary):
+The second argument to the `generate_tests` function is a configuration file in 
+JSON format or a dictionary similar information. Specifically, the configuration 
+must have the following format (either as a `.json` file or as a dictionary):
 
 ```json
 {
