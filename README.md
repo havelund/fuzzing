@@ -1,6 +1,8 @@
 
 # fuzz
  
+**Version**: 1.0.0
+
 ## Introduction
 
 This repository contains a library `fuzz` for fuzz testing 
