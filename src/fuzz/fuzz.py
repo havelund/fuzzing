@@ -39,6 +39,7 @@ def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[st
             raise FileNotFoundError(f"Configuration file '{config}' not found.")
         except json.JSONDecodeError:
             raise ValueError(f"Ill-formed configuration file '{config}'.")
+    print(config)
     if not isinstance(config, dict):
         raise TypeError("The 'config' argument must be a dictionary or a path to a JSON file.")
     # Extract enumeration and commands from XML
@@ -70,9 +71,11 @@ def print_tests(tests: List[List[dict]]):
 
 if __name__ == '__main__':
     # Brief test:
-    fsw_path = '/proj/fswcore/fsw/builds/releases/eurcfsw-R10.5.0_20241030'
+    from pathlib import Path
+    base_path = Path(__file__).parent.resolve()
+    fsw_path = str(base_path / '../../tests/data/xml/xml1')
+    config_file = str(base_path / '../../tests/data/constraints/config1.json')
     fsw_areas = ['uvs']
-    config_file = '../../data/input/constraints/config.json'
     tests = generate_tests(fsw_path, fsw_areas, config_file)
     print_tests(tests)
 

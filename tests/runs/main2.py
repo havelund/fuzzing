@@ -5,8 +5,8 @@ Run using Europa Clipper directories.
 
 import json
 
+from tests.data.dicts.dict_clipper import enumDict, cmdDict
 from src.fuzz.core import *
-from data.input.clipper1.dict import cmdDict, enumDict
 
 
 constraints1: list[Constraint] = [
@@ -19,7 +19,6 @@ constraints1: list[Constraint] = [
 
 if __name__ == '__main__':
     tests = generate_testsuite(cmdDict, enumDict, constraints1, 10, 5)
-    # pp(tests)
     print(tests)
-    with open("testsuite.json", "w") as file:
-        json.dump(tests, file, indent=4)
+    # with open("testsuite.json", "w") as file:
+    #     json.dump(tests, file, indent=4)

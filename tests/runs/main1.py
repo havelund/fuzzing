@@ -4,7 +4,7 @@ Run using simplified test directories.
 """
 
 from src.fuzz.core import *
-from data.input.tests.dict_test1 import cmdDict, enumDict
+from tests.data.dicts.dict_abc import cmdDict, enumDict
 
 
 NAME = 'name'
@@ -39,6 +39,5 @@ constraints2: list[Constraint] = [
 
 if __name__ == '__main__':
     tests = generate_testsuite(cmdDict, enumDict, constraints2, 10, 5)
-    # pp(tests)
     print(tests)
 
