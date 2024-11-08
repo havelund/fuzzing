@@ -1,6 +1,8 @@
 
 # fuzz
  
+## Introduction
+
 This repository contains a library `fuzz` for fuzz testing 
 flight software. The main
 function, `generate_tests`, provided by the library, generates a test suite,
@@ -91,17 +93,13 @@ in the order in which they must be provided (it is an ordered dictionary).
 ]
 ```
 
-### Installation
+## Installation
 
-The suggested approach is to install the library with `pip install` and then import and use it 
-in a Python FTT module, as shown below.
-
-#### Prerequisites
+### Prerequisites
 
 - Python 3.6 or higher installed on your system.
-- A working installation of pip.
 
-#### Obtain the Project
+### Obtain the Project
 
 Clone or copy the fuzzing project to your local machine, say in:
 
@@ -109,39 +107,34 @@ Clone or copy the fuzzing project to your local machine, say in:
 /path/to/fuzzing/
 ```
 
-#### Activate the Virtual Environment
+### Set the PYTHONPATH
 
-Activate the pre-configured virtual environment 
-provided with the project:
+Set the PYTHONPATH environment variable to include this path, as example:
 
-```
-source /path/to/fuzzing/venv/bin/activate
-```
-
-#### Install the Package
-
-```
-cd /path/to/fuzzing
-pip install -e .
+```bash
+export PYTHONPATH=/path/to/fuzzing:$PYTHONPATH
 ```
 
+### Install Dependencies
+
+`fuzz` uses a few packages that must be installed, if not already installed.
+These include dotmap and future. These can be installed e.g. with pip as follows:
+
+```
+pip install dotmap
+pip install future
+```
 
 ## Usage
 
-#### Create and/or Go to a New Directory
+### Create and/or Go to a New Directory
 
 ```
 mkdir /path/to/testfuzz
 cd /path/to/testfuzz
 ```
 
-One may have to do this in that dirctory (not sure):
-
-```
-pip install /path/to/fuzzing
-```
-
-#### Create a Script, named e.g. `fit.py`:
+### Create a Script, named e.g. `fit.py`:
 
 ```python
 from fuzz import generate_tests, print_tests
@@ -166,7 +159,7 @@ for test in tests:
 
 The idea is that the FIT module walks through the generated tests and submit them to the flight software.
 
-#### Run the Script
+### Run the Script
 
 ```
 python fit.py
