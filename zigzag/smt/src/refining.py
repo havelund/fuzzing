@@ -17,6 +17,11 @@ solver = Solver()
 # Define the finite trace length
 trace_length = 100
 
+# ----------------------------------
+# Property:
+# [](move(0) -> !cancel S turn(180))
+# ==================================
+
 # Unfold the "always" condition across all time steps
 for t in range(1, trace_length):
     # Check if at time step t, there is a Move command with speed == 0
@@ -65,18 +70,15 @@ if solver.check() == sat:
         elif model.eval(Command.is_mk_cancel_cmd(cmd)):
             print(f"At time {t_val}: Cancel command")
 
-    # Sensitivity Analysis: Randomize values where possible
-    important_values = []
-    non_important_values = []
+    # --- refine solution ---
 
-    # Mark critical values (e.g., don't randomize the speed=0 at time step 8)
-    protected_steps = [8]  # We protect step 8 where Move(speed=0) is enforced
+    # Start with explicitly protected steps
+    critical_steps = {8}  # Protect step 8 where Move(speed=0) is enforced
 
     # Perform sensitivity analysis on the model
     for i in range(trace_length):
-        if i in protected_steps:
-            important_values.append(i)  # Protect critical values
-            continue
+        if i in critical_steps:
+            continue  # Skip already protected steps
 
         solver.push()  # Save the current solver state
 
@@ -87,18 +89,19 @@ if solver.check() == sat:
         elif random_choice == 'turn':
             solver.add(timeline(i) == Command.mk_turn_cmd(random.randint(0, 360)))
         else:
-            solver.add(timeline(i) == Command.mk_cancel_cmd)  # Correct way to use the Cancel constructor
+            solver.add(timeline(i) == Command.mk_cancel_cmd)
 
         # Check satisfiability
-        if solver.check() == sat:
-            non_important_values.append(i)  # This value can be randomized
-        else:
-            important_values.append(i)  # This value is important
+        if solver.check() != sat:
+            critical_steps.add(i)  # Mark step as critical
 
         solver.pop()  # Restore the solver to the state before randomization
 
-    # Randomize non-important values
-    for i in non_important_values:
+    # Randomize non-critical steps
+    for i in range(trace_length):
+        if i in critical_steps:
+            continue  # Skip critical steps
+
         random_choice = random.choice(['move', 'turn', 'cancel'])
         if random_choice == 'move':
             solution[i] = Command.mk_move_cmd(random.randint(0, 20))
@@ -107,28 +110,21 @@ if solver.check() == sat:
         else:
             solution[i] = Command.mk_cancel_cmd
 
-    # Display modified solution (Randomized non-important values):
-    print("\nModified Solution (Randomized non-important values):")
+    # Display modified solution (Randomized non-critical steps)
+    print("\nModified Solution (Randomized non-critical steps):")
     for t_val in range(10):
         cmd = solution[t_val]
-        if model.eval(Command.is_mk_move_cmd(cmd)):  # Use model.eval() here
+        if model.eval(Command.is_mk_move_cmd(cmd)):
             print(f"At time {t_val}: Move command with speed = {model.eval(Command.move_speed(cmd))}")
-        elif model.eval(Command.is_mk_turn_cmd(cmd)):  # Use model.eval() here
+        elif model.eval(Command.is_mk_turn_cmd(cmd)):
             print(f"At time {t_val}: Turn command with angle = {model.eval(Command.turn_angle(cmd))}")
-        elif model.eval(Command.is_mk_cancel_cmd(cmd)):  # Use model.eval() here
+        elif model.eval(Command.is_mk_cancel_cmd(cmd)):
             print(f"At time {t_val}: Cancel command")
-else:
-    print("No solution found.")
+
 
 if __name__ == '__main__':
     pass
 
-# -----
 
-Eventually(
-    lambda t: And(
-        Command.is_mk_move_cmd(timeline(t)), Command.move_speed(timeline(t)) == 0
-    ),
-    0,
-    trace_length)
+
 

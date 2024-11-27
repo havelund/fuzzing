@@ -219,5 +219,4 @@ def generate_test(cmd_dict: dict, enum_dict: dict, nr_cmds: int) -> Test:
     return test
 
 
-def generate_random_argument(arg: dict) -> Union[int, float, str]:
-    ...
+

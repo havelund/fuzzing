@@ -1,5 +1,6 @@
 from z3 import *
-from typing import Callable, Dict, Any
+from typing import Callable, Dict, Any, Optional
+from src.fuzz.utils import Command, Test
 
 # Define the Environment type
 Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
@@ -115,7 +116,6 @@ class Eventually(Constraint):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        print(f"eventually @ {t}")
         return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(t, end_time)])
 
 
@@ -225,77 +225,79 @@ class Since(Constraint):
                    for t_prime in range(0, t + 1)])
 
 
-# Define the command datatype: Move(speed: Int), Turn(angle: Int), Cancel()
-Command = Datatype('Command')
-Command.declare('mk_move_cmd', ('move_speed', IntSort()))  # Move command has a speed argument
-Command.declare('mk_turn_cmd', ('turn_angle', IntSort()))  # Turn command has an angle argument
-Command.declare('mk_cancel_cmd')  # Cancel command has no arguments
-Command = Command.create()
-
-# Create a function to represent the timeline of commands
-timeline = Function('timeline', IntSort(), Command)
+# # Define the command datatype: Move(speed: Int), Turn(angle: Int), Cancel()
+# Command = Datatype('Command')
+# Command.declare('mk_move_cmd', ('move_speed', IntSort()))  # Move command has a speed argument
+# Command.declare('mk_turn_cmd', ('turn_angle', IntSort()))  # Turn command has an angle argument
+# Command.declare('mk_cancel_cmd')  # Cancel command has no arguments
+# Command = Command.create()
+#
+# # Create a function to represent the timeline of commands
+# timeline = Function('timeline', IntSort(), Command)
 
 # Create an SMT solver
 solver = Solver()
 
-# Define the end time of the trace
-end_time = 10
 
-# Define an environment for binding frozen values
-env: Environment = {}
-
-# --- Property begin ---
-
-formula = LogicAnd(
-    ExpressionConstraint(lambda env, t:
-                         And(Command.is_mk_turn_cmd(timeline(5)), Command.turn_angle(timeline(5)) == 42)),
-    Always(
-        LogicImplies(
-            ExpressionConstraint(lambda env, t: Command.is_mk_turn_cmd(timeline(t))),
-            FreezeAsIn(
-                lambda t: Command.turn_angle(timeline(t)),
-                'a',
-                LogicAnd(
-                    Eventually(
-                        ExpressionConstraint(lambda env, t:
-                                             And([
-                                                 Command.is_mk_move_cmd(timeline(t)),
-                                                 Command.move_speed(timeline(t)) == env['a']
-                                             ])
-                                             )
-                    ),
-                    Once(
-                        ExpressionConstraint(lambda env, t:
-                                             And([
-                                                 Command.is_mk_move_cmd(timeline(t)),
-                                                 Command.move_speed(timeline(t)) == env['a']
-                                             ])
-                                             )
-                    )
-                )
-            )
-        )
-    )
-)
-
-# --- Property end ---
-
-solver.add(formula.evaluate(env, 0, end_time))
-
-# Solve and extract the model
-if solver.check() == sat:
-    model = solver.model()
+def print_model(timeline: Function, end_time: int, model: ModelRef, fixed: set[int] = set()):
+    print("===============")
     print("Solution found!")
-    for t_val in range(100):
-        cmd = model.eval(timeline(t_val))
-        if model.eval(Command.is_mk_move_cmd(cmd)):
-            print(f"At time {t_val}: Move command with speed = {model.eval(Command.move_speed(cmd))}")
-        elif model.eval(Command.is_mk_turn_cmd(cmd)):
-            print(f"At time {t_val}: Turn command with angle = {model.eval(Command.turn_angle(cmd))}")
-        elif model.eval(Command.is_mk_cancel_cmd(cmd)):
-            print(f"At time {t_val}: Cancel command")
-else:
-    print("No solution found.")
+    print("===============")
+    for i in range(end_time):
+        cmd = model.eval(timeline(i))
+        fixed_text = '*' if i in fixed else ''
+        print(f'{i:3}: {cmd} {fixed_text}')
+    print("---------------")
 
-if __name__ == '__main__':
-    pass
+
+def solve_formula(timeline: Function, end_time: int, critical_steps: set[int], formula: Constraint, solver: Solver) -> Optional[ModelRef]:
+    solver.add(formula.evaluate({}, 0, end_time))
+    if solver.check() == sat:
+        model = solver.model()
+        print_model(timeline, end_time, model, critical_steps)
+        return model
+    else:
+        print("No solution found.")
+        return None
+
+
+def refine_solver(timeline: Function, end_time: int, critical_steps: set[int], generate_random_command: Callable[[], Datatype], solver: Solver) -> ModelRef:
+    for i in range(end_time):
+        if i in critical_steps:
+            continue
+
+        solver.push()
+
+        command = generate_random_command()
+        solver.add(timeline(i) == command)
+
+        if solver.check() != sat:
+            satisfied = False
+            critical_steps.add(i)
+        else:
+            satisfied = True
+
+        solver.pop()
+
+        if satisfied:
+            solver.add(timeline(i) == command)
+
+    if solver.check() != sat:
+        assert False, 'model not satisfiable as expected'
+    refined_model = solver.model()
+    print_model(timeline, end_time, refined_model, critical_steps)
+    return refined_model
+
+
+def generate_test_satisfying_formula(
+      timeline: Function,
+      end_time: int,
+      critical_steps: set[int],
+      formula: Constraint,
+      generate_command: Callable[[], Datatype],
+      extract_command:  Callable[[Datatype], Command],
+      solver: Solver) -> Test:
+    solve_formula(timeline, end_time, critical_steps, formula, solver)
+    model = refine_solver(timeline, end_time, critical_steps, generate_command, solver)
+    return [extract_command(model.eval(timeline(i)), model) for i in range(end_time)]
+    return

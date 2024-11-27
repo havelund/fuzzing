@@ -9,7 +9,7 @@ from dotmap import DotMap
 # Types #
 #########
 
-Command = DotMap
+Command = dict
 Test = List[Command]
 TestSuite = List[Test]
 Environment = DotMap
