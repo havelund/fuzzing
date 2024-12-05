@@ -4,4 +4,8 @@ Todo:
 [x] One function to be called, which does the refinement
 [x] Return the solution
 [x] Define function for converting an SMT command back
-[>] Fix example 1 to follow the same pattern
+[x] Fix example 1 to follow the same pattern
+[>] LTL parser
+
+
+
