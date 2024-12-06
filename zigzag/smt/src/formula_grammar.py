@@ -1,9 +1,9 @@
 import dataclasses
 
 from lark import Lark, Transformer, v_args, Tree, Token
-from pprint import pprint
 
 from zigzag.smt.src.formula_ast import *
+from zigzag.smt.src.operators import *
 
 grammar = """
 ?start: formula
@@ -40,86 +40,64 @@ constraint: ID "=" (ID | NUMBER)
 @v_args(inline=True)
 class FormulaTransformer(Transformer):
     def implies(self, left, right):
-        return BinaryFormula(BinaryOp.IMPLIES, left, right)
+        return LTLImplies(left, right)
 
     def or_(self, left, right):
-        return BinaryFormula(BinaryOp.OR, left, right)
+        return LTLOr(left, right)
 
     def and_(self, left, right):
-        return BinaryFormula(BinaryOp.AND, left, right)
+        return LTLAnd(left, right)
 
     def predicate(self, id_, *constraints):
         return PredicateFormula(id_, constraints) # maybe one needs to make it a list?
 
     def always(self, formula):
-        return UnaryFormula(UnaryOp.ALWAYS, formula)
+        return LTLAlways(formula)
 
     def eventually(self, formula):
-        return UnaryFormula(UnaryOp.EVENTUALLY, formula)
+        return LTLEventually(formula)
 
-    def freeze(self, id_, value, formula):
-        return FreezeFormula(id_, value, formula)
+    def freeze(self, id_, field, formula):
+        return LTLFreeze(id_, field, formula)
 
     def until(self, left, right):
-        return BinaryFormula(BinaryOp.UNTIL, left, right)
+        return LTLUntil(left, right)
 
     def since(self, left, right):
-        return BinaryFormula(BinaryOp.SINCE, left, right)
+        return LTLSince(left, right)
 
     def sofar(self, formula):
-        return UnaryFormula(UnaryOp.SOFAR, formula)
+        return LTLSofar(formula)
 
     def once(self, formula):
-        return UnaryFormula(UnaryOp.ONCE, formula)
+        return LTLOnce(formula)
 
     def next(self, formula):
-        return UnaryFormula(UnaryOp.NEXT, formula)
+        return LTLNext(formula)
 
     def weak_next(self, formula):
-        return UnaryFormula(UnaryOp.WNEXT, formula)
+        return LTLWeakNext(formula)
 
     def prev(self, formula):
-        return UnaryFormula(UnaryOp.PREV, formula)
+        return LTLWeakPrevious(formula)
 
     def weak_prev(self, formula):
-        return UnaryFormula(UnaryOp.WPREV, formula)
+        return LTLWeakPrevious(formula)
 
     def not_(self, formula):
-        return UnaryFormula(UnaryOp.NOT, formula)
+        return LTLNot(formula)
 
     def parens(self, formula):
-        return ParenFormula(formula)
+        return LTLParen(formula)
 
     def true(self):
-        return TrueFormula()
+        return LTLTrue()
 
     def false(self):
-        return FalseFormula()
+        return LTLFalse()
 
     def ID(self, token):
         return str(token)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     def constraint(self, id_, value):
         return ArgumentConstraint(id_, value)
@@ -139,8 +117,8 @@ def pretty_print(tree, level=0):
 if __name__ == "__main__":
     parser = Lark(grammar, parser="earley")
 
-    formula = "! EXECUTE() & CLOSE() | OPEN() -> STOP(x=someField) & true"
-    formula_ = "always DISPATCH() -> [i := identifier] eventually EXECUTE(id = i)"
+    formula_ = "! EXECUTE() & CLOSE() | OPEN() -> STOP(x=someField) & true"
+    formula = "always DISPATCH() -> [d := degree] eventually EXECUTE(id = i)"
     formula_ = "true"
 
     try:

@@ -6,6 +6,8 @@ Todo:
 [x] Define function for converting an SMT command back
 [x] Fix example 1 to follow the same pattern
 [>] LTL parser
+    - predicate
+    - constraint
 
 
 

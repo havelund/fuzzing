@@ -1,26 +1,30 @@
 from z3 import *
 from typing import Callable, Dict, Any, Optional
-from src.fuzz.utils import Command, Test
+from dataclasses import dataclass
 
-# Define the Environment type
+import src.fuzz.utils as utils
+
+from commands import *
+
 Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
 
 
-# Abstract Syntax Classes for Temporal Logic
-
-class Constraint:
+class LTLFormula:
     """Base class for all constraints."""
+
+    def pretty_print(self):
+        print("...")
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         raise NotImplementedError("Subclasses should implement this!")
 
 
-class FreezeAsIn(Constraint):
+class LTLFreeze(LTLFormula):
     """Freeze a value at time t, bind it to a name, and apply it in a subformula."""
 
-    def __init__(self, value_fn: Callable[[int], Int], name: str, subformula: Constraint):
-        self.value_fn = value_fn  # Function to extract the value to freeze
+    def __init__(self, name: str, field: str, subformula: LTLFormula):
         self.name = name  # Name to bind the frozen value to
+        self.field = field # frozen value field of command
         self.subformula = subformula  # Subformula that uses the frozen value
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
@@ -28,13 +32,13 @@ class FreezeAsIn(Constraint):
         frozen_value = Int(f'frozen_{self.name}_{t}')
         env[self.name] = frozen_value
         # Add the freezing condition to the solver
-        freeze_constraint = frozen_value == self.value_fn(t)
+        freeze_constraint = frozen_value == getattr(Command, self.field)(timeline(t))
         # Evaluate the subformula with the frozen value in the environment
         subformula_constraint = self.subformula.evaluate(env, t, end_time)
         return And(freeze_constraint, subformula_constraint)
 
 
-class ExpressionConstraint(Constraint):
+class LTLPredicate(LTLFormula):
     """A generic constraint that evaluates an arbitrary expression on the environment and time point."""
 
     def __init__(self, expression_fn: Callable[[Environment, int], BoolRef]):
@@ -46,38 +50,38 @@ class ExpressionConstraint(Constraint):
 
 # Boolean Operators for the Abstract Syntax
 
-class TRUE(Constraint):
+class LTLTrue(LTLFormula):
     """Represents a constraint that is True."""
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return True
 
 
-TRUE = TRUE()  # Turn it into a singleton
+LTLTRUE = LTLTrue()  # Turn it into a singleton
 
 
-class FALSE(Constraint):
+class LTLFalse(LTLFormula):
     """Represents a constraint that is False."""
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return False
 
 
-FALSE = FALSE()  # Turn it into a singleton
+LTLFALSE = LTLFalse()  # Turn it into a singleton
 
 
-class LogicNot(Constraint):
+class LTLNot(LTLFormula):
     """LogicNot(φ): Logical negation !φ."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Not(self.subformula.evaluate(env, t, end_time))
 
 
-class LogicAnd(Constraint):
+class LTLAnd(LTLFormula):
     """LogicAnd(φ, ψ): Logical conjunction (φ ∧ ψ)."""
 
-    def __init__(self, left: Constraint, right: Constraint):
+    def __init__(self, left: LTLFormula, right: LTLFormula):
         self.left = left
         self.right = right
 
@@ -85,10 +89,10 @@ class LogicAnd(Constraint):
         return And(self.left.evaluate(env, t, end_time), self.right.evaluate(env, t, end_time))
 
 
-class LogicOr(Constraint):
+class LTLOr(LTLFormula):
     """LogicOr(φ, ψ): Logical disjunction (φ ∨ ψ)."""
 
-    def __init__(self, left: Constraint, right: Constraint):
+    def __init__(self, left: LTLFormula, right: LTLFormula):
         self.left = left
         self.right = right
 
@@ -96,10 +100,10 @@ class LogicOr(Constraint):
         return Or(self.left.evaluate(env, t, end_time), self.right.evaluate(env, t, end_time))
 
 
-class LogicImplies(Constraint):
+class LTLImplies(LTLFormula):
     """LogicImplies(φ → ψ): Logical implication (φ → ψ)."""
 
-    def __init__(self, left: Constraint, right: Constraint):
+    def __init__(self, left: LTLFormula, right: LTLFormula):
         self.left = left
         self.right = right
 
@@ -109,30 +113,30 @@ class LogicImplies(Constraint):
 
 # Temporal Operators (Future Time)
 
-class Eventually(Constraint):
+class LTLEventually(LTLFormula):
     """Eventually φ: at some point in the future, φ holds."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(t, end_time)])
 
 
-class Always(Constraint):
+class LTLAlways(LTLFormula):
     """Always φ: at every point in the future, φ holds."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(t, end_time)])
 
 
-class Next(Constraint):
+class LTLNext(LTLFormula):
     """Next φ: in the next time step, φ holds."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
@@ -141,10 +145,10 @@ class Next(Constraint):
         return False
 
 
-class WeakNext(Constraint):
+class LTLWeakNext(LTLFormula):
     """Weak Next φ: either φ holds in the next time step or the timeline ends."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
@@ -153,10 +157,10 @@ class WeakNext(Constraint):
         return True  # If no next step, it's trivially true.
 
 
-class Until(Constraint):
+class LTLUntil(LTLFormula):
     """φ U ψ: φ holds until ψ holds at some point."""
 
-    def __init__(self, left: Constraint, right: Constraint):
+    def __init__(self, left: LTLFormula, right: LTLFormula):
         self.left = left  # φ
         self.right = right  # ψ
 
@@ -168,30 +172,30 @@ class Until(Constraint):
 
 # Past-Time Temporal Operators
 
-class Once(Constraint):
+class LTLOnce(LTLFormula):
     """Once φ: at some point in the past, φ held."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
 
 
-class Historically(Constraint):
+class LTLSofar(LTLFormula):
     """Historically φ: φ has always held in the past."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
 
 
-class Previous(Constraint):
+class LTLPrevious(LTLFormula):
     """Previous φ: φ holds at the previous time step."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
@@ -200,10 +204,10 @@ class Previous(Constraint):
         return False
 
 
-class WeakPrevious(Constraint):
+class LTLWeakPrevious(LTLFormula):
     """Weak Previous φ: either φ holds at the previous time step or it's the start of the timeline."""
 
-    def __init__(self, subformula: Constraint):
+    def __init__(self, subformula: LTLFormula):
         self.subformula = subformula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
@@ -212,10 +216,10 @@ class WeakPrevious(Constraint):
         return True
 
 
-class Since(Constraint):
+class LTLSince(LTLFormula):
     """φ S ψ: ψ holds at some point in the past, and φ has held since that point."""
 
-    def __init__(self, left: Constraint, right: Constraint):
+    def __init__(self, left: LTLFormula, right: LTLFormula):
         self.left = left  # φ
         self.right = right  # ψ
 
@@ -225,15 +229,13 @@ class Since(Constraint):
                    for t_prime in range(0, t + 1)])
 
 
-# # Define the command datatype: Move(speed: Int), Turn(angle: Int), Cancel()
-# Command = Datatype('Command')
-# Command.declare('mk_move_cmd', ('move_speed', IntSort()))  # Move command has a speed argument
-# Command.declare('mk_turn_cmd', ('turn_angle', IntSort()))  # Turn command has an angle argument
-# Command.declare('mk_cancel_cmd')  # Cancel command has no arguments
-# Command = Command.create()
-#
-# # Create a function to represent the timeline of commands
-# timeline = Function('timeline', IntSort(), Command)
+class LTLParen(LTLFormula):
+    def __init__(self, formula: LTLFormula):
+        self.formula = formula  # (φ)
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return self.formula.evaluate(env, t, end_time)
+
 
 # Create an SMT solver
 solver = Solver()
@@ -250,7 +252,7 @@ def print_model(timeline: Function, end_time: int, model: ModelRef, fixed: set[i
     print("---------------")
 
 
-def solve_formula(timeline: Function, end_time: int, critical_steps: set[int], formula: Constraint, solver: Solver) -> Optional[ModelRef]:
+def solve_formula(timeline: Function, end_time: int, critical_steps: set[int], formula: LTLFormula, solver: Solver) -> Optional[ModelRef]:
     solver.add(formula.evaluate({}, 0, end_time))
     if solver.check() == sat:
         model = solver.model()
@@ -293,10 +295,10 @@ def generate_test_satisfying_formula(
       timeline: Function,
       end_time: int,
       critical_steps: set[int],
-      formula: Constraint,
+      formula: LTLFormula,
       generate_command: Callable[[], Datatype],
-      extract_command:  Callable[[Datatype], Command],
-      solver: Solver) -> Test:
+      extract_command:  Callable[[Datatype], utils.Command],
+      solver: Solver) -> utils.Test:
     solve_formula(timeline, end_time, critical_steps, formula, solver)
     model = refine_solver(timeline, end_time, critical_steps, generate_command, solver)
     return [extract_command(model.eval(timeline(i)), model) for i in range(end_time)]

@@ -1,31 +1,29 @@
 from operators import *
-from commands import *
-import random
 
 # X X X X X move(0)
-formula_seed = ExpressionConstraint(lambda env, t:
+formula_seed = LTLPredicate(lambda env, t:
                                     And(Command.is_mk_move_cmd(timeline(5)), Command.move_speed(timeline(5)) == 0))
 # [](move(0) -> !cancel S turn(180))
-formula_real = Always(
-    LogicImplies(
-        ExpressionConstraint(lambda env, t:
+formula_real = LTLAlways(
+    LTLImplies(
+        LTLPredicate(lambda env, t:
                              And(Command.is_mk_move_cmd(timeline(t)), Command.move_speed(timeline(t)) == 0)
-                             )
+                     )
         ,
-        Since(
-            LogicNot(
-                ExpressionConstraint(lambda env, t:
+        LTLSince(
+            LTLNot(
+                LTLPredicate(lambda env, t:
                                      Command.is_mk_cancel_cmd(timeline(t))
-                                     )
+                             )
             ),
-            ExpressionConstraint(lambda env, t:
+            LTLPredicate(lambda env, t:
                                  And(Command.is_mk_turn_cmd(timeline(t)),
                                      Command.turn_angle(timeline(t)) == 180))
         )
     )
 )
 
-formula = LogicAnd(formula_seed, formula_real)
+formula = LTLAnd(formula_seed, formula_real)
 
 
 if __name__ == '__main__':
