@@ -49,7 +49,7 @@ class FormulaTransformer(Transformer):
         return LTLAnd(left, right)
 
     def predicate(self, id_, *constraints):
-        return PredicateFormula(id_, constraints) # maybe one needs to make it a list?
+        return LTLConstraint(id_, constraints)
 
     def always(self, formula):
         return LTLAlways(formula)
@@ -100,7 +100,7 @@ class FormulaTransformer(Transformer):
         return str(token)
 
     def constraint(self, id_, value):
-        return ArgumentConstraint(id_, value)
+        return LTLConstraint(id_, value)
 
 
 def pretty_print(tree, level=0):

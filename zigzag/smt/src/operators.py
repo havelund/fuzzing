@@ -2,13 +2,25 @@ from z3 import *
 from typing import Callable, Dict, Any, Optional
 from dataclasses import dataclass
 
-import src.fuzz.utils as utils
-
 from commands import *
 
 Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
 
 
+@dataclass
+class LTLConstraint:
+    field: str
+    value: str | int
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        assert isinstance(self.value, str | int)
+        if isinstance(self.value, str):
+            return getattr(Command, self.field)(timeline(t)) == env[self.value]
+        else:
+            return getattr(Command, self.field)(timeline(t)) == self.value
+
+
+@dataclass
 class LTLFormula:
     """Base class for all constraints."""
 
@@ -19,13 +31,12 @@ class LTLFormula:
         raise NotImplementedError("Subclasses should implement this!")
 
 
+@dataclass
 class LTLFreeze(LTLFormula):
     """Freeze a value at time t, bind it to a name, and apply it in a subformula."""
-
-    def __init__(self, name: str, field: str, subformula: LTLFormula):
-        self.name = name  # Name to bind the frozen value to
-        self.field = field # frozen value field of command
-        self.subformula = subformula  # Subformula that uses the frozen value
+    name: str
+    field: str
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         # Freeze the value at time t
@@ -38,17 +49,18 @@ class LTLFreeze(LTLFormula):
         return And(freeze_constraint, subformula_constraint)
 
 
+@dataclass
 class LTLPredicate(LTLFormula):
     """A generic constraint that evaluates an arbitrary expression on the environment and time point."""
-
-    def __init__(self, expression_fn: Callable[[Environment, int], BoolRef]):
-        self.expression_fn = expression_fn
+    command_name: str
+    constraints: list[LTLConstraint]
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return self.expression_fn(env, t)  # The user-defined expression is evaluated here
+        is_method: str = f'is_{self.command_name}'
+        right_command: BoolRef = getattr(Command, is_method)(timeline(t))
+        right_arguments: list[BoolRef] = [constraint.evaluate(env, t, end_time) for constraint in self.constraints]
+        return And([right_command] + right_arguments)
 
-
-# Boolean Operators for the Abstract Syntax
 
 class LTLTrue(LTLFormula):
     """Represents a constraint that is True."""
@@ -110,8 +122,6 @@ class LTLImplies(LTLFormula):
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Implies(self.left.evaluate(env, t, end_time), self.right.evaluate(env, t, end_time))
 
-
-# Temporal Operators (Future Time)
 
 class LTLEventually(LTLFormula):
     """Eventually φ: at some point in the future, φ holds."""

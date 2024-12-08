@@ -2,61 +2,26 @@
 from operators import *
 
 
-formula_seed = LTLPredicate(lambda env, t:
-                         And(Command.is_mk_turn_cmd(timeline(5)), Command.turn_angle(timeline(5)) == 42))
-
-
-formula_real_OLD = LTLAlways(
-        LTLImplies(
-            LTLPredicate(lambda env, t: Command.is_mk_turn_cmd(timeline(t))),
-            LTLFreeze(
-                lambda t: Command.turn_angle(timeline(t)),
-                'a',
-                LTLAnd(
-                    LTLEventually(
-                        LTLPredicate(lambda env, t:
-                                             And([
-                                                 Command.is_mk_move_cmd(timeline(t)),
-                                                 Command.move_speed(timeline(t)) == env['a']
-                                             ])
-                                     )
-                    ),
-                    LTLOnce(
-                        LTLPredicate(lambda env, t:
-                                             And([
-                                                 Command.is_mk_move_cmd(timeline(t)),
-                                                 Command.move_speed(timeline(t)) == env['a']
-                                             ])
-                                     )
-                    )
-                )
-            )
-        )
-    )
+formula_seed = LTLNext(
+    LTLNext(
+        LTLNext(
+            LTLNext(
+                LTLNext(
+                        LTLPredicate("mk_turn_cmd", [LTLConstraint("turn_angle", 42)]))))))
 
 
 formula_real = LTLAlways(
         LTLImplies(
-            LTLPredicate(lambda env, t: Command.is_mk_turn_cmd(timeline(t))),
+            LTLPredicate("mk_turn_cmd", []),
             LTLFreeze(
                 'a',
                 'turn_angle',
                 LTLAnd(
                     LTLEventually(
-                        LTLPredicate(lambda env, t:
-                                             And([
-                                                 Command.is_mk_move_cmd(timeline(t)),
-                                                 Command.move_speed(timeline(t)) == env['a']
-                                             ])
-                                     )
+                        LTLPredicate("mk_move_cmd", [LTLConstraint("move_speed", "a")])
                     ),
                     LTLOnce(
-                        LTLPredicate(lambda env, t:
-                                             And([
-                                                 Command.is_mk_move_cmd(timeline(t)),
-                                                 Command.move_speed(timeline(t)) == env['a']
-                                             ])
-                                     )
+                        LTLPredicate("mk_move_cmd", [LTLConstraint("move_speed", "a")])
                     )
                 )
             )
