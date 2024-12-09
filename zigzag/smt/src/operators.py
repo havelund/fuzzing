@@ -1,6 +1,7 @@
-from z3 import *
-from typing import Callable, Dict, Any, Optional
-from dataclasses import dataclass
+import types
+from abc import ABC
+from typing import Callable, Dict, Any, Optional, Sequence, get_origin
+from dataclasses import dataclass, is_dataclass, fields
 
 from commands import *
 
@@ -8,7 +9,52 @@ Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or i
 
 
 @dataclass
-class LTLConstraint:
+class ASTNode(ABC):
+    # Color codes
+    RED = "\033[31m"
+    GREEN = "\033[32m"
+    BLUE = "\033[34m"
+    RESET = "\033[0m"
+
+    def red(self, text: str) -> str:
+        return f"{ASTNode.RED}{text}{ASTNode.RESET}"
+
+    def blue(self, text: str) -> str:
+        return f"{ASTNode.BLUE}{text}{ASTNode.RESET}"
+
+    def green(self, text: str) -> str:
+        return f"{ASTNode.GREEN}{text}{ASTNode.RESET}"
+
+    def pretty_print(self, indent: int = 0) -> None:
+        """Generic method to pretty print the dataclass instance with tree-like indentation."""
+        TAB = 2
+        indent_str = "|  " * indent
+        cls_name = self.red(self.__class__.__name__)
+        if is_dataclass(self) and fields(self):
+            print(f"{indent_str}{cls_name}:")
+        else:
+            print(f"{indent_str}{cls_name}")
+        if is_dataclass(self):
+            for field in fields(self):
+                value = getattr(self, field.name)
+                field_name = self.blue(field.name)
+                if isinstance(value, list):
+                    print(f"{indent_str}|  {field_name}: [")
+                    for item in value:
+                        if isinstance(item, ASTNode):  # Nested ASTNode
+                            item.pretty_print(indent + TAB + TAB)
+                        else:
+                            print(f"{indent_str}|    {self.green(item)}")  # Regular items
+                    print(f"{indent_str}|  ]")
+                elif isinstance(value, ASTNode):  # Nested ASTNode
+                    print(f"{indent_str}|  {field_name}:")
+                    value.pretty_print(indent + TAB)
+                else:  # Other fields
+                    print(f"{indent_str}|  {self.blue(field_name)}: {self.green(value)}")
+
+
+@dataclass
+class LTLConstraint(ASTNode):
     field: str
     value: str | int
 
@@ -21,11 +67,8 @@ class LTLConstraint:
 
 
 @dataclass
-class LTLFormula:
+class LTLFormula(ASTNode,ABC):
     """Base class for all constraints."""
-
-    def pretty_print(self):
-        print("...")
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         raise NotImplementedError("Subclasses should implement this!")
@@ -62,117 +105,112 @@ class LTLPredicate(LTLFormula):
         return And([right_command] + right_arguments)
 
 
+@dataclass
 class LTLTrue(LTLFormula):
     """Represents a constraint that is True."""
+
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return True
+        return BoolVal(True)
 
 
 LTLTRUE = LTLTrue()  # Turn it into a singleton
 
 
+@dataclass
 class LTLFalse(LTLFormula):
     """Represents a constraint that is False."""
+
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return False
+        return BoolVal(False)
 
 
 LTLFALSE = LTLFalse()  # Turn it into a singleton
 
 
+@dataclass
 class LTLNot(LTLFormula):
     """LogicNot(φ): Logical negation !φ."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Not(self.subformula.evaluate(env, t, end_time))
 
 
+@dataclass
 class LTLAnd(LTLFormula):
     """LogicAnd(φ, ψ): Logical conjunction (φ ∧ ψ)."""
-
-    def __init__(self, left: LTLFormula, right: LTLFormula):
-        self.left = left
-        self.right = right
+    left: LTLFormula
+    right: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And(self.left.evaluate(env, t, end_time), self.right.evaluate(env, t, end_time))
 
 
+@dataclass
 class LTLOr(LTLFormula):
     """LogicOr(φ, ψ): Logical disjunction (φ ∨ ψ)."""
-
-    def __init__(self, left: LTLFormula, right: LTLFormula):
-        self.left = left
-        self.right = right
+    left: LTLFormula
+    right: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or(self.left.evaluate(env, t, end_time), self.right.evaluate(env, t, end_time))
 
 
+@dataclass
 class LTLImplies(LTLFormula):
     """LogicImplies(φ → ψ): Logical implication (φ → ψ)."""
-
-    def __init__(self, left: LTLFormula, right: LTLFormula):
-        self.left = left
-        self.right = right
+    left: LTLFormula
+    right: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Implies(self.left.evaluate(env, t, end_time), self.right.evaluate(env, t, end_time))
 
 
+@dataclass
 class LTLEventually(LTLFormula):
     """Eventually φ: at some point in the future, φ holds."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(t, end_time)])
 
 
+@dataclass
 class LTLAlways(LTLFormula):
     """Always φ: at every point in the future, φ holds."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(t, end_time)])
 
 
+@dataclass
 class LTLNext(LTLFormula):
     """Next φ: in the next time step, φ holds."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t + 1 < end_time:
             return self.subformula.evaluate(env, t + 1, end_time)
-        return False
+        return BoolVal(False)
 
 
+@dataclass
 class LTLWeakNext(LTLFormula):
     """Weak Next φ: either φ holds in the next time step or the timeline ends."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t + 1 < end_time:
             return self.subformula.evaluate(env, t + 1, end_time)
-        return True  # If no next step, it's trivially true.
+        return BoolVal(True)  # If no next step, it's trivially true.
 
 
+@dataclass
 class LTLUntil(LTLFormula):
     """φ U ψ: φ holds until ψ holds at some point."""
-
-    def __init__(self, left: LTLFormula, right: LTLFormula):
-        self.left = left  # φ
-        self.right = right  # ψ
+    left: LTLFormula
+    right: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([And(self.right.evaluate(env, t_prime, end_time),
@@ -180,58 +218,51 @@ class LTLUntil(LTLFormula):
                    for t_prime in range(t, end_time)])
 
 
-# Past-Time Temporal Operators
-
+@dataclass
 class LTLOnce(LTLFormula):
     """Once φ: at some point in the past, φ held."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
 
 
+@dataclass
 class LTLSofar(LTLFormula):
     """Historically φ: φ has always held in the past."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And([self.subformula.evaluate(env, t_prime, end_time) for t_prime in range(0, t + 1)])
 
 
+@dataclass
 class LTLPrevious(LTLFormula):
     """Previous φ: φ holds at the previous time step."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t - 1 >= 0:
             return self.subformula.evaluate(env, t - 1, end_time)
-        return False
+        return BoolVal(False)
 
 
+@dataclass
 class LTLWeakPrevious(LTLFormula):
     """Weak Previous φ: either φ holds at the previous time step or it's the start of the timeline."""
-
-    def __init__(self, subformula: LTLFormula):
-        self.subformula = subformula
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t - 1 >= 0:
             return self.subformula.evaluate(env, t - 1, end_time)
-        return True
+        return BoolVal(True)
 
 
+@dataclass
 class LTLSince(LTLFormula):
     """φ S ψ: ψ holds at some point in the past, and φ has held since that point."""
-
-    def __init__(self, left: LTLFormula, right: LTLFormula):
-        self.left = left  # φ
-        self.right = right  # ψ
+    left: LTLFormula
+    right: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([And(self.right.evaluate(env, t_prime, end_time),
@@ -239,22 +270,45 @@ class LTLSince(LTLFormula):
                    for t_prime in range(0, t + 1)])
 
 
+@dataclass
 class LTLParen(LTLFormula):
-    def __init__(self, formula: LTLFormula):
-        self.formula = formula  # (φ)
+    """(φ): holds if φ holds."""
+    subformula: LTLFormula
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return self.formula.evaluate(env, t, end_time)
+        return self.subformula.evaluate(env, t, end_time)
+
+
+@dataclass
+class LTLRule(ASTNode):
+    """rule id: φ"""
+    rule_name: str
+    formula: LTLFormula
+
+    def evaluate(self, end_time: int) -> BoolRef:
+        return self.formula.evaluate({}, 0, end_time)
+
+
+@dataclass
+class LTLSpec(ASTNode):
+    """collection of rules."""
+    rules: list[LTLRule]
+
+    def evaluate(self, end_time: int) -> BoolRef:
+        smt_formulas: list[BoolRef] = [rule.evaluate(end_time) for rule in self.rules]
+        return And(smt_formulas)
 
 
 # Create an SMT solver
 solver = Solver()
 
 
-def print_model(timeline: Function, end_time: int, model: ModelRef, fixed: set[int] = set()):
+def print_model(timeline: Function, end_time: int, model: ModelRef, fixed: Optional[set[int]] = None):
     print("===============")
     print("Solution found!")
     print("===============")
+    if fixed is None:
+        fixed = set()
     for i in range(end_time):
         cmd = model.eval(timeline(i))
         fixed_text = '*' if i in fixed else ''
@@ -307,9 +361,8 @@ def generate_test_satisfying_formula(
       critical_steps: set[int],
       formula: LTLFormula,
       generate_command: Callable[[], Datatype],
-      extract_command:  Callable[[Datatype], utils.Command],
+      extract_command:  Callable[[Datatype, ModelRef], utils.Command],
       solver: Solver) -> utils.Test:
     solve_formula(timeline, end_time, critical_steps, formula, solver)
     model = refine_solver(timeline, end_time, critical_steps, generate_command, solver)
     return [extract_command(model.eval(timeline(i)), model) for i in range(end_time)]
-    return

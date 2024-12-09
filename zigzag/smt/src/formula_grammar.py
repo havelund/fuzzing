@@ -2,11 +2,14 @@ import dataclasses
 
 from lark import Lark, Transformer, v_args, Tree, Token
 
-from zigzag.smt.src.formula_ast import *
 from zigzag.smt.src.operators import *
 
 grammar = """
-?start: formula
+?start: specification
+
+?specification: rule* -> spec
+
+?rule: "rule" ID ":" formula -> rule
 
 ?formula: formula "->" formula                      -> implies
         | formula "|" formula                       -> or_
@@ -39,6 +42,12 @@ constraint: ID "=" (ID | NUMBER)
 
 @v_args(inline=True)
 class FormulaTransformer(Transformer):
+    def spec(self, *rules):
+        return LTLSpec(list(rules))
+
+    def rule(self, name, formula):
+        return LTLRule(name, formula)
+
     def implies(self, left, right):
         return LTLImplies(left, right)
 
@@ -49,7 +58,8 @@ class FormulaTransformer(Transformer):
         return LTLAnd(left, right)
 
     def predicate(self, id_, *constraints):
-        return LTLConstraint(id_, constraints)
+        constraints_list = list(constraints) if constraints else []
+        return LTLPredicate(id_, constraints_list)
 
     def always(self, formula):
         return LTLAlways(formula)
@@ -117,14 +127,16 @@ def pretty_print(tree, level=0):
 if __name__ == "__main__":
     parser = Lark(grammar, parser="earley")
 
-    formula_ = "! EXECUTE() & CLOSE() | OPEN() -> STOP(x=someField) & true"
-    formula = "always DISPATCH() -> [d := degree] eventually EXECUTE(id = i)"
-    formula_ = "true"
+    spec = """
+    rule p1 : ! EXECUTE() & CLOSE() | OPEN(y=3) -> STOP(x=someField, y=3) & true 
+    rule p2 : always DISPATCH() -> [d := degree] eventually EXECUTE(id = i)
+    rule p3 : true
+    """
 
     try:
-        tree = parser.parse(formula)
-        print("--- Formula: ---")
-        print(formula)
+        tree = parser.parse(spec)
+        print("--- Specification: ---")
+        print(spec)
         print("--- Tree: ---")
         print(tree)
         print("--- Tree pretty printed: ---")

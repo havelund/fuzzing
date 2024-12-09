@@ -6,9 +6,9 @@ Todo:
 [x] Define function for converting an SMT command back
 [x] Fix example 1 to follow the same pattern
 [>] LTL parser
-    [>] dataclasses
-    [ ] pretty_print
-    [ ] specification = formula-list
-    [ ] translate example1 and example2
+    [x] dataclasses
+    [x] pretty_print
+    [x] specification = formula-list
+    [>] translate example1 and example2
 [ ] Command definition
 
