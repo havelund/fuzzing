@@ -1,8 +1,9 @@
-import types
+
 from abc import ABC
 from typing import Callable, Dict, Any, Optional, Sequence, get_origin
 from dataclasses import dataclass, is_dataclass, fields
 
+import src.fuzz.utils as utils
 from commands import *
 
 Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
@@ -54,21 +55,35 @@ class ASTNode(ABC):
 
 
 @dataclass
-class LTLConstraint(ASTNode):
+class LTLConstraint(ASTNode,ABC):
+    """Base class for all command parameter constraints."""
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        raise NotImplementedError("Subclasses should implement this!")
+
+
+@dataclass
+class LTLVariableConstraint(LTLConstraint):
+    """cmd(id=x)"""
     field: str
-    value: str | int
+    value: str
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        assert isinstance(self.value, str | int)
-        if isinstance(self.value, str):
-            return getattr(Command, self.field)(timeline(t)) == env[self.value]
-        else:
-            return getattr(Command, self.field)(timeline(t)) == self.value
+        return getattr(Command, self.field)(timeline(t)) == env[self.value]
+
+
+@dataclass
+class LTLNumberConstraint(LTLConstraint):
+    """cmd(id=42)"""
+    field: str
+    value: int
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return getattr(Command, self.field)(timeline(t)) == self.value
 
 
 @dataclass
 class LTLFormula(ASTNode,ABC):
-    """Base class for all constraints."""
+    """Base class for all formulas."""
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> BoolRef:
         raise NotImplementedError("Subclasses should implement this!")
@@ -299,47 +314,36 @@ class LTLSpec(ASTNode):
         return And(smt_formulas)
 
 
-# Create an SMT solver
-solver = Solver()
-
-
-def print_model(timeline: Function, end_time: int, model: ModelRef, fixed: Optional[set[int]] = None):
+def print_model(model: ModelRef, end_time: int):
     print("===============")
     print("Solution found!")
     print("===============")
-    if fixed is None:
-        fixed = set()
     for i in range(end_time):
         cmd = model.eval(timeline(i))
-        fixed_text = '*' if i in fixed else ''
-        print(f'{i:3}: {cmd} {fixed_text}')
+        print(f'{i:3}: {cmd}')
     print("---------------")
 
 
-def solve_formula(timeline: Function, end_time: int, critical_steps: set[int], formula: LTLFormula, solver: Solver) -> Optional[ModelRef]:
-    solver.add(formula.evaluate({}, 0, end_time))
+def solve_formula(solver: Solver, formula: BoolRef, end_time: int) -> Optional[ModelRef]:
+    solver.add(formula)
     if solver.check() == sat:
         model = solver.model()
-        print_model(timeline, end_time, model, critical_steps)
+        print_model(model, end_time)
         return model
     else:
         print("No solution found.")
         return None
 
 
-def refine_solver(timeline: Function, end_time: int, critical_steps: set[int], generate_random_command: Callable[[], Datatype], solver: Solver) -> ModelRef:
+def refine_solver(solver: Solver, end_time: int) -> ModelRef:
     for i in range(end_time):
-        if i in critical_steps:
-            continue
-
         solver.push()
 
-        command = generate_random_command()
+        command = generate_command()
         solver.add(timeline(i) == command)
 
         if solver.check() != sat:
             satisfied = False
-            critical_steps.add(i)
         else:
             satisfied = True
 
@@ -351,18 +355,13 @@ def refine_solver(timeline: Function, end_time: int, critical_steps: set[int], g
     if solver.check() != sat:
         assert False, 'model not satisfiable as expected'
     refined_model = solver.model()
-    print_model(timeline, end_time, refined_model, critical_steps)
+    print_model(refined_model, end_time)
     return refined_model
 
 
-def generate_test_satisfying_formula(
-      timeline: Function,
-      end_time: int,
-      critical_steps: set[int],
-      formula: LTLFormula,
-      generate_command: Callable[[], Datatype],
-      extract_command:  Callable[[Datatype, ModelRef], utils.Command],
-      solver: Solver) -> utils.Test:
-    solve_formula(timeline, end_time, critical_steps, formula, solver)
-    model = refine_solver(timeline, end_time, critical_steps, generate_command, solver)
+def generate_test_satisfying_formula(formula: BoolRef, end_time: int) -> utils.Test:
+    solver = Solver()
+    solve_formula(solver, formula, end_time)
+    model = refine_solver(solver, end_time)
     return [extract_command(model.eval(timeline(i)), model) for i in range(end_time)]
+

@@ -11,27 +11,45 @@ grammar = """
 
 ?rule: "rule" ID ":" formula -> rule
 
-?formula: formula "->" formula                      -> implies
-        | formula "|" formula                       -> or_
-        | formula "&" formula                       -> and_
-        | ID "(" [constraint ("," constraint)*] ")" -> predicate
-        | "always" formula                          -> always
-        | "eventually" formula                      -> eventually
-        | "[" ID ":=" ID "]" formula                -> freeze
-        | formula "until" formula                   -> until
-        | formula "since" formula                   -> since
-        | "sofar" formula                           -> sofar
-        | "once" formula                            -> once
-        | "next" formula                            -> next
-        | "wnext" formula                           -> weak_next
-        | "prev" formula                            -> prev
-        | "wprev" formula                           -> weak_prev
-        | "!" formula                               -> not_
-        | "(" formula ")"                           -> parens
-        | "true"                                    -> true
-        | "false"                                   -> false
+?formula: formula IMPLIES formula           -> implies
+        | formula OR formula                -> or_
+        | formula AND formula               -> and_
+        | ID "(" constraints? ")"           -> predicate
+        | ALWAYS formula                    -> always
+        | EVENTUALLY formula                -> eventually
+        | "[" ID ":=" ID "]" formula        -> freeze
+        | formula UNTIL formula             -> until
+        | formula SINCE formula             -> since
+        | SOFAR formula                     -> sofar
+        | ONCE formula                      -> once
+        | NEXT formula                      -> next
+        | WNEXT formula                     -> weak_next
+        | PREV formula                      -> prev
+        | WPREV formula                     -> weak_prev
+        | NOT formula                       -> not_
+        | "(" formula ")"                   -> parens
+        | "true"                            -> true
+        | "false"                           -> false
 
-constraint: ID "=" (ID | NUMBER)
+constraints: constraint ("," constraint)*   -> constraint_list
+
+constraint: ID "=" ID                       -> varconstraint
+          | ID "=" NUMBER                   -> intconstraint
+
+IMPLIES: "implies" | "->"
+OR: "or" | "|"
+AND: "and" | "&"
+ALWAYS: "always" | "[]"
+EVENTUALLY: "eventually" | "<>"
+UNTIL: "until" | "U"
+SINCE: "since" | "S"
+SOFAR: "sofar" | "[*]"
+ONCE: "once" | "<*>"
+NEXT: "next" | "()"
+WNEXT: "wnext" | "()?"
+PREV: "prev" | "(*)"
+WPREV: "wprev" | "(*)?"
+NOT: "not" | "!"
 
 %import common.CNAME -> ID
 %import common.NUMBER
@@ -48,53 +66,53 @@ class FormulaTransformer(Transformer):
     def rule(self, name, formula):
         return LTLRule(name, formula)
 
-    def implies(self, left, right):
+    def implies(self, left, kw, right):
         return LTLImplies(left, right)
 
-    def or_(self, left, right):
+    def or_(self, left, kw, right):
         return LTLOr(left, right)
 
-    def and_(self, left, right):
+    def and_(self, left, kw, right):
         return LTLAnd(left, right)
 
-    def predicate(self, id_, *constraints):
-        constraints_list = list(constraints) if constraints else []
+    def predicate(self, id_, constraints=None):
+        constraints_list = constraints if constraints is not None else []
         return LTLPredicate(id_, constraints_list)
 
-    def always(self, formula):
+    def always(self, kw, formula):
         return LTLAlways(formula)
 
-    def eventually(self, formula):
+    def eventually(self, kw, formula):
         return LTLEventually(formula)
 
     def freeze(self, id_, field, formula):
         return LTLFreeze(id_, field, formula)
 
-    def until(self, left, right):
+    def until(self, left, kw, right):
         return LTLUntil(left, right)
 
-    def since(self, left, right):
+    def since(self, left, kw, right):
         return LTLSince(left, right)
 
-    def sofar(self, formula):
+    def sofar(self, kw, formula):
         return LTLSofar(formula)
 
-    def once(self, formula):
+    def once(self, kw, formula):
         return LTLOnce(formula)
 
-    def next(self, formula):
+    def next(self, kw, formula):
         return LTLNext(formula)
 
-    def weak_next(self, formula):
+    def weak_next(self, kw, formula):
         return LTLWeakNext(formula)
 
-    def prev(self, formula):
+    def prev(self, kw, formula):
         return LTLWeakPrevious(formula)
 
-    def weak_prev(self, formula):
+    def weak_prev(self, kw, formula):
         return LTLWeakPrevious(formula)
 
-    def not_(self, formula):
+    def not_(self, kw, formula):
         return LTLNot(formula)
 
     def parens(self, formula):
@@ -109,8 +127,14 @@ class FormulaTransformer(Transformer):
     def ID(self, token):
         return str(token)
 
-    def constraint(self, id_, value):
-        return LTLConstraint(id_, value)
+    def constraint_list(self, *constraints):
+        return list(constraints)
+
+    def varconstraint(self, id_, value):
+        return LTLVariableConstraint(id_, value)
+
+    def intconstraint(self, id_, value):
+        return LTLNumberConstraint(id_, int(value))
 
 
 def pretty_print(tree, level=0):
@@ -124,15 +148,8 @@ def pretty_print(tree, level=0):
         print(f"{indent}{tree}")
 
 
-if __name__ == "__main__":
+def parse_spec(spec: str) -> LTLSpec:
     parser = Lark(grammar, parser="earley")
-
-    spec = """
-    rule p1 : ! EXECUTE() & CLOSE() | OPEN(y=3) -> STOP(x=someField, y=3) & true 
-    rule p2 : always DISPATCH() -> [d := degree] eventually EXECUTE(id = i)
-    rule p3 : true
-    """
-
     try:
         tree = parser.parse(spec)
         print("--- Specification: ---")
@@ -144,5 +161,19 @@ if __name__ == "__main__":
         print("--- AST: ---")
         ast = FormulaTransformer().transform(tree)
         ast.pretty_print()
+        return ast
     except Exception as e:
         print("Parsing error:", e)
+
+
+if __name__ == "__main__":
+    parser = Lark(grammar, parser="earley")
+
+    spec = """
+    rule p1 : ! EXECUTE() & CLOSE() | OPEN(y=3) -> STOP(x=someField, y=3) & true 
+    rule p2 : always DISPATCH() -> [d := degree] eventually EXECUTE(id = i)
+    rule p3 : true
+    """
+
+    ast = parse_spec(spec)
+    print(ast)

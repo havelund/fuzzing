@@ -1,7 +1,6 @@
 
 from z3 import *
 import random
-import src.fuzz.utils as utils
 
 
 Command = Datatype('Command')

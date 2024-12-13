@@ -1,39 +1,23 @@
 
-from operators import *
+from formula_grammar import *
 
+spec = """
+rule p1: next next next next next mk_turn_cmd(turn_angle = 42)
 
-formula_seed = LTLNext(
-    LTLNext(
-        LTLNext(
-            LTLNext(
-                LTLNext(
-                        LTLPredicate("mk_turn_cmd", [LTLConstraint("turn_angle", 42)]))))))
-
-
-formula_real = LTLAlways(
-        LTLImplies(
-            LTLPredicate("mk_turn_cmd", []),
-            LTLFreeze(
-                'a',
-                'turn_angle',
-                LTLAnd(
-                    LTLEventually(
-                        LTLPredicate("mk_move_cmd", [LTLConstraint("move_speed", "a")])
-                    ),
-                    LTLOnce(
-                        LTLPredicate("mk_move_cmd", [LTLConstraint("move_speed", "a")])
-                    )
-                )
-            )
-        )
-    )
-
-formula = LTLAnd(formula_seed, formula_real)
-
+rule p2: always (
+           mk_turn_cmd() -> 
+             [a := turn_angle] (
+               (!mk_cancel_cmd() until mk_move_cmd(move_speed=a))
+               and
+               (once mk_move_cmd(move_speed=a))
+             )
+          )                     
+"""
 
 if __name__ == '__main__':
     end_time = 20
-    critical_steps = {5}
-    test = generate_test_satisfying_formula(timeline, end_time, critical_steps, formula, generate_command, extract_command, solver)
+    ast: LTLSpec = parse_spec(spec)
+    smt_formula: BoolRef = ast.evaluate(end_time)
+    test = generate_test_satisfying_formula(smt_formula, end_time)
     for i, cmd in enumerate(test):
         print(f"{i}: {cmd}")
