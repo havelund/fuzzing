@@ -1,8 +1,9 @@
 import dataclasses
 
+import sys
 from lark import Lark, Transformer, v_args, Tree, Token
 
-from zigzag.smt.src.operators import *
+from zigzag.smt.src.ltl_ast import *
 
 grammar = """
 ?start: specification
@@ -164,6 +165,7 @@ def parse_spec(spec: str) -> LTLSpec:
         return ast
     except Exception as e:
         print("Parsing error:", e)
+        sys.exit(1)
 
 
 if __name__ == "__main__":

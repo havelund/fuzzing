@@ -1,0 +1,10 @@
+@startuml
+'https://plantuml.com/state-diagram
+
+  commands --> ltl_ast
+  ltl_ast --> ltl_grammar
+  ltl_grammar --> solver
+  solver --> example
+
+}
+@enduml

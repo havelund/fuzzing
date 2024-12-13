@@ -1,5 +1,5 @@
 
-from formula_grammar import *
+from zigzag.smt.src.solver import *
 
 spec = """
 rule p1: next next next next next mk_turn_cmd(turn_angle = 42)
@@ -11,13 +11,9 @@ rule p2: always (
                and
                (once mk_move_cmd(move_speed=a))
              )
-          )                     
+          )
 """
 
 if __name__ == '__main__':
-    end_time = 20
-    ast: LTLSpec = parse_spec(spec)
-    smt_formula: BoolRef = ast.evaluate(end_time)
-    test = generate_test_satisfying_formula(smt_formula, end_time)
-    for i, cmd in enumerate(test):
-        print(f"{i}: {cmd}")
+    test = generate_test_satisfying_formula(spec, end_time=20)
+    print_test(test)

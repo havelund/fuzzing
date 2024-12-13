@@ -5,10 +5,20 @@ Todo:
 [x] Return the solution
 [x] Define function for converting an SMT command back
 [x] Fix example 1 to follow the same pattern
-[>] LTL parser
+[x] LTL parser
     [x] dataclasses
     [x] pretty_print
     [x] specification = formula-list
-    [>] translate example1 and example2
+    [x] translate example1 and example2
+    [x] proper error messages
+
+[>] Rename evaluate to generate_smt
+[ ] Integrate with the main tool
+[ ] Testing
+[ ] Comment code
+
+[ ] Tracy's XML for the documentation
 [ ] Command definition
 
+[ ] random refinement
+[ ] some derived forms (next(5), response, time line/timeEdit)

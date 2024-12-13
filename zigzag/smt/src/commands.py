@@ -2,6 +2,12 @@
 from z3 import *
 import random
 
+"""
+This file should be auto-generared from the XML command and enum
+dictionaries. It is, however, not quite clear how this will work.
+To be done.
+"""
+
 
 Command = Datatype('Command')
 Command.declare('mk_move_cmd', ('move_speed', IntSort()))
