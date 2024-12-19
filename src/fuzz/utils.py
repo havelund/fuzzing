@@ -9,12 +9,12 @@ from dotmap import DotMap
 # Types #
 #########
 
-Command = dict
-Test = List[Command]
+CommandDict = dict
+Test = List[CommandDict]
 TestSuite = List[Test]
 Environment = DotMap
 FreezeId = Union[int, str]
-CommandConstraint = Callable[[Environment, Command], bool]
+CommandConstraint = Callable[[Environment, CommandDict], bool]
 
 
 #############
@@ -66,6 +66,14 @@ class VALUE:
 #######################
 # Auxiliary Functions #
 #######################
+
+def debug(msg: str):
+    """Used for debugging, prints a message.
+
+    :param msg: message to be printed.
+    """
+    print(f'-> [{msg}]')
+
 
 def error(msg: str):
     """Prints an error message and terminates the program.

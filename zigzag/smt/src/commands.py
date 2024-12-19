@@ -31,15 +31,15 @@ def generate_command() -> Command:
 
 def extract_command(command: Command, model: ModelRef) -> dict:
     if model.eval(Command.is_mk_move_cmd(command)):
-        name = 'MOVE'
+        name = 'mk_move_cmd'
         speed = model.eval(Command.move_speed(command)).as_long()
-        return {'name': name, 'speed': speed}
+        return {'name': name, 'move_speed': speed}
     elif model.eval(Command.is_mk_turn_cmd(command)):
-        name = 'TURN'
+        name = 'mk_turn_cmd'
         angle = model.eval(Command.turn_angle(command)).as_long()
-        return {'name': name, 'angle': angle}
+        return {'name': name, 'turn_angle': angle}
     elif model.eval(Command.is_mk_cancel_cmd(command)):
-        name = 'CANCEL'
+        name = 'mk_cancel_cmd'
         return {'name': name}
     else:
         assert False, f'SMT command {command} not recognized'

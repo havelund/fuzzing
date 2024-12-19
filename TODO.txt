@@ -12,8 +12,8 @@ Todo:
     [x] translate example1 and example2
     [x] proper error messages
 
-[>] Rename evaluate to generate_smt
-[ ] Integrate with the main tool
+[x] Rename evaluate to generate_smt
+[>] Integrate with the main tool
 [ ] Testing
 [ ] Comment code
 
@@ -22,3 +22,68 @@ Todo:
 
 [ ] random refinement
 [ ] some derived forms (next(5), response, time line/timeEdit)
+
+#############################################################
+                    Pattern matching
+                    ================
+
+cmd(field1=a,field2=3)
+
+cmd(field1=a,field2=b?,field3=42) => a > b
+
+Options:
+- only bindings
+- also matches with previous names and numbers
+
+Does it make sense to make the formula optional for all predicates?
+Or is it two different expressions?
+
+[x := field] formula
+
+always {
+  case cmd(field1=a,field2=a?,field3=32) => ...
+  case cmd(field=a?) => ...
+  case cmd(field1=a,field2=32) // what does that mean?
+}
+
+{ cmd(field1=a,field2=a?,field3=32) => ... }
+&
+{ cmd(field=a?) => ... }
+
+is there a pattern category or can one use the constraint category and extend it?
+
+Problem: it interferes with ID(constraint*)
+
+
+        | ID "(" constraints? ")"           -> predicate
+
+goes to
+
+        | ID "(" constraints? ")"               -> predicate
+        | ID "(" constraints? ")" "=>" formula  -> pattern
+
+<cmd(constraints)>formula
+[cmd(constraints)]formula
+
+cmd(constraits)
+--->
+<cmd(constraits)>true
+
+It is exactly the two modal operators.
+
+c -> f == [c] => f
+c == <c>true
+!c == [c]false
+<c>f ==  c & f
+
+<:c(m):>f == c() & [m']f
+[:c(m):]f == c() -> [m']f
+
+c(m)? => f
+c(m)! => f
+
+c?(m) => f
+c!(m) => f
+c(m) => f
+
+I like the modal view.

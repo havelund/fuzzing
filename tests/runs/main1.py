@@ -13,12 +13,12 @@ ZONE = 'zone'
 MODE = 'mode'
 
 
-def C7_b1_or_b2_and_not_c3(env: Environment, cmd: Command) -> bool:
+def C7_b1_or_b2_and_not_c3(env: Environment, cmd: CommandDict) -> bool:
     return cmd.name == 'C7' and cmd.zone in {'b1', 'b2'} and cmd.mode != 'c3'
 
 
 def C7_with_zone(zone: str) -> CommandConstraint:
-    def constraint(env: Environment, cmd: Command) -> bool:
+    def constraint(env: Environment, cmd: CommandDict) -> bool:
         return cmd.name == 'C7' and cmd.zone == zone
     return constraint
 

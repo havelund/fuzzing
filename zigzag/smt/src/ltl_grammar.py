@@ -1,6 +1,4 @@
-import dataclasses
 
-import sys
 from lark import Lark, Transformer, v_args, Tree, Token
 
 from zigzag.smt.src.ltl_ast import *
@@ -20,7 +18,9 @@ grammar = """
         | EVENTUALLY formula                -> eventually
         | "[" ID ":=" ID "]" formula        -> freeze
         | formula UNTIL formula             -> until
+        | formula WUNTIL formula            -> weakuntil                 // DERIVED
         | formula SINCE formula             -> since
+        | formula WSINCE formula            -> weaksince                 // DERIVED
         | SOFAR formula                     -> sofar
         | ONCE formula                      -> once
         | NEXT formula                      -> next
@@ -28,34 +28,56 @@ grammar = """
         | PREV formula                      -> prev
         | WPREV formula                     -> weak_prev
         | NOT formula                       -> not_
+        | expression RELOP expression       -> relation
+        | expression RELOP expression RELOP expression  -> multirelation // DERIVED
         | "(" formula ")"                   -> parens
         | "true"                            -> true
         | "false"                           -> false
+        | COUNT "(" NUMBER "," NUMBER ")" formula       -> countfuture   // NOT LTL
+        | COUNTPAST   "(" NUMBER "," NUMBER ")" formula -> countpast     // NOT LTL
+        | formula THEN formula               -> then                     // DERIVED
+        | formula AFTER formula              -> after                    // DERIVED
+        
+?expression: ID                             -> idexpr
+           | NUMBER                         -> numberexpr
 
 constraints: constraint ("," constraint)*   -> constraint_list
 
 constraint: ID "=" ID                       -> varconstraint
           | ID "=" NUMBER                   -> intconstraint
 
+NOT: "not" | "!"
 IMPLIES: "implies" | "->"
 OR: "or" | "|"
 AND: "and" | "&"
+
 ALWAYS: "always" | "[]"
 EVENTUALLY: "eventually" | "<>"
 UNTIL: "until" | "U"
-SINCE: "since" | "S"
-SOFAR: "sofar" | "[*]"
-ONCE: "once" | "<*>"
+WUNTIL: "wuntil" | "WU"
 NEXT: "next" | "()"
 WNEXT: "wnext" | "()?"
+
+SOFAR: "sofar" | "[*]"
+ONCE: "once" | "<*>"
+SINCE: "since" | "S"
+WSINCE: "wsince" | "WS"
 PREV: "prev" | "(*)"
 WPREV: "wprev" | "(*)?"
-NOT: "not" | "!"
+
+THEN: "then" | "~>"
+AFTER: "after" | "~*>"
+COUNT: "count" | "@"
+COUNTPAST: "countpast" | "@*"
+RELOP: "<" | "<=" | "=" | "!=" | ">=" | ">"
+
+COMMENT: /\#[^\r\n]*/x 
 
 %import common.CNAME -> ID
 %import common.NUMBER
 %import common.WS
 %ignore WS
+%ignore COMMENT
 """
 
 
@@ -92,8 +114,14 @@ class FormulaTransformer(Transformer):
     def until(self, left, kw, right):
         return LTLUntil(left, right)
 
+    def weakuntil(self, left, kw, right):
+        return LTLWeakUntil(left, right)
+
     def since(self, left, kw, right):
         return LTLSince(left, right)
+
+    def weaksince(self, left, kw, right):
+        return LTLWeakSince(left, right)
 
     def sofar(self, kw, formula):
         return LTLSofar(formula)
@@ -136,6 +164,34 @@ class FormulaTransformer(Transformer):
 
     def intconstraint(self, id_, value):
         return LTLNumberConstraint(id_, int(value))
+
+    # New constructs:
+
+    def countfuture(self, kw, min, max, formula):
+        return LTLCountFuture(int(min), int(max), formula)
+
+    def countpast(self, kw, min, max, formula):
+        return LTLCountPast(int(min), int(max), formula)
+
+    def relation(self, exp1, kw, exp2):
+        return LTLRelation(exp1, kw, exp2)
+
+    def idexpr(self, id):
+        return LTLIDExpression(id)
+
+    def numberexpr(self, number):
+        return LTLNumberExpression(int(number))
+
+    # Derived constructs:
+
+    def then(self, left, kw, right):
+        return LTLThen(left, right)
+
+    def after(self, left, kw, right):
+        return LTLAfter(left, right)
+
+    def multirelation(self, exp1, kw1, exp2, kw2, exp3):
+        return LTLMultiRelation(exp1, kw1, exp2, kw2, exp3)
 
 
 def pretty_print(tree, level=0):

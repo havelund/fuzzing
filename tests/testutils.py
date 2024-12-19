@@ -3,15 +3,15 @@ import unittest
 from dotmap import DotMap
 
 from src.fuzz.temporal_logic import *
-def name(cmd: Command) -> str:
+def name(cmd: CommandDict) -> str:
     return cmd['name']
 
 
-def zone(map: Command | Environment) -> str:
+def zone(map: CommandDict | Environment) -> str:
     return map['zone']
 
 
-def mode(map: Command | Environment) -> str:
+def mode(map: CommandDict | Environment) -> str:
     return map['mode']
 
 

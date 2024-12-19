@@ -173,7 +173,7 @@ def generate_test(cmd_dict: dict, enum_dict: dict, nr_cmds: int) -> Test:
     command_names = list(cmd_dict.keys())
     test: Test = []
     for nr in range(nr_cmds):
-        generated_command: Command = DotMap()
+        generated_command: CommandDict = DotMap()
         command_name = random.choice(command_names)
         generated_command[INDEX.NAME] = command_name
         dict_command = lookup_dict(cmd_dict, command_name)
