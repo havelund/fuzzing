@@ -13,19 +13,10 @@ Todo:
     [x] proper error messages
 
 [x] Rename evaluate to generate_smt
-[>] Testing
+[x] Testing
+[>] Tracy's XML for the documentation
 [ ] Integrate with the main tool
-[ ] Comment code and clean up
-
-[ ] Tracy's XML for the documentation
-[ ] Command definition
-[ ] Document package
-
-[ ] random refinement instead of left to right
-[ ] more derived forms (next(5), count 5, time line/timeEdit)
-[ ] "quantify" over command names (all time points shall increase)
-[ ] arithmetic calculations: +/-, ....
-[ ] strings
+[ ] Comment code, clean up, and document package
 
 #############################################################
 
