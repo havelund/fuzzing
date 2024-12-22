@@ -13,77 +13,77 @@ Todo:
     [x] proper error messages
 
 [x] Rename evaluate to generate_smt
-[>] Integrate with the main tool
-[ ] Testing
-[ ] Comment code
+[>] Testing
+[ ] Integrate with the main tool
+[ ] Comment code and clean up
 
 [ ] Tracy's XML for the documentation
 [ ] Command definition
+[ ] Document package
 
-[ ] random refinement
-[ ] some derived forms (next(5), response, time line/timeEdit)
+[ ] random refinement instead of left to right
+[ ] more derived forms (next(5), count 5, time line/timeEdit)
+[ ] "quantify" over command names (all time points shall increase)
+[ ] arithmetic calculations: +/-, ....
+[ ] strings
 
 #############################################################
-                    Pattern matching
-                    ================
 
-cmd(field1=a,field2=3)
+#############################################################
 
-cmd(field1=a,field2=b?,field3=42) => a > b
+POSSIBLE COMMANDS FOR TESTING:
 
-Options:
-- only bindings
-- also matches with previous names and numbers
+--- Propulsion and Movement ---
+[x] move - Move forward a specific distance.
+[x] turn - Rotate the spacecraft by a given angle.
+[x] stop - Halt all movement immediately.
+[ ] orbit - Initiate or maintain orbit around a celestial body.
+[ ] land - Begin the landing procedure.
+[ ] takeoff - Launch from a surface into space.
 
-Does it make sense to make the formula optional for all predicates?
-Or is it two different expressions?
+--- Communication ---
+[x] send - Transmit data or messages back to the ground station.
+[ ] receive - Listen for and process incoming commands or data.
+[ ] ping - Send a status request to verify communication.
+[ ] acknowledge - Confirm receipt of a command.
+[ ] relay - Forward data to another spacecraft or station.
 
-[x := field] formula
+--- Science and Observation ---
+[x] capture - Take a photo or collect sensor data.
+[ ] analyze - Process collected samples or data.
+[ ] scan - Perform a surface or area scan using sensors.
+[ ] sample - Collect physical samples from the environment.
+[ ] deploy - Release instruments like rovers or satellites.
 
-always {
-  case cmd(field1=a,field2=a?,field3=32) => ...
-  case cmd(field=a?) => ...
-  case cmd(field1=a,field2=32) // what does that mean?
-}
+--- Operational Control ---
+[ ] power_on - Turn on a specific system or instrument.
+[ ] power_off - Turn off a specific system or instrument.
+[ ] reset - Reinitialize a system or subsystem.
+[ ] calibrate - Adjust instruments or sensors for accurate readings.
+[ ] diagnose - Perform a self-check or diagnostic on systems.
+[ ] configure - Set parameters for a specific operation.
 
-{ cmd(field1=a,field2=a?,field3=32) => ... }
-&
-{ cmd(field=a?) => ... }
+--- Navigation ---
+[ ] align - Adjust orientation relative to a reference point.
+[ ] maneuver - Perform a trajectory adjustment.
+[ ] brake - Reduce speed for approach or docking.
+[ ] dock - Engage docking with another spacecraft or station.
 
-is there a pattern category or can one use the constraint category and extend it?
+--- Safety and Recovery ---
+[ ] abort - Cancel the current operation immediately.
+[ ] safe_mode - Enter a low-power, safe operational state.
+[ ] eject - Release non-critical components (e.g., boosters).
+[ ] override - Take manual control, bypassing automation.
+[ ] Payload and Resources
+[ ] load - Load data or physical cargo into the spacecraft.
+[ ] unload - Unload data or physical cargo from the spacecraft.
+[ ] deploy_array - Extend solar arrays or antennas.
+[ ] refuel - Engage in refueling (if supported).
 
-Problem: it interferes with ID(constraint*)
-
-
-        | ID "(" constraints? ")"           -> predicate
-
-goes to
-
-        | ID "(" constraints? ")"               -> predicate
-        | ID "(" constraints? ")" "=>" formula  -> pattern
-
-<cmd(constraints)>formula
-[cmd(constraints)]formula
-
-cmd(constraits)
---->
-<cmd(constraits)>true
-
-It is exactly the two modal operators.
-
-c -> f == [c] => f
-c == <c>true
-!c == [c]false
-<c>f ==  c & f
-
-<:c(m):>f == c() & [m']f
-[:c(m):]f == c() -> [m']f
-
-c(m)? => f
-c(m)! => f
-
-c?(m) => f
-c!(m) => f
-c(m) => f
-
-I like the modal view.
+--- Custom and Miscellaneous ---
+[ ] log - Record current status or data to onboard memory.
+[ ] simulate - Run a simulation of an operation.
+[ ] test - Perform a system or subsystem test.
+[ ] update - Update onboard software or settings.
+[x] cancel - Cancel a previously issued command.
+[ ] sleep - Enter low-power or standby mode.

@@ -88,6 +88,19 @@ class LTLVariableConstraint(LTLConstraint):
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
         return cmd[self.field] == env[self.value]
 
+@dataclass
+class LTLVariableBinding(LTLConstraint):
+    """cmd(id=x?)"""
+
+    field: str  # id
+    value: str  # x
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        return True
+
+    def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
+        return True
+
 
 @dataclass
 class LTLNumberConstraint(LTLConstraint):
@@ -458,7 +471,7 @@ class LTLSpec(ASTNode):
 #######################
 
 @dataclass
-class LTLDerivedFormula:
+class LTLDerivedFormula(LTLFormula):
     def expand(self) -> LTLFormula:
         raise NotImplementedError("Subclasses should implement this!")
 
@@ -514,18 +527,24 @@ class LTLWeakSince(LTLDerivedFormula):
 
 
 @dataclass
-class LTLMatch(LTLDerivedFormula):
-    """cmd(field1=a1,...,fieldn=an) => formula"""
+class LTLCommandMatch(LTLDerivedFormula):
+    """cmd ?|! (field1=42,field2=x,field3=y?) => formula"""
 
-    cmd: str
-    patterns: list[tuple[str,str]]
+    command_name: str
+    required: str
+    constraints: list[LTLConstraint]
     subformula: LTLFormula
 
     def expand(self) -> LTLFormula:
-        formula = self.subformula
-        for (field,name) in self.patterns.reverse():
-            formula = LTLFreeze(name, field, formula)
-        return formula
+        freeze_formula = self.subformula
+        bindings = [c for c in self.constraints if isinstance(c,LTLVariableBinding)]
+        for binding in reversed(bindings):
+            freeze_formula = LTLFreeze(binding.value, binding.field, freeze_formula)
+        predicate = LTLPredicate(self.command_name, self.constraints)
+        if self.required == "?":
+            return LTLOr(LTLNot(predicate), freeze_formula)
+        else:  # "!"
+            return LTLAnd(predicate, freeze_formula)
 
 
 ###################
@@ -666,5 +685,4 @@ class LTLMultiRelation(LTLDerivedFormula):
             LTLRelation(self.exp1, self.oper1, self.exp2),
             LTLRelation(self.exp2, self.oper2, self.exp3)
         )
-
 

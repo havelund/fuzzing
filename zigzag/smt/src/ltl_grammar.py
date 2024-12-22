@@ -11,6 +11,7 @@ grammar = """
 ?rule: "rule" ID ":" formula -> rule
 
 ?formula: formula IMPLIES formula           -> implies
+        | ID REQUIRED "(" constraints? ")" "=>" formula -> commandmatch
         | formula OR formula                -> or_
         | formula AND formula               -> and_
         | ID "(" constraints? ")"           -> predicate
@@ -44,6 +45,7 @@ grammar = """
 constraints: constraint ("," constraint)*   -> constraint_list
 
 constraint: ID "=" ID                       -> varconstraint
+          | ID "=" ID "?"                   -> varbinding 
           | ID "=" NUMBER                   -> intconstraint
 
 NOT: "not" | "!"
@@ -70,6 +72,7 @@ AFTER: "after" | "~*>"
 COUNT: "count" | "@"
 COUNTPAST: "countpast" | "@*"
 RELOP: "<" | "<=" | "=" | "!=" | ">=" | ">"
+REQUIRED: "?" | "!"
 
 COMMENT: /\#[^\r\n]*/x 
 
@@ -91,6 +94,17 @@ class FormulaTransformer(Transformer):
 
     def implies(self, left, kw, right):
         return LTLImplies(left, right)
+
+    def commandmatch(self, id_, required, *args):
+        if len(args) == 1:
+            constraints = []
+            formula = args[0]
+        elif len(args) == 2:
+            constraints = args[0]
+            formula = args[1]
+        else:
+            raise ValueError("Unexpected number of arguments in commandmatch")
+        return LTLCommandMatch(id_, str(required), constraints, formula)
 
     def or_(self, left, kw, right):
         return LTLOr(left, right)
@@ -161,6 +175,9 @@ class FormulaTransformer(Transformer):
 
     def varconstraint(self, id_, value):
         return LTLVariableConstraint(id_, value)
+
+    def varbinding(self, id_, value):
+        return LTLVariableBinding(id_, value)
 
     def intconstraint(self, id_, value):
         return LTLNumberConstraint(id_, int(value))
