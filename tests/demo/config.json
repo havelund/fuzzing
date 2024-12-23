@@ -1,0 +1,15 @@
+{
+  "testsuite_size": 10,
+  "test_size": 10,
+  "constraints": [
+    {
+      "active": true,
+      "kind": "range",
+      "cmd": "FUZZ_CMD_UNSIGNED_ARG_1",
+      "arg": "fuzz_cmd1_arg_2",
+      "range_min": 10,
+      "range_max": 20
+    }
+  ]
+}
+
