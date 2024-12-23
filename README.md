@@ -142,7 +142,7 @@ as described in [here](README-PACKAGING.md) before executing the above command.
 
 ## Usage
 
-A demo example is shown in [src/tests/demo](src/tests/demo), which is explained below.
+A demo example is shown in [src/tests/demo](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo), which is explained below.
 
 ### Create and/or Go to a New Directory
 
