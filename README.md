@@ -156,8 +156,8 @@ cd /path/to/testfuzz
 ```python
 from fuzz import generate_tests, print_tests
 
-path_to_fsw = 'path/to/fsw'
-fsw_areas = ['area1','area2','area3']
+path_to_fsw = 'fsw'
+fsw_areas = ['dwn']
 
 tests = generate_tests(path_to_fsw, fsw_areas)
 
@@ -170,7 +170,6 @@ for test in tests:
     print('reset fsw')
     print('=========')    
     for cmd in test:
-        print('---')
         print(f'send {cmd}')
 ```
 
