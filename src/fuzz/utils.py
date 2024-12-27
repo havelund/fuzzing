@@ -72,7 +72,9 @@ def debug(msg: str):
 
     :param msg: message to be printed.
     """
-    print(f'-> [{msg}]')
+    print('****************************')
+    print(msg)
+    print('****************************')
 
 
 def error(msg: str):

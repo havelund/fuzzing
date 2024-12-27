@@ -91,13 +91,13 @@ def extract_constraints(constraint_objects: List[dict]) -> List[Constraint]:
     return constraints
 
 
-def generate_testsuite(cmd_dict: dict, enum_dict: dict, constraints: List[Constraint], nr_tests: int, nr_cmds: int) -> TestSuite:
-    """Generates a test suite given and command dictionary, an enum dictionary, a list of constraints,
+def generate_testsuite(cmd_dict: dict, enum_dict: dict, spec: str, nr_tests: int, nr_cmds: int) -> TestSuite:
+    """Generates a test suite given and command dictionary, an enum dictionary, a specification of constraints,
     and how many tests to generate and how many commands in a test to generate.
 
     :param cmd_dict: the command dictionary.
     :param enum_dict: the enum dictionary.
-    :param constraints: the constraints.
+    :param spec: the constraints.
     :param nr_tests: number of tests in the test suite.
     :param nr_cmds: number of commands in a test.
     :return: the generated test suite.
@@ -105,7 +105,7 @@ def generate_testsuite(cmd_dict: dict, enum_dict: dict, constraints: List[Constr
     test_suite: TestSuite = []
     count: int = 0
     failed: int = 0
-    constrain_dicts(cmd_dict, enum_dict, constraints)
+    constrain_dicts(cmd_dict, enum_dict, spec)  # TODO: reached to here
     while count != nr_tests:
         test = generate_test(cmd_dict, enum_dict, nr_cmds)
         if test_constraints(test, constraints) and test not in test_suite:

@@ -14,11 +14,25 @@ Todo:
 
 [x] Rename evaluate to generate_smt
 [x] Testing
-[>] Tracy's XML for the documentation
+[x] Tracy's XML for the documentation
 [ ] Integrate with the main tool
 [ ] Comment code, clean up, and document package
 
+[>] Make the pattern matches self-contained
+[x] Make them unique in commands file
+[x] add extract selector function
+[x] Consider only one pattern (the conditional one)
+[x] Change examples
+[x] perfectionate command pattern
+[x] add norule
+[>] Consider binding even the command name (to handle e.g. time)
+
 #############################################################
+
+rule p: always c1?(time=t1?) => wnext c2?(time=t2?) => t1 < t2
+
+We need a way to compare time points independent of what the
+commands are.
 
 #############################################################
 

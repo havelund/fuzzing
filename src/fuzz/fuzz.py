@@ -13,43 +13,34 @@ from src.fuzz.gencmds import generate_commands
 from src.fuzz.core import *
 
 
-def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[str,dict]] = None) -> List[List[dict]]:
+def generate_tests(fsw_dir: str, fsw_areas: List[str], spec: str = None) -> List[List[dict]]:
     """Generates a test suite, which is a list of tests, each consisiting of a list of commands.
 
     It reads definitions of commands and their argument types, including enumerations,
     from XML files stored in a given directory. It only generates commands for certain FSW areas,
-    provided as an argument as well. A configuration defines how many tests should be generated,
+    provided as an argument as well. A specification defines how many tests should be generated,
     how many commands in each test, and constraints on what sequences of commands should be generated.
 
     :param fsw_dir: the directory containing command and enumeration descriptions in XML format.
     :param fsw_areas: the FSW areas commands should be generated for.
-    :param config: configuration. If not provided, it is assumed that it is defined in a file
-        named `config.json` stored in the same place the script is run. If provided, it can be
-        provided in one of two forms: (1) as a string, which indicates the path to a `.json`
-        file containing the configuration; (2) as a dictionary representing the configuration.
+    :param spec: specification of constraints.
     :return: the generated test suite, a list of tests, each being a list of commands.
     """
-    if config is None:
-        config = 'config.json'
-    if isinstance(config, str):
-        try:
-            with open(config, 'r') as file:
-                config = json.load(file)
-        except FileNotFoundError:
-            raise FileNotFoundError(f"Configuration file '{config}' not found.")
-        except json.JSONDecodeError:
-            raise ValueError(f"Ill-formed configuration file '{config}'.")
-    print(config)
-    if not isinstance(config, dict):
-        raise TypeError("The 'config' argument must be a dictionary or a path to a JSON file.")
+    if spec is None:
+        spec = ''
+        print('No constraints')
+    else:
+        print('Constraints:')
+        print(spec)
     # Extract enumeration and commands from XML
     enum_dict, cmd_dict = generate_commands(fsw_dir, fsw_areas)
     # Extract test suite size, test size, and constrainst from config:
-    testsuite_size: int = cast(int, lookup_dict(config, INDEX.TESTSUITE_SIZE))
-    test_size: int = cast(int, lookup_dict(config, INDEX.TEST_SIZE))
-    constraints: List[Constraint] = extract_constraints(cast(List[dict], lookup_dict(config, INDEX.CONSTRAINTS)))
+    #testsuite_size: int = cast(int, lookup_dict(config, INDEX.TESTSUITE_SIZE))
+    testsuite_size: int = 10  # TODO
+    #test_size: int = cast(int, lookup_dict(config, INDEX.TEST_SIZE))
+    test_size: int = 15  # TODO
     # Generate and return test suite
-    tests = generate_testsuite(cmd_dict, enum_dict, constraints, testsuite_size, test_size)
+    tests = generate_testsuite(cmd_dict, enum_dict, spec, testsuite_size, test_size)
     return tests
 
 

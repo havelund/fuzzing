@@ -1,7 +1,7 @@
 from typing import Optional
 
-from src.fuzz.utils import Test
-from zigzag.smt.src.ltl_grammar import *
+from src.fuzz.ltl_grammar import *
+from src.fuzz.utils import debug
 
 
 def print_model(model: ModelRef, end_time: int):
@@ -58,7 +58,7 @@ def generate_test_satisfying_formula(spec: str, end_time: int) -> Test:
     ast: LTLSpec = parse_spec(spec)
     smt_formula: BoolRef = ast.to_smt(end_time)
     solver = Solver()
-    if solve_formula(solver, smt_formula, end_time):
+    if solve_formula(solver, smt_formula, end_time) is not None:
         model = refine_solver(solver, end_time)
         test = [extract_command(model.eval(timeline(i)), model) for i in range(end_time)]
         assert ast.evaluate(test), f"*** generated test does not satisfy LTL semantics:\n {test}"

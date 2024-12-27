@@ -1,23 +1,22 @@
 
 from lark import Lark, Transformer, v_args, Tree, Token
 
-from zigzag.smt.src.ltl_ast import *
+from src.fuzz.ltl_ast import *
 
 grammar = """
 ?start: specification
 
 ?specification: rule* -> spec
 
-?rule: "rule" ID ":" formula -> rule
+?rule: RULE ID ":" formula -> rule
 
 ?formula: formula IMPLIES formula           -> implies
-        | ID REQUIRED "(" constraints? ")" "=>" formula -> commandmatch
+        | ID "(" constraints? ")" (IFTHEN | ANDTHEN) formula -> commandmatch
         | formula OR formula                -> or_
         | formula AND formula               -> and_
         | ID "(" constraints? ")"           -> predicate
         | ALWAYS formula                    -> always
         | EVENTUALLY formula                -> eventually
-        | "[" ID ":=" ID "]" formula        -> freeze
         | formula UNTIL formula             -> until
         | formula WUNTIL formula            -> weakuntil                 // DERIVED
         | formula SINCE formula             -> since
@@ -48,6 +47,8 @@ constraint: ID "=" ID                       -> varconstraint
           | ID "=" ID "?"                   -> varbinding 
           | ID "=" NUMBER                   -> intconstraint
 
+RULE: "rule" | "norule"
+
 NOT: "not" | "!"
 IMPLIES: "implies" | "->"
 OR: "or" | "|"
@@ -66,6 +67,9 @@ SINCE: "since" | "S"
 WSINCE: "wsince" | "WS"
 PREV: "prev" | "(*)"
 WPREV: "wprev" | "(*)?"
+
+IFTHEN: "ifthen" | "=>"
+ANDTHEN: "andthen" | "&>"
 
 THEN: "then" | "~>"
 AFTER: "after" | "~*>"
@@ -89,22 +93,26 @@ class FormulaTransformer(Transformer):
     def spec(self, *rules):
         return LTLSpec(list(rules))
 
-    def rule(self, name, formula):
-        return LTLRule(name, formula)
+    def rule(self, kw, name, formula):
+        return LTLRule(kw, name, formula)
 
     def implies(self, left, kw, right):
         return LTLImplies(left, right)
 
-    def commandmatch(self, id_, required, *args):
-        if len(args) == 1:
+    def commandmatch(self, id_, *args):
+        if len(args) == 2:
             constraints = []
-            formula = args[0]
-        elif len(args) == 2:
-            constraints = args[0]
+            kw = args[0]
             formula = args[1]
+        elif len(args) == 3:
+            constraints = args[0]
+            kw = args[1]
+            formula = args[2]
         else:
             raise ValueError("Unexpected number of arguments in commandmatch")
-        return LTLCommandMatch(id_, str(required), constraints, formula)
+        for constraint in constraints:
+            constraint.command_name = id_
+        return LTLCommandMatch(id_, constraints, kw, formula)
 
     def or_(self, left, kw, right):
         return LTLOr(left, right)
@@ -114,6 +122,8 @@ class FormulaTransformer(Transformer):
 
     def predicate(self, id_, constraints=None):
         constraints_list = constraints if constraints is not None else []
+        for constraint in constraints_list:
+            constraint.command_name = id_
         return LTLPredicate(id_, constraints_list)
 
     def always(self, kw, formula):
@@ -121,9 +131,6 @@ class FormulaTransformer(Transformer):
 
     def eventually(self, kw, formula):
         return LTLEventually(formula)
-
-    def freeze(self, id_, field, formula):
-        return LTLFreeze(id_, field, formula)
 
     def until(self, left, kw, right):
         return LTLUntil(left, right)
@@ -174,13 +181,13 @@ class FormulaTransformer(Transformer):
         return list(constraints)
 
     def varconstraint(self, id_, value):
-        return LTLVariableConstraint(id_, value)
+        return LTLVariableConstraint('place_holder_for_command', id_, value)
 
     def varbinding(self, id_, value):
-        return LTLVariableBinding(id_, value)
+        return LTLVariableBinding('place_holder_for_command', id_, value)
 
     def intconstraint(self, id_, value):
-        return LTLNumberConstraint(id_, int(value))
+        return LTLNumberConstraint('place_holder_for_command', id_, int(value))
 
     # New constructs:
 

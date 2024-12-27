@@ -3,8 +3,8 @@ from abc import ABC
 from typing import Dict, Any
 from dataclasses import dataclass, is_dataclass, fields
 
-from src.fuzz.utils import debug, Test, CommandDict
-from zigzag.smt.src.commands import *
+from src.fuzz.utils import Test, CommandDict
+from src.fuzz.commands import *
 
 Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
 
@@ -17,6 +17,44 @@ def within(index: int, test: Test) -> bool:
     :return: true iff the index is within the bounds of the test.
     """
     return 0 <= index < len(test)
+
+
+def extract_field(command, field_name):
+    """
+    Extracts the value of a specified field from a Z3 Datatype instance dynamically,
+    regardless of which constructor is used to create the datatype.
+
+    This function dynamically checks all constructors of the datatype to identify the
+    field selector corresponding to the given field name. It creates a Z3 expression
+    that represents the value of the field for the provided command.
+
+    :param command: A Z3 Datatype instance whose field value is to be extracted.
+    :param field_name: A string representing the name of the field to extract (e.g., "time").
+
+    :return: A Z3 expression representing the value of the specified field.
+
+    :raises ValueError: If the specified field does not exist in any constructor of the datatype.
+    """
+    conditions = []
+    field_values = []
+
+    for i in range(Command.num_constructors()):
+        constructor = Command.constructor(i)
+        is_constructor = getattr(Command, f'is_{constructor.name()}')
+        field_selector_name = f'{constructor.name()}_{field_name}'
+        if hasattr(Command, field_selector_name):
+            field_selector = getattr(Command, field_selector_name)
+            conditions.append(is_constructor(command))
+            field_values.append(field_selector(command))
+
+    if not conditions:
+        raise ValueError(f"Field '{field_name}' not found in any constructor.")
+
+    field_expr = field_values[0]
+    for condition, field_value in zip(conditions[1:], field_values[1:]):
+        field_expr = If(condition, field_value, field_expr)
+
+    return field_expr
 
 
 @dataclass
@@ -79,21 +117,24 @@ class LTLConstraint(ASTNode,ABC):
 class LTLVariableConstraint(LTLConstraint):
     """cmd(id=x)"""
 
+    command_name: str
     field: str  # id
-    value: str  # x
+    variable: str  # x
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return getattr(Command, self.field)(timeline(t)) == env[self.value]
+        selector = f'{self.command_name}_{self.field}'
+        return getattr(Command, selector)(timeline(t)) == env[self.variable]
 
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
-        return cmd[self.field] == env[self.value]
+        return cmd[self.field] == env[self.variable]
 
 @dataclass
 class LTLVariableBinding(LTLConstraint):
     """cmd(id=x?)"""
 
+    command_name: str
     field: str  # id
-    value: str  # x
+    variable: str  # x
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return True
@@ -106,11 +147,13 @@ class LTLVariableBinding(LTLConstraint):
 class LTLNumberConstraint(LTLConstraint):
     """cmd(id=42)"""
 
+    command_name: str
     field: str
     value: int
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return getattr(Command, self.field)(timeline(t)) == self.value
+        selector = f'{self.command_name}_{self.field}'
+        return getattr(Command, selector)(timeline(t)) == self.value
 
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
         return cmd[self.field] == self.value
@@ -125,54 +168,6 @@ class LTLFormula(ASTNode,ABC):
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         raise NotImplementedError("Subclasses should implement this!")
-
-
-@dataclass
-class LTLFreeze(LTLFormula):
-    """Freeze a value at time t, bind it to a name, and apply it in a subformula."""
-
-    name: str
-    field: str
-    subformula: LTLFormula
-
-    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        # Freeze the value at time t
-        frozen_value = Int(f'frozen_{self.name}_{t}')
-        env[self.name] = frozen_value
-        # Add the freezing condition to the solver
-        freeze_constraint = frozen_value == getattr(Command, self.field)(timeline(t))
-        # Evaluate the subformula with the frozen value in the environment
-        subformula_constraint = self.subformula.to_smt(env, t, end_time)
-        return And(freeze_constraint, subformula_constraint)
-
-    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
-        if within(index, test):
-            env[self.name] = test[index][self.field]
-            return self.subformula.evaluate(env, test, index)
-        return False
-
-
-@dataclass
-class LTLPredicate(LTLFormula):
-    """A generic constraint that evaluates an arbitrary expression on the environment and time point."""
-
-    command_name: str
-    constraints: list[LTLConstraint]
-
-    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        is_method: str = f'is_{self.command_name}'
-        right_command: BoolRef = getattr(Command, is_method)(timeline(t))
-        right_arguments: list[BoolRef] = [constraint.to_smt(env, t, end_time) for constraint in self.constraints]
-        return And([right_command] + right_arguments)
-
-    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
-        if within(index, test):
-            cmd = test[index]
-            if cmd['name'] == self.command_name:
-                return all(constraint.evaluate(env, cmd) for constraint in self.constraints)
-            else:
-                return False
-        return False
 
 
 @dataclass
@@ -201,6 +196,54 @@ class LTLFalse(LTLFormula):
 
 
 LTLFALSE = LTLFalse()  # Turn it into a singleton
+
+
+@dataclass
+class LTLCommandMatch(LTLFormula):
+    """cmd ?|! (field1=42,field2=x,field3=y?) => formula"""
+
+    command_name: str
+    constraints: list[LTLConstraint]
+    arrow: str
+    subformula: LTLFormula
+
+    def required(self) -> bool:
+        return self.arrow in ["&>", "andthen"]
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        is_method: str = f'is_{self.command_name}'
+        right_command: BoolRef = getattr(Command, is_method)(timeline(t))
+        right_arguments: list[BoolRef] = [constraint.to_smt(env, t, end_time) for constraint in self.constraints]
+        event_constraint = And([right_command] + right_arguments)
+        env_plus = env.copy()
+        bindings = [c for c in self.constraints if isinstance(c, LTLVariableBinding)]
+        binding_constraints = []
+        for binding in bindings:
+            frozen_value = Int(f'frozen_{binding.variable}_{t}')
+            env_plus[binding.variable] = frozen_value
+            selector = f'{binding.command_name}_{binding.field}'
+            freeze_constraint = frozen_value == getattr(Command, selector)(timeline(t))
+            binding_constraints.append(freeze_constraint)
+        subformula_constraint = And(binding_constraints + [self.subformula.to_smt(env_plus, t, end_time)])
+        if self.required():
+            return And(event_constraint, subformula_constraint)
+        else:
+            return Or(Not(event_constraint), subformula_constraint)
+
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        if within(index, test):
+            cmd = test[index]
+            if cmd['name'] == self.command_name:
+                constraints_satisfied = all(constraint.evaluate(env, cmd) for constraint in self.constraints)
+                if constraints_satisfied:
+                    env_plus = env.copy()
+                    bindings = [c for c in self.constraints if isinstance(c, LTLVariableBinding)]
+                    for binding in bindings:
+                        field = binding.field
+                        variable = binding.variable
+                        env_plus[variable] = test[index][field]
+                    return self.subformula.evaluate(env_plus, test, index)
+        return not self.required()
 
 
 @dataclass
@@ -441,16 +484,26 @@ class LTLParen(LTLFormula):
 
 @dataclass
 class LTLRule(ASTNode):
-    """rule id: φ"""
+    """(no)rule id: φ"""
 
+    kw: str  # 'rule' or 'norule'
     rule_name: str
     formula: LTLFormula
 
+    def active(self) -> bool:
+        return self.kw == 'rule'
+
     def to_smt(self, end_time: int) -> BoolRef:
-        return self.formula.to_smt({}, 0, end_time)
+        if self.active():
+            return self.formula.to_smt({}, 0, end_time)
+        else:
+            return True
 
     def evaluate(self, test: Test) -> bool:
-        return self.formula.evaluate({}, test, 0)
+        if self.active():
+            return self.formula.evaluate({}, test, 0)
+        else:
+            return True
 
 
 @dataclass
@@ -480,6 +533,17 @@ class LTLDerivedFormula(LTLFormula):
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         return self.expand().evaluate(env, test, index)
+
+
+@dataclass
+class LTLPredicate(LTLDerivedFormula):
+    """A generic constraint that evaluates an arbitrary expression on the environment and time point."""
+
+    command_name: str
+    constraints: list[LTLConstraint]
+
+    def expand(self) -> LTLFormula:
+        return LTLCommandMatch(self.command_name, self.constraints, "andthen", LTLTrue())
 
 
 @dataclass
@@ -524,27 +588,6 @@ class LTLWeakSince(LTLDerivedFormula):
 
     def expand(self) -> LTLFormula:
         return LTLOr(LTLSince(self.left, self.right), LTLSofar(self.left))
-
-
-@dataclass
-class LTLCommandMatch(LTLDerivedFormula):
-    """cmd ?|! (field1=42,field2=x,field3=y?) => formula"""
-
-    command_name: str
-    required: str
-    constraints: list[LTLConstraint]
-    subformula: LTLFormula
-
-    def expand(self) -> LTLFormula:
-        freeze_formula = self.subformula
-        bindings = [c for c in self.constraints if isinstance(c,LTLVariableBinding)]
-        for binding in reversed(bindings):
-            freeze_formula = LTLFreeze(binding.value, binding.field, freeze_formula)
-        predicate = LTLPredicate(self.command_name, self.constraints)
-        if self.required == "?":
-            return LTLOr(LTLNot(predicate), freeze_formula)
-        else:  # "!"
-            return LTLAnd(predicate, freeze_formula)
 
 
 ###################
