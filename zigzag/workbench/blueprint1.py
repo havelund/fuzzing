@@ -45,8 +45,7 @@ def extract_field(command_name, field_name, command):
         fields = []
 
         # Add conditions for each constructor
-        for i in range(Command.num_constructors()):
-            constructor = Command.constructor(i)
+        for constructor in Command.constructors():
             is_constructor = getattr(Command, f'is_{constructor.name()}')
             field_selector = getattr(Command, f'{constructor.name()}_{field_name}', None)
             if field_selector is not None:
@@ -136,8 +135,12 @@ class LTLVariableConstraint(LTLConstraint):
     variable: str  # x
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        # --- TODO:
         actual_value = extract_field(self.command_name, self.field, timeline(t))
         return actual_value == env[self.variable]
+        # selector = f'{self.command_name}_{self.field}'
+        # return getattr(Command, selector)(timeline(t)) == env[self.variable]
+        # ---
 
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
         return cmd[self.field] == env[self.variable]
@@ -166,8 +169,12 @@ class LTLNumberConstraint(LTLConstraint):
     value: int
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        # --- TODO:
         actual_value = extract_field(self.command_name, self.field, timeline(t))
         return actual_value == self.value
+        # selector = f'{self.command_name}_{self.field}'
+        # return getattr(Command, selector)(timeline(t)) == self.value
+        # ---
 
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
         return cmd[self.field] == self.value
@@ -225,11 +232,13 @@ class LTLCommandMatch(LTLFormula):
         return self.arrow in ["&>", "andthen"]
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        # --- TODO:
         if self.command_name == 'any':
             right_command: BoolRef = True
         else:
             is_method: str = f'is_{self.command_name}'
             right_command: BoolRef = getattr(Command, is_method)(timeline(t))
+        # ---
         right_arguments: list[BoolRef] = [constraint.to_smt(env, t, end_time) for constraint in self.constraints]
         event_constraint = And([right_command] + right_arguments)
         env_plus = env.copy()
@@ -238,8 +247,10 @@ class LTLCommandMatch(LTLFormula):
         for binding in bindings:
             frozen_value = Int(f'frozen_{binding.variable}_{t}')
             env_plus[binding.variable] = frozen_value
+            # --- TODO:
             actual_value = extract_field(binding.command_name, binding.field, timeline(t))
             freeze_constraint = frozen_value == actual_value
+            # ---
             binding_constraints.append(freeze_constraint)
         subformula_constraint = And(binding_constraints + [self.subformula.to_smt(env_plus, t, end_time)])
         if self.required():

@@ -15,80 +15,15 @@ Todo:
 [x] Rename evaluate to generate_smt
 [x] Testing
 [x] Tracy's XML for the documentation
-[ ] Integrate with the main tool
-[ ] Comment code, clean up, and document package
-
-[>] Make the pattern matches self-contained
+[x] Make the pattern matches self-contained
 [x] Make them unique in commands file
 [x] add extract selector function
 [x] Consider only one pattern (the conditional one)
 [x] Change examples
 [x] perfectionate command pattern
 [x] add norule
-[>] Consider binding even the command name (to handle e.g. time)
+[x] Consider binding even the command name (to handle e.g. time)
 
-#############################################################
-
-rule p: always c1?(time=t1?) => wnext c2?(time=t2?) => t1 < t2
-
-We need a way to compare time points independent of what the
-commands are.
-
-#############################################################
-
-POSSIBLE COMMANDS FOR TESTING:
-
---- Propulsion and Movement ---
-[x] move - Move forward a specific distance.
-[x] turn - Rotate the spacecraft by a given angle.
-[x] stop - Halt all movement immediately.
-[ ] orbit - Initiate or maintain orbit around a celestial body.
-[ ] land - Begin the landing procedure.
-[ ] takeoff - Launch from a surface into space.
-
---- Communication ---
-[x] send - Transmit data or messages back to the ground station.
-[ ] receive - Listen for and process incoming commands or data.
-[ ] ping - Send a status request to verify communication.
-[ ] acknowledge - Confirm receipt of a command.
-[ ] relay - Forward data to another spacecraft or station.
-
---- Science and Observation ---
-[x] capture - Take a photo or collect sensor data.
-[ ] analyze - Process collected samples or data.
-[ ] scan - Perform a surface or area scan using sensors.
-[ ] sample - Collect physical samples from the environment.
-[ ] deploy - Release instruments like rovers or satellites.
-
---- Operational Control ---
-[ ] power_on - Turn on a specific system or instrument.
-[ ] power_off - Turn off a specific system or instrument.
-[ ] reset - Reinitialize a system or subsystem.
-[ ] calibrate - Adjust instruments or sensors for accurate readings.
-[ ] diagnose - Perform a self-check or diagnostic on systems.
-[ ] configure - Set parameters for a specific operation.
-
---- Navigation ---
-[ ] align - Adjust orientation relative to a reference point.
-[ ] maneuver - Perform a trajectory adjustment.
-[ ] brake - Reduce speed for approach or docking.
-[ ] dock - Engage docking with another spacecraft or station.
-
---- Safety and Recovery ---
-[ ] abort - Cancel the current operation immediately.
-[ ] safe_mode - Enter a low-power, safe operational state.
-[ ] eject - Release non-critical components (e.g., boosters).
-[ ] override - Take manual control, bypassing automation.
-[ ] Payload and Resources
-[ ] load - Load data or physical cargo into the spacecraft.
-[ ] unload - Unload data or physical cargo from the spacecraft.
-[ ] deploy_array - Extend solar arrays or antennas.
-[ ] refuel - Engage in refueling (if supported).
-
---- Custom and Miscellaneous ---
-[ ] log - Record current status or data to onboard memory.
-[ ] simulate - Run a simulation of an operation.
-[ ] test - Perform a system or subsystem test.
-[ ] update - Update onboard software or settings.
-[x] cancel - Cancel a previously issued command.
-[ ] sleep - Enter low-power or standby mode.
+[>] Integrate with the main tool
+[ ] Comment code, clean up, and document package
+[ ] Wellformedness check
