@@ -18,7 +18,7 @@ def within(index: int, test: Test) -> bool:
     """
     return 0 <= index < len(test)
 
-# --- TODO:
+
 def extract_field(command_name, field_name, command):
     """
     Extracts the value of a specified field from a Z3 Datatype instance,
@@ -69,7 +69,7 @@ def extract_field(command_name, field_name, command):
             return getattr(Command, selector)(command)
         except AttributeError:
             raise ValueError(f"Field '{field_name}' does not exist in constructor '{command_name}'.")
-# ---
+
 
 @dataclass
 class ASTNode(ABC):

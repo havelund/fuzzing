@@ -3,7 +3,7 @@ from src.fuzz.solver import *
 
 def run(spec):
     for _ in range(1):
-        test = generate_test_satisfying_formula(spec, end_time=15)
+        test = generate_test_satisfying_formula(spec, end_time=20)
         print_test(test)
 
 
@@ -94,9 +94,18 @@ def test_time2():
     rule p: always any(time=t1?) => wnext any(time=t2?) => t1 < t2
     """)
 
+
 def test_empty_spec():
     run('')
 
 
+def test_false_true():
+    run('rule p: false -> true')
+
+
+def test_now():
+    run("""
+    rule p: mk_move_cmd(time=10)
+    """)
 
 

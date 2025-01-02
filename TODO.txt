@@ -25,5 +25,12 @@ Todo:
 [x] Consider binding even the command name (to handle e.g. time)
 
 [>] Integrate with the main tool
-[ ] Comment code, clean up, and document package
+    [>] What about strings
+    [ ] What about constraints from XML file beyond types (min,max,enum)
+    [ ] Read through it, clean up
+[ ] Create XML file for tests and rerun tests
+[ ] Consider generate and filter approach
 [ ] Wellformedness check
+[ ] Comment code
+[ ] Document package
+
