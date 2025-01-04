@@ -46,6 +46,7 @@ constraints: constraint ("," constraint)*   -> constraint_list
 constraint: ID "=" ID                       -> varconstraint
           | ID "=" ID "?"                   -> varbinding 
           | ID "=" NUMBER                   -> intconstraint
+          | ID "=" STRING                   -> stringconstraint
 
 RULE: "rule" | "norule"
 
@@ -82,6 +83,7 @@ COMMENT: /\#[^\r\n]*/x
 
 %import common.CNAME -> ID
 %import common.NUMBER
+%import common.ESCAPED_STRING -> STRING
 %import common.WS
 %ignore WS
 %ignore COMMENT
@@ -188,6 +190,10 @@ class FormulaTransformer(Transformer):
 
     def intconstraint(self, id_, value):
         return LTLNumberConstraint('place_holder_for_command', id_, int(value))
+
+    def stringconstraint(self, id_, value):
+        unquoted_value = value[1:-1]
+        return LTLStringConstraint('place_holder_for_command', id_, unquoted_value)
 
     # New constructs:
 

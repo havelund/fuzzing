@@ -2,7 +2,8 @@
 import sys
 from typing import Callable, List, Union
 from dotmap import DotMap
-# import pprint
+
+import z3
 
 
 #########
@@ -67,14 +68,16 @@ class VALUE:
 # Auxiliary Functions #
 #######################
 
-def debug(msg: str):
+def debug(msg: str, doit: bool = True):
     """Used for debugging, prints a message.
 
     :param msg: message to be printed.
+    :param doit: flag indicating whether to print debug message or not.
     """
-    print('****************************')
-    print(msg)
-    print('****************************')
+    if doit:
+        print('****************************')
+        print(msg)
+        print('****************************')
 
 
 def error(msg: str):
@@ -140,6 +143,38 @@ def limits_floating_point(bits: int):
     min_value = -max_value
     # smallest_positive = 2**min_exponent
     return min_value, max_value
+
+
+def convert_z3_value(value):
+    """
+    Converts a Z3 value to its Python-native representation.
+
+    :param value: A Z3 value (e.g., IntNumRef, FPNumRef, StringRef, BitVecRef).
+    :return: A Python-native representation of the value.
+    """
+    if z3.is_int_value(value):  # Handle integers
+        return value.as_long()
+    elif z3.is_bv(value):  # Handle bit-vectors
+        # Simplify the BitVecRef and convert to an integer
+        simplified_value = z3.simplify(value)
+        return int(str(simplified_value))  # Convert to an integer
+    elif z3.is_rational_value(value):  # Handle rationals
+        return float(value.numerator_as_long()) / float(value.denominator_as_long())
+    elif z3.is_string_value(value):  # Handle strings
+        return value.as_string()
+    elif z3.is_fp(value):  # Handle floating-point numbers
+        # Convert FPNumRef to a Python float using IEEE representation
+        bv = z3.fpToIEEEBV(value)
+        simplified_bv = z3.simplify(bv)
+        binary = int(str(simplified_bv))  # Simplify and convert to an integer
+        # Decode the IEEE 754 binary representation
+        import struct
+        bytes_rep = binary.to_bytes(8, byteorder='big')
+        return struct.unpack('>d', bytes_rep)[0]  # Convert to Python float
+    elif z3.is_true(value) or z3.is_false(value):  # Handle booleans
+        return z3.is_true(value)
+    else:
+        raise TypeError(f"Unsupported Z3 value type: {value}")
 
 
 # pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint

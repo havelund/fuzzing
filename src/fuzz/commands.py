@@ -71,7 +71,7 @@ class FSWUnassignedIntArgument(FSWArgument):
         return IntSort()
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
-        return self.min <= value <= self.max
+        return And(self.min <= value, value <= self.max)
 
 
 class FSWFloat32Argument(FSWArgument):
@@ -121,7 +121,7 @@ class FSWStringArgument(FSWArgument):
         return StringSort()
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
-        return BoolVal(Length(value) <= self.length)
+        return Length(value) <= self.length
 
 
 class FSWEnumArgument(FSWArgument):
@@ -217,7 +217,20 @@ class FSWCommandDictionary:
         except Exception as e:
             raise RuntimeError(f"Failed to create SMT datatype: {e}")
 
-    def generate_command(self) -> Command:
+    def generate_smt_constraint(self) -> BoolRef:
+        """
+        Generate a combined SMT constraint for all commands' arguments
+        based on their declared constraints.
+        """
+        constraints = []
+        for cmd in self.commands:
+            for arg in cmd.arguments:
+                # Generate a fresh SMT variable for each argument
+                arg_var = Const(f'{cmd.name}_{arg.name}', arg.smt_type())
+                constraints.append(arg.smt_constraint(arg_var))
+        return And(constraints) if constraints else BoolVal(True)
+
+    def generate_random_command(self) -> Command:
         command: FSWCommand = random.choice(self.commands)
         arguments = [arg.random_value() for arg in command.arguments]
         constructor = getattr(Command, command.name)

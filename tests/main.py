@@ -3,23 +3,35 @@ from src.fuzz.solver import *
 
 
 def run(spec):
-    test = generate_test_satisfying_formula(spec, end_time=20)
+    test = generate_test_satisfying_formula(spec, end_time=10)
     print_test(test)
 
 
 if __name__ == '__main__':
     spec = """
-    rule p1: always FUZZ_CMD_UNSIGNED_ARG_1(fuzz_cmd1_arg_1=x?) => 
+    norule p1: always FUZZ_CMD_UNSIGNED_ARG_1(fuzz_cmd1_arg_1=x?) => 
         eventually FUZZ_CMD_MIXED_5(fuzz_cmd5_arg_5=x) 
 
-    rule p2: eventually FUZZ_CMD_UNSIGNED_ARG_1()
+    norule p2: eventually FUZZ_CMD_UNSIGNED_ARG_1()
 
-    rule p3: eventually FUZZ_CMD_STRING_3()
+    norule p3: eventually FUZZ_CMD_STRING_3()
     
-    rule p4: eventually FUZZ_CMD_FLOAT_4()
+    norule p4: eventually FUZZ_CMD_FLOAT_4()
+    
+    norule p5: count (9,9) FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1="fuzz_val_2")
+    
+    norule p6: eventually FUZZ_CMD_ENUM_2()
+    
+    norule p7: eventually FUZZ_CMD_UNSIGNED_ARG_1()    
+    
+    rule p8: always (FUZZ_CMD_UNSIGNED_ARG_1(fuzz_cmd1_arg_1=x?) => (x < 500))
+    
+    rule p9: always FUZZ_CMD_FLOAT_4()
+    
+    # FUZZ_CMD_UNSIGNED_ARG_1
+    # FUZZ_CMD_ENUM_2
     """
     run(spec)
-
 
 '''
 ==========

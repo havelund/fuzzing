@@ -174,6 +174,22 @@ class LTLNumberConstraint(LTLConstraint):
 
 
 @dataclass
+class LTLStringConstraint(LTLConstraint):
+    """cmd(id="abc")"""
+
+    command_name: str
+    field: str
+    value: str
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        actual_value = extract_field(self.command_name, self.field, timeline(t))
+        return actual_value == self.value
+
+    def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
+        return cmd[self.field] == self.value
+
+
+@dataclass
 class LTLFormula(ASTNode,ABC):
     """Base class for all formulas."""
 
@@ -258,6 +274,7 @@ class LTLCommandMatch(LTLFormula):
                     for binding in bindings:
                         field = binding.field
                         variable = binding.variable
+                        debug(f'===> {test[index][field]}:{type(test[index][field])}')
                         env_plus[variable] = test[index][field]
                     return self.subformula.evaluate(env_plus, test, index)
         return not self.required()
@@ -344,6 +361,13 @@ class LTLAlways(LTLFormula):
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         if within(index, test):
+            # ---\
+            f1 = self.subformula.evaluate(env, test, index)
+            f2 = self.evaluate(env, test, index + 1)
+            debug(f'f1-formula={self.subformula}')
+            debug(f'f1={f1}:{type(f1)}, f2={f2}:{type(f2)}')
+            return f1 and f2
+            # ---/
             return self.subformula.evaluate(env, test, index) and self.evaluate(env, test, index + 1)
         return True
 
@@ -669,10 +693,10 @@ class LTLCountPast(LTLFormula):
 class LTLExpression(ASTNode, ABC):
     """x or 10"""
 
-    def to_smt(self, env: Environment) -> BoolRef:
+    def to_smt(self, env: Environment) -> ExprRef:
         raise NotImplementedError("Subclasses should implement this!")
 
-    def evaluate(self, env: Environment) -> bool:
+    def evaluate(self, env: Environment) -> object:
         raise NotImplementedError("Subclasses should implement this!")
 
 
@@ -682,10 +706,11 @@ class LTLIDExpression(LTLExpression):
 
     ident: str
 
-    def to_smt(self, env: Environment) -> BoolRef:
-        return self.evaluate(env)
+    def to_smt(self, env: Environment) -> ExprRef:
+        return env[self.ident]
 
-    def evaluate(self, env: Environment) -> bool:
+    def evaluate(self, env: Environment) -> object:
+        debug(f'##### env={env}, type({self.ident})={type(env[self.ident])}') # z3 type IntNumRef
         return env[self.ident]
 
 
@@ -696,9 +721,9 @@ class LTLNumberExpression(LTLExpression):
     number: int
 
     def to_smt(self, env: Environment) -> BoolRef:
-        return self.evaluate(env)
+        return IntVal(self.number)
 
-    def evaluate(self, env: Environment) -> bool:
+    def evaluate(self, env: Environment) -> int:
         return self.number
 
 
@@ -710,11 +735,9 @@ class LTLRelation(LTLFormula):
     exp2: LTLExpression
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        return self.evaluate(env, t, end_time)
+        value1 = self.exp1.to_smt(env)
+        value2 = self.exp2.to_smt(env)
 
-    def evaluate(self, env: Environment, t: int, end_time: int) -> bool:
-        value1 = self.exp1.evaluate(env)
-        value2 = self.exp2.evaluate(env)
         if self.oper == "<":
             return value1 < value2
         elif self.oper == "<=":
@@ -728,7 +751,30 @@ class LTLRelation(LTLFormula):
         elif self.oper == ">=":
             return value1 >= value2
         else:
-            assert False, f"wrong relational opereator: {self.oper}"
+            raise ValueError(f"Invalid relational operator: {self.oper}")
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> bool:
+        value1 = self.exp1.evaluate(env)
+        value2 = self.exp2.evaluate(env)
+        debug(f'@@@@@@@@ env={env}, exp1={self.exp1}, exp2={self.exp2}')
+        debug(f'@@@@@@@@ value1={value1}, value2={value2}')
+        debug(f'@@@@@@@@ type1={type(value1)}, type2={type(value2)}')
+        if self.oper == "<":
+            debug(f'value1={value1} < value2={value2} == {value1 < value2}')
+            return value1 < value2
+        elif self.oper == "<=":
+            return value1 <= value2
+        elif self.oper == "=":
+            debug(f'value1={value1} = value2={value2} == {value1 == value2}: {type(value1 == value2)}')
+            return value1 == value2
+        elif self.oper == "!=":
+            return value1 != value2
+        elif self.oper == ">":
+            return value1 > value2
+        elif self.oper == ">=":
+            return value1 >= value2
+        else:
+            raise ValueError(f"Invalid relational operator: {self.oper}")
 
 
 @dataclass
