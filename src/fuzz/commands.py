@@ -1,13 +1,17 @@
 import json
 import random
 import string
+from typing import Callable
 from abc import ABC, abstractmethod
 from pprint import pprint
 
 from z3 import *
 
+
+
+
 from src.fuzz.gencmds import generate_commands
-from src.fuzz.utils import debug
+from src.fuzz.utils import debug, error, headline
 
 # Command = Datatype('Command')
 #
@@ -82,13 +86,13 @@ class FSWFloat32Argument(FSWArgument):
 
     def random_value(self) -> FPNumRef:
         random_float = random.uniform(self.min, self.max)
-        return FPVal(random_float, Float32())
+        return RealVal(random_float)
 
     def smt_type(self) -> Sort:
-        return Float32()
+        return RealSort()
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
-        return And(value >= FPVal(self.min, Float32()), value <= FPVal(self.max, Float32()))
+        return And(value >= self.min, value <= self.max)
 
 
 class FSWFloat64Argument(FSWArgument):
@@ -99,13 +103,13 @@ class FSWFloat64Argument(FSWArgument):
 
     def random_value(self) -> FPNumRef:
         random_float = random.uniform(self.min, self.max)
-        return FPVal(random_float, Float64())
+        return RealVal(random_float)
 
     def smt_type(self) -> Sort:
-        return Float64()
+        return RealSort()
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
-        return And(value >= FPVal(self.min, Float64()), value <= FPVal(self.max, Float64()))
+        return And(value >= self.min, value <= self.max)
 
 
 class FSWStringArgument(FSWArgument):
@@ -130,7 +134,8 @@ class FSWEnumArgument(FSWArgument):
         self.enum_values = enum_values
 
     def random_value(self) -> ExprRef:
-        return StringVal(random.choice(self.enum_values))
+        random_enum = random.choice(self.enum_values)
+        return StringVal(random_enum)
 
     def smt_type(self) -> Sort:
         return StringSort()
@@ -154,13 +159,9 @@ class FSWCommandDictionary:
         self._initialize()
 
     def print_dictionaries(self):
-        print('==========')
-        print('ENUM DICT:')
-        print('==========')
+        headline('ENUM DICT')
         pprint(self.enum_dict)
-        print('==========')
-        print('CMD DICT:')
-        print('==========')
+        headline('CMD DICT:')
         pprint(self.cmd_dict)
 
     def _validate_dicts(self):
@@ -217,17 +218,28 @@ class FSWCommandDictionary:
         except Exception as e:
             raise RuntimeError(f"Failed to create SMT datatype: {e}")
 
-    def generate_smt_constraint(self) -> BoolRef:
+    def generate_smt_constraint(self, end_time: int) -> BoolRef:
         """
-        Generate a combined SMT constraint for all commands' arguments
-        based on their declared constraints.
+        Generate an SMT constraint for all commands' arguments
+        across all time values from 0 to `end_time`. At each time point,
+        if the command matches a specific type, its fields must satisfy
+        the declared constraints.
+
+        :param end_time: The maximum time value for the timeline.
+        :return: A combined SMT constraint (BoolRef).
         """
         constraints = []
         for cmd in self.commands:
-            for arg in cmd.arguments:
-                # Generate a fresh SMT variable for each argument
-                arg_var = Const(f'{cmd.name}_{arg.name}', arg.smt_type())
-                constraints.append(arg.smt_constraint(arg_var))
+            # Check if the timeline at a time point corresponds to the current command
+            is_cmd = getattr(Command, f'is_{cmd.name}')
+            for t in range(end_time):
+                cmd_constraints = []
+                for arg in cmd.arguments:
+                    arg_var = getattr(Command, f'{cmd.name}_{arg.name}')(timeline(t))
+                    cmd_constraints.append(arg.smt_constraint(arg_var))
+                # Only enforce the argument constraints if the command matches
+                constraints.append(Implies(is_cmd(timeline(t)), And(cmd_constraints)))
+
         return And(constraints) if constraints else BoolVal(True)
 
     def generate_random_command(self) -> Command:
@@ -235,6 +247,26 @@ class FSWCommandDictionary:
         arguments = [arg.random_value() for arg in command.arguments]
         constructor = getattr(Command, command.name)
         return constructor(*arguments)
+
+    def get_argument_type(self, cmd_name: str, arg_name: str) -> SortRef:
+        for cmd in self.commands:
+            if cmd_name == cmd.name:
+                for arg in cmd.arguments:
+                    if arg_name == arg.name:
+                        return arg.smt_type()
+                error(f'Unknown argument {arg_name} for command {cmd_name}')
+        error(f'Unknown command name {cmd_name}')
+
+    def get_argument_type_constructor(self, cmd_name: str, arg_name: str) -> Callable[[str, Context | None], ArithRef]:
+        smt_type = self.get_argument_type(cmd_name, arg_name)
+        if smt_type == IntSort():
+            return Int
+        elif smt_type == RealSort():
+            return Real
+        elif smt_type == StringSort():
+            return String
+        else:
+            raise ValueError(f"Unsupported SMT type for command {cmd_name} and argument {arg_name}")
 
 
 def initialize():

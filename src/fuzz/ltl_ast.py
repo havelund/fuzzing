@@ -238,9 +238,11 @@ class LTLCommandMatch(LTLFormula):
     subformula: LTLFormula
 
     def required(self) -> bool:
-        return self.arrow in ["&>", "andthen"]
+        return str(self.arrow) in ["&>", "andthen"]
 
-    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+    # ---\
+
+    def to_smt_OLD(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if self.command_name == 'any':
             right_command: BoolRef = True
         else:
@@ -252,16 +254,122 @@ class LTLCommandMatch(LTLFormula):
         bindings = [c for c in self.constraints if isinstance(c, LTLVariableBinding)]
         binding_constraints = []
         for binding in bindings:
-            frozen_value = Int(f'frozen_{binding.variable}_{t}')
+            type_constructor = command_dictionary.get_argument_type_constructor(binding.command_name, binding.field)
+            frozen_value = type_constructor(f'frozen_{binding.variable}_{t}')
             env_plus[binding.variable] = frozen_value
             actual_value = extract_field(binding.command_name, binding.field, timeline(t))
-            freeze_constraint = frozen_value == actual_value
+            freeze_constraint = (frozen_value == actual_value)
             binding_constraints.append(freeze_constraint)
         subformula_constraint = And(binding_constraints + [self.subformula.to_smt(env_plus, t, end_time)])
         if self.required():
             return And(event_constraint, subformula_constraint)
         else:
             return Or(Not(event_constraint), subformula_constraint)
+
+    # ---
+
+    def to_smt_NEW(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        # Handle command name
+        if self.command_name == 'any':
+            right_command: BoolRef = True
+        else:
+            is_method: str = f'is_{self.command_name}'
+            try:
+                right_command: BoolRef = getattr(Command, is_method)(timeline(t))
+            except AttributeError:
+                raise ValueError(f"Invalid command name: {self.command_name}")
+
+        # Handle argument constraints
+        right_arguments: list[BoolRef] = []
+        for c in self.constraints:
+            # Each constraint might be either LTLNumberConstraint, LTLStringConstraint, etc.
+            # We'll debug the to_smt for each constraint as well.
+            arg_smt = c.to_smt(env, t, end_time)
+            right_arguments.append(arg_smt)
+
+        event_constraint = And([right_command] + right_arguments)
+
+        # Handle variable bindings
+        env_plus = env.copy()
+        bindings = [c for c in self.constraints if isinstance(c, LTLVariableBinding)]
+        binding_constraints = []
+
+        for binding in bindings:
+            try:
+                type_constructor = command_dictionary.get_argument_type_constructor(binding.command_name, binding.field)
+            except KeyError:
+                raise ValueError(f"Invalid binding command or field: {binding.command_name}, {binding.field}")
+
+            # Build the frozen var
+            frozen_var_name = f'frozen_{binding.variable}_{t}'
+            frozen_value = type_constructor(frozen_var_name)
+
+            # Store it in env_plus so subformula can use it
+            env_plus[binding.variable] = frozen_value
+
+            # Extract actual field value from timeline
+            actual_value = extract_field(binding.command_name, binding.field, timeline(t))
+
+            # Build the freeze constraint
+            freeze_constraint = (frozen_value == actual_value)
+
+            binding_constraints.append(freeze_constraint)
+
+        # Subformula constraint
+
+        subformula_smt = self.subformula.to_smt(env_plus, t, end_time)
+
+        subformula_constraint = And(binding_constraints + [subformula_smt])
+
+        # Combine event and subformula constraints
+        if self.required():
+            final_constraint = And(event_constraint, subformula_constraint)
+        else:
+            final_constraint = Or(Not(event_constraint), subformula_constraint)
+
+        return final_constraint
+
+    # ---
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        # Handle command name
+        if self.command_name == 'any':
+            right_command: BoolRef = True
+        else:
+            is_method: str = f'is_{self.command_name}'
+            try:
+                right_command: BoolRef = getattr(Command, is_method)(timeline(t))
+            except AttributeError:
+                raise ValueError(f"Invalid command name: {self.command_name}")
+
+        # Handle argument constraints
+        right_arguments: list[BoolRef] = []
+        for c in self.constraints:
+            # Each constraint might be either LTLNumberConstraint, LTLStringConstraint, etc.
+            # We'll debug the to_smt for each constraint as well.
+            arg_smt = c.to_smt(env, t, end_time)
+            right_arguments.append(arg_smt)
+
+        event_constraint = And([right_command] + right_arguments)
+
+        # Handle variable bindings
+        env_plus = env.copy()
+        bindings = [c for c in self.constraints if isinstance(c, LTLVariableBinding)]
+
+        for binding in bindings:
+            actual_value = extract_field(binding.command_name, binding.field, timeline(t))
+            env_plus[binding.variable] = actual_value
+
+        subformula_constraint = self.subformula.to_smt(env_plus, t, end_time)
+
+        if self.required():
+            final_constraint = And(event_constraint, subformula_constraint)
+        else:
+            final_constraint = Or(Not(event_constraint), subformula_constraint)
+
+        return final_constraint
+
+    # ---/
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         if within(index, test):
@@ -274,7 +382,6 @@ class LTLCommandMatch(LTLFormula):
                     for binding in bindings:
                         field = binding.field
                         variable = binding.variable
-                        debug(f'===> {test[index][field]}:{type(test[index][field])}')
                         env_plus[variable] = test[index][field]
                     return self.subformula.evaluate(env_plus, test, index)
         return not self.required()
@@ -361,13 +468,6 @@ class LTLAlways(LTLFormula):
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         if within(index, test):
-            # ---\
-            f1 = self.subformula.evaluate(env, test, index)
-            f2 = self.evaluate(env, test, index + 1)
-            debug(f'f1-formula={self.subformula}')
-            debug(f'f1={f1}:{type(f1)}, f2={f2}:{type(f2)}')
-            return f1 and f2
-            # ---/
             return self.subformula.evaluate(env, test, index) and self.evaluate(env, test, index + 1)
         return True
 
@@ -649,16 +749,38 @@ class LTLCountFuture(LTLFormula):
             return number + self.count(env, test, index + 1)
         return 0
 
-    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+    #---\
+
+    def to_smt_OLD(self, env: Environment, t: int, end_time: int) -> BoolRef:
         counts = [
             If(self.subformula.to_smt(env, t_prime, end_time), IntVal(1), IntVal(0))
             for t_prime in range(t, end_time)
         ]
         total_count = Sum(counts)
-        return And(total_count >= self.min, total_count <= self.max)
+        return And(self.min <= total_count, total_count <= self.max)
+
+    # ---
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        counts = []
+        for t_prime in range(t, end_time):
+            condition = self.subformula.to_smt(env, t_prime, end_time)
+            contribution = If(condition, IntVal(1), IntVal(0))
+            counts.append(contribution)
+
+        total_count = Sum(counts)
+
+        lower_bound = total_count >= self.min
+        upper_bound = total_count <= self.max
+
+        constraint = And(lower_bound, upper_bound)
+        return constraint
+
+    # ---/
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         number = self.count(env, test, index)
+        debug(f'count={number}')
         return self.min <= number <= self.max
 
 
@@ -710,7 +832,6 @@ class LTLIDExpression(LTLExpression):
         return env[self.ident]
 
     def evaluate(self, env: Environment) -> object:
-        debug(f'##### env={env}, type({self.ident})={type(env[self.ident])}') # z3 type IntNumRef
         return env[self.ident]
 
 
@@ -720,11 +841,24 @@ class LTLNumberExpression(LTLExpression):
 
     number: int
 
-    def to_smt(self, env: Environment) -> BoolRef:
+    def to_smt(self, env: Environment) -> ExprRef:
         return IntVal(self.number)
 
     def evaluate(self, env: Environment) -> int:
         return self.number
+
+
+@dataclass
+class LTLStringExpression(LTLExpression):
+    """ "somestring" """
+
+    string: str
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return StringVal(self.string)
+
+    def evaluate(self, env: Environment) -> str:
+        return self.string
 
 
 @dataclass
@@ -756,16 +890,11 @@ class LTLRelation(LTLFormula):
     def evaluate(self, env: Environment, t: int, end_time: int) -> bool:
         value1 = self.exp1.evaluate(env)
         value2 = self.exp2.evaluate(env)
-        debug(f'@@@@@@@@ env={env}, exp1={self.exp1}, exp2={self.exp2}')
-        debug(f'@@@@@@@@ value1={value1}, value2={value2}')
-        debug(f'@@@@@@@@ type1={type(value1)}, type2={type(value2)}')
         if self.oper == "<":
-            debug(f'value1={value1} < value2={value2} == {value1 < value2}')
             return value1 < value2
         elif self.oper == "<=":
             return value1 <= value2
         elif self.oper == "=":
-            debug(f'value1={value1} = value2={value2} == {value1 == value2}: {type(value1 == value2)}')
             return value1 == value2
         elif self.oper == "!=":
             return value1 != value2

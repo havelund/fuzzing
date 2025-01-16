@@ -1,6 +1,7 @@
 
 from lark import Lark, Transformer, v_args, Tree, Token
 
+from src.fuzz.utils import headline
 from src.fuzz.ltl_ast import *
 
 grammar = """
@@ -40,6 +41,7 @@ grammar = """
         
 ?expression: ID                             -> idexpr
            | NUMBER                         -> numberexpr
+           | STRING                         -> stringexpr
 
 constraints: constraint ("," constraint)*   -> constraint_list
 
@@ -84,6 +86,7 @@ COMMENT: /\#[^\r\n]*/x
 %import common.CNAME -> ID
 %import common.NUMBER
 %import common.ESCAPED_STRING -> STRING
+
 %import common.WS
 %ignore WS
 %ignore COMMENT
@@ -193,7 +196,7 @@ class FormulaTransformer(Transformer):
 
     def stringconstraint(self, id_, value):
         unquoted_value = value[1:-1]
-        return LTLStringConstraint('place_holder_for_command', id_, unquoted_value)
+        return LTLStringConstraint('place_holder_for_command', id_, unquoted_value) # TODO: when this is just value it works but with two quotes
 
     # New constructs:
 
@@ -211,6 +214,10 @@ class FormulaTransformer(Transformer):
 
     def numberexpr(self, number):
         return LTLNumberExpression(int(number))
+
+    def stringexpr(self, string):
+        unquoted_value = string[1:-1]
+        return LTLStringExpression(unquoted_value)
 
     # Derived constructs:
 
@@ -239,14 +246,10 @@ def parse_spec(spec: str) -> LTLSpec:
     parser = Lark(grammar, parser="earley")
     try:
         tree = parser.parse(spec)
-        print("--- Specification: ---")
+        headline('SPECIFICATION')
         print(spec)
-        print("--- Tree: ---")
-        print(tree)
-        print("--- Tree pretty printed: ---")
-        pretty_print(tree)
-        print("--- AST: ---")
         ast = FormulaTransformer().transform(tree)
+        headline('AST')
         ast.pretty_print()
         return ast
     except Exception as e:

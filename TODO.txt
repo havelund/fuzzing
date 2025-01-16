@@ -24,11 +24,12 @@ Todo:
 [x] add norule
 [x] Consider binding even the command name (to handle e.g. time)
 
-[>] Integrate with the main tool
+[x] Integrate with the main tool
     [x] What about strings
-    [>] What about constraints from XML file beyond types (min,max,enum)
-    [ ] Look at refinement process, why so slow?
-    [ ] Read through it, clean up
+    [x] What about constraints from XML file beyond types (min,max,enum)
+    [x] Look at refinement process, why so slow?
+[>] Count problem
+
 [ ] Create XML file for tests and rerun tests
 [ ] Consider generate and filter approach
 
