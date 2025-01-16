@@ -196,7 +196,7 @@ class FormulaTransformer(Transformer):
 
     def stringconstraint(self, id_, value):
         unquoted_value = value[1:-1]
-        return LTLStringConstraint('place_holder_for_command', id_, unquoted_value) # TODO: when this is just value it works but with two quotes
+        return LTLStringConstraint('place_holder_for_command', id_, unquoted_value)
 
     # New constructs:
 
