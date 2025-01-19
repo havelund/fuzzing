@@ -28,9 +28,9 @@ Todo:
     [x] What about strings
     [x] Look at refinement process, why so slow?
 [x] Count problem
-[>] Constraints from XML file beyond types (min,max,enum)
+[x] Constraints from XML file beyond types (min,max,enum)
 
-[ ] Create XML file for tests and rerun tests
+[>] Create XML file for tests and rerun tests
 [ ] Consider generate and filter approach
 
 [ ] Wellformedness check

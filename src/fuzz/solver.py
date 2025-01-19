@@ -87,7 +87,8 @@ def generate_test_satisfying_formula(spec: str, end_time: int) -> Test:
     ast: LTLSpec = parse_spec(spec)
     smt_ltl_formula: BoolRef = ast.to_smt(end_time)
     smt_formula: BoolRef = And(smt_rng_formula, smt_ltl_formula)
-    smt_formula: BoolRef = smt_ltl_formula  # TODO: delete
+    #smt_formula: BoolRef = smt_ltl_formula  # TODO: delete
+    debug(f"FINAL constraint: {smt_formula.sexpr()}")
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
         extract_and_verify_test(ast, solver.model(), end_time)

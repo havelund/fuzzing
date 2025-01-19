@@ -84,8 +84,11 @@ REQUIRED: "?" | "!"
 COMMENT: /\#[^\r\n]*/x 
 
 %import common.CNAME -> ID
-%import common.NUMBER
+#%import common.NUMBER
+%import common.INT -> NUMBER_INT
 %import common.ESCAPED_STRING -> STRING
+
+NUMBER: "-"? NUMBER_INT
 
 %import common.WS
 %ignore WS

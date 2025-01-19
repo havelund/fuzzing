@@ -230,16 +230,16 @@ class FSWCommandDictionary:
         """
         constraints = []
         for cmd in self.commands:
-            # Check if the timeline at a time point corresponds to the current command
             is_cmd = getattr(Command, f'is_{cmd.name}')
             for t in range(end_time):
                 cmd_constraints = []
                 for arg in cmd.arguments:
                     arg_var = getattr(Command, f'{cmd.name}_{arg.name}')(timeline(t))
                     cmd_constraints.append(arg.smt_constraint(arg_var))
-                # Only enforce the argument constraints if the command matches
-                constraints.append(Implies(is_cmd(timeline(t)), And(cmd_constraints)))
+                command_constraint = Or(Not(is_cmd(timeline(t))), And(cmd_constraints))
+                constraints.append(command_constraint)
 
+        # Return combined constraints
         return And(constraints) if constraints else BoolVal(True)
 
     def generate_random_command(self) -> Command:
