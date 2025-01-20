@@ -1,7 +1,7 @@
 import json
 import random
 import string
-from typing import Callable
+from typing import Callable, Optional
 from abc import ABC, abstractmethod
 from pprint import pprint
 
@@ -151,9 +151,12 @@ class FSWCommand:
 
 
 class FSWCommandDictionary:
-    def __init__(self, enum_dict: dict, cmd_dict: dict):
+    def __init__(self, enum_dict: dict, cmd_dict: dict, spec_path: Optional[str], test_suite_size: Optional[int], test_size: Optional[int]):
         self.enum_dict = enum_dict
         self.cmd_dict = cmd_dict
+        self.spec_path = spec_path
+        self.test_suite_size = test_suite_size
+        self.test_size = test_size
         self._validate_dicts()
         self.commands: list[FSWCommand] = []
         self._initialize()
@@ -285,14 +288,18 @@ def initialize():
     if not fsw_path:
         raise ValueError("'fsw_path' not defined in configuration file {config}\nlocated at {config_path}")
     fsw_areas = config.get("fsw_areas")
+    if not fsw_areas:
+        raise ValueError("'fsw_areas' not defined in configuration file {config}\nlocated at {config_path}")
+    spec_path = config.get("spec_path")
+    test_suite_size = config.get("test_suite_size")
+    test_size = config.get("test_size")
     enum_dict, cmd_dict = generate_commands(fsw_path, fsw_areas)
-    command_dictionary = FSWCommandDictionary(enum_dict, cmd_dict)
+    command_dictionary = FSWCommandDictionary(enum_dict, cmd_dict, spec_path, test_suite_size, test_size)
     command_dictionary.print_dictionaries()
     Command = command_dictionary.to_smt_type()
     timeline = Function('timeline', IntSort(), Command)
 
 
 command_dictionary: FSWCommandDictionary = None
-
 initialize()
 

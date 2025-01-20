@@ -1,10 +1,9 @@
 @startuml
 'https://plantuml.com/state-diagram
 
+  gencmds --> commands
   commands --> ltl_ast
   ltl_ast --> ltl_grammar
   ltl_grammar --> solver
-  solver --> example
-
 }
 @enduml

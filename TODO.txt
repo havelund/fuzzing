@@ -30,8 +30,8 @@ Todo:
 [x] Count problem
 [x] Constraints from XML file beyond types (min,max,enum)
 
-[>] Create XML file for tests and rerun tests
-[ ] Consider generate and filter approach
+[>] Clean up run interface focusing on SMT solution
+[ ] Create XML file for tests and rerun tests
 
 [ ] Wellformedness check
 [ ] Comment code

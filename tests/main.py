@@ -1,16 +1,9 @@
 
 from src.fuzz.solver import *
 
+spec_empty = ''
 
-def run(spec):
-    test = generate_test_satisfying_formula(spec, end_time=25)
-    print_test(test)
-
-
-if __name__ == '__main__':
-    spec_empty = ''
-
-    spec_ranges = """    
+spec_ranges = """    
     rule FUZZ_CMD_UNSIGNED_ARG_1: 
       always 
         FUZZ_CMD_UNSIGNED_ARG_1(
@@ -18,7 +11,7 @@ if __name__ == '__main__':
           fuzz_cmd1_arg_2=x2?,
           fuzz_cmd1_arg_3=x3?) =>
             (1 <= x1 <= 800 and 1 <= x2 <= 200 and 1 <= x3 <= 10)  
-    
+
     rule FUZZ_CMD_FLOAT_4:
       always 
         FUZZ_CMD_FLOAT_4(
@@ -26,7 +19,7 @@ if __name__ == '__main__':
           fuzz_cmd4_arg_2=x2?,
           fuzz_cmd4_arg_3=x3?) =>  
             (-1 <= x1 <= 1 and -1 <= x2 <= 1 and -1 <= x3 <= 1)  
-            
+
     rule FUZZ_CMD_MIXED_5:
       always
         FUZZ_CMD_MIXED_5(
@@ -44,7 +37,7 @@ if __name__ == '__main__':
               and
               (-2 <= x4 <= 2)
             )
-            
+
     rule FUZZ_CMD_ENUM_2: 
       always 
         FUZZ_CMD_ENUM_2(
@@ -57,7 +50,7 @@ if __name__ == '__main__':
             )                  
     """
 
-    spec_test1 = """
+spec_test1 = """
     #rule p1: always FUZZ_CMD_UNSIGNED_ARG_1(fuzz_cmd1_arg_1=x?) => 
     #              eventually FUZZ_CMD_MIXED_5(fuzz_cmd5_arg_5=x) 
 
@@ -97,7 +90,8 @@ if __name__ == '__main__':
     # rule l2: count (2,2) FUZZ_CMD_UNSIGNED_ARG_1(fuzz_cmd1_arg_1=x?) => x = 777
     """
 
-    spec = spec_empty
 
+if __name__ == '__main__':
     for _ in range(1):
-        run(spec)
+        tests = generate_tests(spec=spec_test1, test_suite_size=1, test_size=25)
+        print_tests(tests)

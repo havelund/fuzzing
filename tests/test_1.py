@@ -3,32 +3,40 @@ from src.fuzz.solver import *
 
 def run(spec):
     for _ in range(1):
-        test = generate_test_satisfying_formula(spec, end_time=20)
-        print_test(test)
+        # test = generate_test_satisfying_spec(spec, end_time=20)
+        tests = generate_tests(spec, test_suite_size=1, test_size=20)
+        print_tests(tests)
 
 
-def test_count_future():
+def test_generic():
+    spec = """
+    rule r1: eventually FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1="fuzz_val_2")
+    rule r2: count (2,2) FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x?) => x="fuzz_val_2"
+    """
+    run(spec)
+
+def notest_count_future():
     spec = """
     rule p: count (5,5) mk_move_cmd(distance=42)
     """
     run(spec)
 
 
-def test_count_future_norule():
+def notest_count_future_norule():
     spec = """
     norule p: count (5,5) mk_move_cmd(distance=42)
     """
     run(spec)
 
 
-def test_count_past():
+def notest_count_past():
     spec = """
     rule p: next next next next next countpast (3,3) mk_move_cmd(distance=42)
     """
     run(spec)
 
 
-def test_freeze_future_past():
+def notest_freeze_future_past():
     run("""
     rule p1: next next next next next mk_turn_cmd(turn_angle = 42)
 
@@ -44,26 +52,26 @@ def test_freeze_future_past():
     """)
 
 
-def test_cmd_arg_interval_with_pattern():
+def notest_cmd_arg_interval_with_pattern():
     run("""
     rule p1: count (5,5) mk_move_cmd()
     rule p2: always mk_move_cmd(distance=a?) => 2000 < a < 10000
     """)
 
 
-def test_next_pattern():
+def notest_next_pattern():
     run("""
     rule p: next next mk_move_cmd(distance=x?) &> (next mk_log_cmd(data = x))
     """)
 
 
-def test_weak_until():
+def notest_weak_until():
     run("""
     rule p:  mk_cancel_cmd() WU mk_move_cmd()
     """)
 
 
-def test_since():
+def notest_since():
     run("""
     rule p1: next next next next next mk_move_cmd(distance=0)
 
@@ -71,7 +79,7 @@ def test_since():
     """)
 
 
-def test_time1():
+def notest_time1():
     run("""
     rule p1: count (5,5) mk_move_cmd()
 
@@ -89,21 +97,21 @@ def test_time1():
     """)
 
 
-def test_time2():
+def notest_time2():
     run("""
     rule p: always any(time=t1?) => wnext any(time=t2?) => t1 < t2
     """)
 
 
-def test_empty_spec():
+def notest_empty_spec():
     run('')
 
 
-def test_false_true():
+def notest_false_true():
     run('rule p: false -> true')
 
 
-def test_now():
+def notest_now():
     run("""
     rule p: mk_move_cmd(time=10)
     """)

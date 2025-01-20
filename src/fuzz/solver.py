@@ -1,7 +1,7 @@
-from typing import Optional
+from typing import Optional, List
 
 from src.fuzz.ltl_grammar import *
-from src.fuzz.utils import debug, error, convert_z3_value
+from src.fuzz.utils import debug, error, convert_z3_value, lookup_dict
 
 
 def print_model(model: ModelRef, end_time: int):
@@ -18,6 +18,22 @@ def print_model(model: ModelRef, end_time: int):
 def print_test(test: Test):
     for i, cmd in enumerate(test):
         print(f"{i}: {cmd}")
+
+
+def print_tests(tests: List[List[dict]]):
+    """Pretty prints a list of generated tests.
+
+    Tests can also be printed with just calling `print`. However, this will
+    result in all tests being printed on one line, which is difficult to read.
+
+    :param tests: the tests to be printed.
+    """
+    print()
+    print('================')
+    print('Generated tests:')
+    print('================')
+    print()
+    print(json.dumps(tests, indent=4))
 
 
 def extract_command(command: Command, model: ModelRef) -> dict:
@@ -82,13 +98,37 @@ def refine_solver(ast: LTLSpec, solver: Solver, end_time: int) -> ModelRef:
     return refined_model
 
 
-def generate_test_satisfying_formula(spec: str, end_time: int) -> Test:
-    smt_rng_formula: BoolRef = command_dictionary.generate_smt_constraint(end_time)
+def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> list[Test]:
+    if spec is None:
+        spec_path = command_dictionary.spec_path
+        if spec_path is None:
+            raise ValueError(f"No specification is provided.")
+        try:
+            with open(spec_path, "r") as file:
+                spec = file.read()
+        except:
+            raise ValueError(f"Specification file {spec_path} cannot be read or does not exist.")
+    if test_suite_size is None:
+        test_suite_size: int = command_dictionary.test_suite_size
+        if test_suite_size is None:
+            raise ValueError(f"No test suite size is provided.")
+    if test_size is None:
+        test_size: int = command_dictionary.test_size
+        if test_size is None:
+            raise ValueError(f"No test size is provided.")
+    smt_rng_formula: BoolRef = command_dictionary.generate_smt_constraint(test_size)
     ast: LTLSpec = parse_spec(spec)
-    smt_ltl_formula: BoolRef = ast.to_smt(end_time)
+    smt_ltl_formula: BoolRef = ast.to_smt(test_size)
     smt_formula: BoolRef = And(smt_rng_formula, smt_ltl_formula)
-    #smt_formula: BoolRef = smt_ltl_formula  # TODO: delete
-    debug(f"FINAL constraint: {smt_formula.sexpr()}")
+    tests: list[Test] = []
+    for test_nr in range(test_suite_size):
+        print(f"Generating test number {test_nr}")
+        test = generate_test(ast, smt_formula, test_size)
+        tests.append(test)
+    return tests
+
+
+def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
         extract_and_verify_test(ast, solver.model(), end_time)
@@ -96,6 +136,7 @@ def generate_test_satisfying_formula(spec: str, end_time: int) -> Test:
         test = extract_and_verify_test(ast, model, end_time)
         return test
     else:
+        print("The specification must contain inconsistent constraints!")
         sys.exit(1)
 
 
