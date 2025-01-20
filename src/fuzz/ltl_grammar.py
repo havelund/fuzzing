@@ -1,7 +1,8 @@
 
 from lark import Lark, Transformer, v_args, Tree, Token
+from graphviz import Digraph
 
-from src.fuzz.utils import headline
+from src.fuzz.options import Options
 from src.fuzz.ltl_ast import *
 
 grammar = """
@@ -245,10 +246,31 @@ def pretty_print(tree, level=0):
         print(f"{indent}{tree}")
 
 
+def visualize_parse_tree(tree: Tree):
+    graph = visualize_sub_tree(tree)
+    graph.render("parse_tree", view=True)
+
+
+def visualize_sub_tree(tree: Tree, graph=None, parent=None):
+    if graph is None:
+        graph = Digraph(format="png")
+        graph.attr("node", shape="circle")
+    node_id = str(id(tree))
+    graph.node(node_id, tree.data if isinstance(tree, Tree) else str(tree))
+    if parent is not None:
+        graph.edge(parent, node_id)
+    if isinstance(tree, Tree):
+        for child in tree.children:
+            visualize_sub_tree(child, graph, node_id)
+    return graph
+
+
 def parse_spec(spec: str) -> LTLSpec:
     parser = Lark(grammar, parser="earley")
     try:
         tree = parser.parse(spec)
+        if Options.GRAPH_PARSE_TREE:
+            visualize_parse_tree(tree)
         headline('SPECIFICATION')
         print(spec)
         ast = FormulaTransformer().transform(tree)

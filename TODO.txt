@@ -30,7 +30,8 @@ Todo:
 [x] Count problem
 [x] Constraints from XML file beyond types (min,max,enum)
 
-[>] Clean up run interface focusing on SMT solution
+[x] Clean up run interface focusing on SMT solution
+[>] Optimize refinement
 [ ] Create XML file for tests and rerun tests
 
 [ ] Wellformedness check

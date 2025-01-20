@@ -2,8 +2,26 @@
 from src.fuzz import generate_tests, print_tests
 
 spec = """
-    rule k1: eventually FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1="fuzz_val_2")
-    rule k2: count (2,2) FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x?) => x="fuzz_val_2"
+    rule range:
+      always
+        FUZZ_CMD_MIXED_5(fuzz_cmd5_arg_1=x1?, fuzz_cmd5_arg_5=x5?) =>
+          (
+            (x1 = "fuzz_val_1" or x1 = "fuzz_val_2")
+            and
+            (45 <= x5 <= 50)
+          )
+
+    rule response:
+      always FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x?, fuzz_cmd2_arg_2="ENABLE") =>
+        next (
+          not (FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x, fuzz_cmd2_arg_2="ENABLE")) 
+            until 
+          FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x, fuzz_cmd2_arg_2="DISABLE")        
+        )
+    
+    rule past:
+      always FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x?, fuzz_cmd2_arg_2="DISABLE") =>
+        once FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x, fuzz_cmd2_arg_2="ENABLE")
     """
 
 if __name__ == '__main__':
