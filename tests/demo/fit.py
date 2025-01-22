@@ -25,7 +25,7 @@ spec = """
     """
 
 if __name__ == '__main__':
-    tests = generate_tests(spec, test_suite_size=10, test_size=25)
+    tests = generate_tests(spec, test_suite_size=10, test_size=30)
     print_tests(tests)
     for test in tests:
         print('=========')

@@ -1,5 +1,6 @@
 from typing import Optional, List
 
+from src.fuzz.options import *
 from src.fuzz.ltl_grammar import *
 from src.fuzz.utils import debug, error, convert_z3_value, lookup_dict
 
@@ -148,7 +149,10 @@ def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
         extract_and_verify_test(ast, solver.model(), end_time)
-        test = refine_solver_using_evaluate(ast, solver, end_time)
+        if Options.REFINEMENT_STRATEGY == RefinementStrategy.PYTHON:
+            test = refine_solver_using_evaluate(ast, solver, end_time)
+        else:
+            test = refine_solver_using_to_smt(ast, solver, end_time)
         return test
     else:
         print("The specification must contain inconsistent constraints!")
