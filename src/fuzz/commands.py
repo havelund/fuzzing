@@ -48,8 +48,13 @@ class FSWArgument(ABC):
         self.length = length
 
     @abstractmethod
+    def random_python_value(self) -> object:
+        """Generate a random Python value for the argument."""
+        raise NotImplementedError()
+
+    @abstractmethod
     def random_value(self) -> ExprRef:
-        """Generate a random value for the argument."""
+        """Generate a random SMT value for the argument."""
         raise NotImplementedError()
 
     @abstractmethod
@@ -68,8 +73,11 @@ class FSWUnassignedIntArgument(FSWArgument):
         self.min = min if min is not None else DEFAULT_MIN_UINT
         self.max = max if max is not None else DEFAULT_MAX_UINT
 
+    def random_python_value(self) -> int:
+        return random.randint(self.min, self.max)
+
     def random_value(self) -> IntNumRef:
-        return IntVal(random.randint(self.min, self.max))
+        return IntVal(self.random_python_value())
 
     def smt_type(self) -> Sort:
         return IntSort()
@@ -84,9 +92,11 @@ class FSWFloat32Argument(FSWArgument):
         self.min = min if min is not None else DEFAULT_MIN_FLOAT32
         self.max = max if max is not None else DEFAULT_MAX_FLOAT32
 
+    def random_python_value(self) -> float:
+        return random.uniform(self.min, self.max)
+
     def random_value(self) -> FPNumRef:
-        random_float = random.uniform(self.min, self.max)
-        return RealVal(random_float)
+        return RealVal(self.random_python_value())
 
     def smt_type(self) -> Sort:
         return RealSort()
@@ -101,9 +111,11 @@ class FSWFloat64Argument(FSWArgument):
         self.min = min if min is not None else DEFAULT_MIN_FLOAT64
         self.max = max if max is not None else DEFAULT_MAX_FLOAT64
 
+    def random_python_value(self) -> float:
+        return random.uniform(self.min, self.max)
+
     def random_value(self) -> FPNumRef:
-        random_float = random.uniform(self.min, self.max)
-        return RealVal(random_float)
+        return RealVal(self.random_python_value())
 
     def smt_type(self) -> Sort:
         return RealSort()
@@ -116,10 +128,13 @@ class FSWStringArgument(FSWArgument):
     def __init__(self, name: str, length: int):
         super().__init__(name, length)
 
-    def random_value(self) -> ExprRef:
+    def random_python_value(self) -> str:
         characters = string.ascii_letters + string.digits
         random_string = ''.join(random.choice(characters) for _ in range(self.length))
-        return StringVal(random_string)
+        return random_string
+
+    def random_value(self) -> ExprRef:
+        return StringVal(self.random_python_value())
 
     def smt_type(self) -> Sort:
         return StringSort()
@@ -133,9 +148,11 @@ class FSWEnumArgument(FSWArgument):
         super().__init__(name, length)
         self.enum_values = enum_values
 
+    def random_python_value(self) -> str:
+        return random.choice(self.enum_values)
+
     def random_value(self) -> ExprRef:
-        random_enum = random.choice(self.enum_values)
-        return StringVal(random_enum)
+        return StringVal(self.random_python_value())
 
     def smt_type(self) -> Sort:
         return StringSort()
@@ -245,11 +262,18 @@ class FSWCommandDictionary:
         # Return combined constraints
         return And(constraints) if constraints else BoolVal(True)
 
-    def generate_random_command(self) -> Command:
+    def generate_random_smt_command(self) -> Command:
         command: FSWCommand = random.choice(self.commands)
         arguments = [arg.random_value() for arg in command.arguments]
         constructor = getattr(Command, command.name)
         return constructor(*arguments)
+
+    def generate_random_dict_command(self) -> dict:
+        fsw_command: FSWCommand = random.choice(self.commands)
+        command_name = {'name': fsw_command.name}
+        arguments = {arg.name: arg.random_python_value() for arg in fsw_command.arguments}
+        command = {**command_name, **arguments}
+        return command
 
     def get_argument_type(self, cmd_name: str, arg_name: str) -> SortRef:
         for cmd in self.commands:

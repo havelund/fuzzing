@@ -16,6 +16,7 @@ def print_model(model: ModelRef, end_time: int):
 
 
 def print_test(test: Test):
+    headline("SOLUTION FOUND")
     for i, cmd in enumerate(test):
         print(f"{i}: {cmd}")
 
@@ -73,14 +74,12 @@ def solve_formula(solver: Solver, formula: BoolRef, end_time: int) -> Optional[M
         return None
 
 
-def refine_solver(ast: LTLSpec, solver: Solver, end_time: int) -> ModelRef:
+def refine_solver_using_to_smt(ast: LTLSpec, solver: Solver, end_time: int) -> ModelRef:
     print('Refining solution')
     for i in range(end_time):
         solver.push()
-
-        command = command_dictionary.generate_random_command()
+        command = command_dictionary.generate_random_smt_command()
         solver.add(timeline(i) == command)
-
         if solver.check() == sat:
             print(f'-- refinement step {i}: changed=True')
             extract_and_verify_test(ast, solver.model(), end_time)
@@ -89,13 +88,30 @@ def refine_solver(ast: LTLSpec, solver: Solver, end_time: int) -> ModelRef:
         else:
             print(f'refinement step {i}: changed=False')
             solver.pop()  # Remove unsatisfiable constraint
-
     if solver.check() != sat:
         raise AssertionError('Model not satisfiable as expected')
-
     refined_model = solver.model()
-    print_model(refined_model, end_time)
-    return refined_model
+    test = extract_and_verify_test(ast, refined_model, end_time)
+    print_test(test)
+    return test
+
+
+def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) -> Test:
+    print('Refining solution')
+    test = extract_and_verify_test(ast, solver.model(), end_time).copy()
+    for i in range(end_time):
+        old_command = test[i]
+        command = command_dictionary.generate_random_dict_command()
+        test[i] = command
+        if ast.evaluate(test):
+            print(f'-- refinement step {i}: changed=True')
+        else:
+            print(f'refinement step {i}: changed=False')
+            test[i] = old_command
+    if not ast.evaluate(test):
+        raise AssertionError('Model not satisfiable as expected')
+    print_test(test)
+    return test
 
 
 def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> list[Test]:
@@ -132,8 +148,7 @@ def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
         extract_and_verify_test(ast, solver.model(), end_time)
-        model = refine_solver(ast, solver, end_time)
-        test = extract_and_verify_test(ast, model, end_time)
+        test = refine_solver_using_evaluate(ast, solver, end_time)
         return test
     else:
         print("The specification must contain inconsistent constraints!")
