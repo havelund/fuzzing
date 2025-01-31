@@ -13,21 +13,6 @@ from z3 import *
 from src.fuzz.gencmds import generate_commands
 from src.fuzz.utils import debug, error, headline
 
-# Command = Datatype('Command')
-#
-# Command.declare('mk_move_cmd', ('mk_move_cmd_time', IntSort()), ('mk_move_cmd_number', IntSort()), ('mk_move_cmd_distance', IntSort()))
-# Command.declare('mk_align_cmd', ('mk_align_cmd_time', IntSort()), ('mk_align_cmd_number', IntSort()), ('mk_align_cmd_turn_angle', IntSort()))
-# Command.declare('mk_turn_cmd', ('mk_turn_cmd_time', IntSort()), ('mk_turn_cmd_number', IntSort()), ('mk_turn_cmd_turn_angle', IntSort()))
-# Command.declare('mk_cancel_cmd', ('mk_cancel_cmd_time', IntSort()), ('mk_cancel_cmd_number', IntSort()))
-# Command.declare('mk_stop_cmd', ('mk_stop_cmd_time', IntSort()), ('mk_stop_cmd_number', IntSort()))
-# Command.declare('mk_capture_cmd', ('mk_capture_cmd_time', IntSort()), ('mk_capture_cmd_number', IntSort()), ('mk_capture_cmd_images', IntSort()))
-# Command.declare('mk_send_cmd', ('mk_send_cmd_time', IntSort()), ('mk_send_cmd_number', IntSort()), ('mk_send_cmd_images', IntSort()))
-# Command.declare('mk_log_cmd', ('mk_log_cmd_time', IntSort()), ('mk_log_cmd_number', IntSort()), ('mk_log_cmd_data', IntSort()))
-#
-# Command = Command.create()
-#
-# timeline = Function('timeline', IntSort(), Command)
-
 
 DEFAULT_MIN_UINT = 0
 DEFAULT_MAX_UINT = 2**32 - 1

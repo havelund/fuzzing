@@ -33,9 +33,10 @@ Todo:
 [x] Clean up run interface focusing on SMT solution
 [x] Optimize refinement
 [x] Make it an option whether to use to_smt or evaluate for refinement
-[>] Create XML file for tests and rerun tests
+[x] Create XML file for tests
+[x] Rework tests
 
-[ ] Wellformedness check
+[>] Wellformedness check
 [ ] Comment code
 [ ] Document package
 

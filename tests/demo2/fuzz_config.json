@@ -1,0 +1,8 @@
+
+{
+    "fsw_path": "/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/tests/demo2/fsw",
+    "fsw_areas": ["mov"],
+    "spec_path": "/Users/khavelun/Desktop/development/pycharmworkspace/fuzzing/tests/demo2/spec.txt",
+    "test_suite_size": 10,
+    "test_size": 10
+}

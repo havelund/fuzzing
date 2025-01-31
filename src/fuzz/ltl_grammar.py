@@ -37,6 +37,8 @@ grammar = """
         | "false"                           -> false
         | COUNT "(" NUMBER "," NUMBER ")" formula       -> countfuture   // NOT LTL
         | COUNTPAST   "(" NUMBER "," NUMBER ")" formula -> countpast     // NOT LTL
+        | COUNT NUMBER  formula              -> countfutureexact         // DERIVED
+        | COUNTPAST NUMBER formula           -> countpastexact           // DERIVED
         | formula THEN formula               -> then                     // DERIVED
         | formula AFTER formula              -> after                    // DERIVED
         
@@ -209,6 +211,12 @@ class FormulaTransformer(Transformer):
 
     def countpast(self, kw, min, max, formula):
         return LTLCountPast(int(min), int(max), formula)
+
+    def countfutureexact(self, kw, number, formula):
+        return LTLCountFutureExact(int(number), formula)
+
+    def countpastexact(self, kw, number, formula):
+        return LTLCountPastExact(int(number), formula)
 
     def relation(self, exp1, kw, exp2):
         return LTLRelation(exp1, kw, exp2)

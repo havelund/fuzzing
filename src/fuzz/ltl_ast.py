@@ -622,6 +622,28 @@ class LTLWeakSince(LTLDerivedFormula):
         return LTLOr(LTLSince(self.left, self.right), LTLSofar(self.left))
 
 
+@dataclass
+class LTLCountFutureExact(LTLDerivedFormula):
+    """countfuture 5 φ."""
+
+    number: int
+    subformula: LTLFormula
+
+    def expand(self) -> LTLFormula:
+        return LTLCountFuture(self.number, self.number, self.subformula)
+
+
+@dataclass
+class LTLCountPastExact(LTLDerivedFormula):
+    """countpast 5 φ."""
+
+    number: int
+    subformula: LTLFormula
+
+    def expand(self) -> LTLFormula:
+        return LTLCountPast(self.number, self.number, self.subformula)
+
+
 ###################
 # New Constructs: #
 ###################
