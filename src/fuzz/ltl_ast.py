@@ -37,7 +37,8 @@ class SymbolTable:
         return cmd in self.cmd_env or cmd == 'any'
 
     def is_field(self, cmd: str, field: str) -> bool:
-        assert self.is_command(cmd)
+        if not self.is_command(cmd):
+            return False
         if cmd == 'any':
             defined_in_all = all(field in self.cmd_env[c] for c in self.cmd_env)
             if not defined_in_all:
@@ -194,6 +195,80 @@ class ASTNode(ABC):
                     value.pretty_print(indent + TAB)
                 else:  # Other fields
                     print(f"{indent_str}|  {self.blue(field_name)}: {self.green(value)}")
+
+
+@dataclass
+class LTLExpression(ASTNode, ABC):
+    """x or 10"""
+
+    def to_str(self):
+        raise NotImplementedError("Subclasses should implement this!")
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        raise NotImplementedError("Subclasses should implement this!")
+
+    def evaluate(self, env: Environment) -> object:
+        raise NotImplementedError("Subclasses should implement this!")
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        raise NotImplementedError("Subclasses should implement this!")
+
+
+@dataclass
+class LTLIDExpression(LTLExpression):
+    """x"""
+
+    ident: str
+
+    def to_str(self):
+        return self.ident
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return env[self.ident]
+
+    def evaluate(self, env: Environment) -> object:
+        return env[self.ident]
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        return symbols.get_variable_type(self.ident)
+
+
+@dataclass
+class LTLNumberExpression(LTLExpression):
+    """10"""
+
+    number: int
+
+    def to_str(self):
+        return self.number.__str__()
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return IntVal(self.number)
+
+    def evaluate(self, env: Environment) -> int:
+        return self.number
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        return BaseType.INT
+
+
+@dataclass
+class LTLStringExpression(LTLExpression):
+    """ "somestring" """
+
+    string: str
+
+    def to_str(self):
+        return f'"{self.string}"'
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return StringVal(self.string)
+
+    def evaluate(self, env: Environment) -> str:
+        return self.string
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        return BaseType.STRING
 
 
 @dataclass
@@ -406,6 +481,72 @@ class LTLFalse(LTLFormula):
 
 
 LTLFALSE = LTLFalse()  # Turn it into a singleton
+
+
+@dataclass
+class LTLRelation(LTLFormula):
+    """x < 10"""
+    exp1: LTLExpression
+    oper: str
+    exp2: LTLExpression
+
+    def to_str(self, indent: int = 0):
+        result = TAB * indent
+        result += f'{self.exp1.to_str()} {self.oper} {self.exp2.to_str()}'
+        return result
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        value1 = self.exp1.to_smt(env)
+        value2 = self.exp2.to_smt(env)
+
+        if self.oper == "<":
+            return value1 < value2
+        elif self.oper == "<=":
+            return value1 <= value2
+        elif self.oper == "=":
+            return value1 == value2
+        elif self.oper == "!=":
+            return value1 != value2
+        elif self.oper == ">":
+            return value1 > value2
+        elif self.oper == ">=":
+            return value1 >= value2
+        else:
+            raise ValueError(f"Invalid relational operator: {self.oper}")
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> bool:
+        value1 = self.exp1.evaluate(env)
+        value2 = self.exp2.evaluate(env)
+        if self.oper == "<":
+            return value1 < value2
+        elif self.oper == "<=":
+            return value1 <= value2
+        elif self.oper == "=":
+            return value1 == value2
+        elif self.oper == "!=":
+            return value1 != value2
+        elif self.oper == ">":
+            return value1 > value2
+        elif self.oper == ">=":
+            return value1 >= value2
+        else:
+            raise ValueError(f"Invalid relational operator: {self.oper}")
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        ty1 = self.exp1.get_type(symbols)
+        ty2 = self.exp2.get_type(symbols)
+        arithmetic_operators = ["<", "<=", ">", ">="]
+        number_types = [BaseType.INT, BaseType.FLOAT]
+        if self.oper in arithmetic_operators:
+            ok_types = ty1 in number_types and ty2 in number_types
+            if not ok_types:
+                report(f'expressions {self.exp1}:{ty1} and {self.exp2}:{ty2} are not number types')
+        else:
+            one_enum_one_string = isinstance(ty1, EnumType) and ty2 == BaseType.STRING
+            ok_types = ty1 == ty2 or one_enum_one_string
+            if not ok_types:
+                report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not have compatible types')
+        return ok_types
 
 
 @dataclass
@@ -818,66 +959,86 @@ class LTLParen(LTLFormula):
 
 
 @dataclass
-class LTLRule(ASTNode):
-    """(no)rule id: φ"""
+class LTLCountFuture(LTLFormula):
+    """countfuture (5,10) φ."""
 
-    kw: str  # 'rule' or 'norule'
-    rule_name: str
-    formula: LTLFormula
+    min: int
+    max: int
+    subformula: LTLFormula
 
-    def to_str(self):
-        result = ''
-        result += f'{self.kw} {self.rule_name}:\n'
-        result += f'{self.formula.to_str(1)}'
-        return result
+    def to_str(self, indent: int = 0):
+        oper = f'count({self.min},{self.max})'
+        return unary_to_str(indent, oper, self.subformula)
 
-    def active(self) -> bool:
-        return self.kw == 'rule'
+    def count(self, env: Environment, test: Test, index: int) -> int:
+        if within(index, test):
+            number = 1 if self.subformula.evaluate(env, test, index) else 0
+            return number + self.count(env, test, index + 1)
+        return 0
 
-    def to_smt(self, end_time: int) -> BoolRef:
-        if self.active():
-            return self.formula.to_smt({}, 0, end_time)
-        else:
-            return True
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        counts = [
+            If(self.subformula.to_smt(env, t_prime, end_time), IntVal(1), IntVal(0))
+            for t_prime in range(t, end_time)
+        ]
+        total_count = Sum(counts)
+        return And(self.min <= total_count, total_count <= self.max)
 
-    def evaluate(self, test: Test) -> bool:
-        if self.active():
-            return self.formula.evaluate({}, test, 0)
-        else:
-            return True
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        number = self.count(env, test, index)
+        return self.min <= number <= self.max
 
-    def wellformed(self) -> bool:
-        return self.kw == 'norule' or self.formula.wellformed(SymbolTable())
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        ok_min = self.min >= 0
+        ok_max = self.min <= self.max
+        ok_formula = self.subformula.wellformed(symbols)
+        if not ok_min:
+            report(f'{self.min} is negative')
+        if not ok_max:
+            report(f'{self.min} is bigger than {self.max}')
+        return ok_min and ok_max and ok_formula
 
 
 @dataclass
-class LTLSpec(ASTNode):
-    """collection of rules."""
+class LTLCountPast(LTLFormula):
+    """countpast (5,10) φ."""
 
-    rules: list[LTLRule]
+    min: int
+    max: int
+    subformula: LTLFormula
 
-    def to_str(self):
-        result = ''
-        for rule in self.rules:
-            result += f'{rule.to_str()}\n\n'
-        return result
+    def to_str(self, indent: int = 0):
+        oper = f'countpast({self.min},{self.max})'
+        return unary_to_str(indent, oper, self.subformula)
 
-    def to_smt(self, end_time: int) -> BoolRef:
-        smt_formulas: list[BoolRef] = [rule.to_smt(end_time) for rule in self.rules]
-        return And(smt_formulas)
+    def count(self, env: Environment, test: Test, index: int) -> int:
+        if within(index, test):
+            number = 1 if self.subformula.evaluate(env, test, index) else 0
+            return number + self.count(env, test, index - 1)
+        return 0
 
-    def evaluate(self, test: Test) -> bool:
-        return all(rule.evaluate(test) for rule in self.rules)
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        counts = [
+            If(self.subformula.to_smt(env, t_prime, end_time), IntVal(1), IntVal(0))
+            for t_prime in range(0, t + 1)
+        ]
+        total_count = Sum(counts)
+        return And(total_count >= self.min, total_count <= self.max)
 
-    def wellformed(self) -> bool:
-        names = [rule.rule_name for rule in self.rules]
-        counts = Counter(names)
-        duplicates = {name for name, count in counts.items() if count > 1}
-        ok_names = len(duplicates) == 0
-        if not ok_names:
-            report(f'duplicate rule names: {duplicates}')
-        ok_rules = all([rule.wellformed() for rule in self.rules])
-        return ok_names and ok_rules
+    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        number = self.count(env, test, index)
+        return self.min <= number <= self.max
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        ok_min = self.min >= 0
+        ok_max = self.min <= self.max
+        ok_formula = self.subformula.wellformed(symbols)
+        if not ok_min:
+            report(f'{self.min} is negative')
+        if not ok_max:
+            report(f'{self.min} is bigger than {self.max}')
+        return ok_min and ok_max and ok_formula
+
 
 #######################
 # Derived Constructs: #
@@ -1026,230 +1187,81 @@ class LTLMultiRelation(LTLDerivedFormula):
         )
 
 
-###################
-# New Constructs: #
-###################
-
 @dataclass
-class LTLCountFuture(LTLFormula):
-    """countfuture (5,10) φ."""
+class LTLRule(ASTNode):
+    """(no)rule id: φ"""
 
-    min: int
-    max: int
-    subformula: LTLFormula
-
-    def to_str(self, indent: int = 0):
-        oper = f'count({self.min},{self.max})'
-        return unary_to_str(indent, oper, self.subformula)
-
-    def count(self, env: Environment, test: Test, index: int) -> int:
-        if within(index, test):
-            number = 1 if self.subformula.evaluate(env, test, index) else 0
-            return number + self.count(env, test, index + 1)
-        return 0
-
-    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        counts = [
-            If(self.subformula.to_smt(env, t_prime, end_time), IntVal(1), IntVal(0))
-            for t_prime in range(t, end_time)
-        ]
-        total_count = Sum(counts)
-        return And(self.min <= total_count, total_count <= self.max)
-
-    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
-        number = self.count(env, test, index)
-        return self.min <= number <= self.max
-
-    def wellformed(self, symbols: SymbolTable) -> bool:
-        ok_min = self.min >= 0
-        ok_max = self.min <= self.max
-        ok_formula = self.subformula.wellformed(symbols)
-        if not ok_min:
-            report(f'{self.min} is negative')
-        if not ok_max:
-            report(f'{self.min} is bigger than {self.max}')
-        return ok_min and ok_max and ok_formula
-
-
-@dataclass
-class LTLCountPast(LTLFormula):
-    """countpast (5,10) φ."""
-
-    min: int
-    max: int
-    subformula: LTLFormula
-
-    def to_str(self, indent: int = 0):
-        oper = f'countpast({self.min},{self.max})'
-        return unary_to_str(indent, oper, self.subformula)
-
-    def count(self, env: Environment, test: Test, index: int) -> int:
-        if within(index, test):
-            number = 1 if self.subformula.evaluate(env, test, index) else 0
-            return number + self.count(env, test, index - 1)
-        return 0
-
-    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        counts = [
-            If(self.subformula.to_smt(env, t_prime, end_time), IntVal(1), IntVal(0))
-            for t_prime in range(0, t + 1)
-        ]
-        total_count = Sum(counts)
-        return And(total_count >= self.min, total_count <= self.max)
-
-    def evaluate(self, env: Environment, test: Test, index: int) -> bool:
-        number = self.count(env, test, index)
-        return self.min <= number <= self.max
-
-    def wellformed(self, symbols: SymbolTable) -> bool:
-        ok_min = self.min >= 0
-        ok_max = self.min <= self.max
-        ok_formula = self.subformula.wellformed(symbols)
-        if not ok_min:
-            report(f'{self.min} is negative')
-        if not ok_max:
-            report(f'{self.min} is bigger than {self.max}')
-        return ok_min and ok_max and ok_formula
-
-
-@dataclass
-class LTLExpression(ASTNode, ABC):
-    """x or 10"""
+    kw: str  # 'rule' or 'norule'
+    rule_name: str
+    formula: LTLFormula
 
     def to_str(self):
-        raise NotImplementedError("Subclasses should implement this!")
-
-    def to_smt(self, env: Environment) -> ExprRef:
-        raise NotImplementedError("Subclasses should implement this!")
-
-    def evaluate(self, env: Environment) -> object:
-        raise NotImplementedError("Subclasses should implement this!")
-
-    def get_type(self, symbols: SymbolTable) -> FieldType:
-        raise NotImplementedError("Subclasses should implement this!")
-
-
-@dataclass
-class LTLIDExpression(LTLExpression):
-    """x"""
-
-    ident: str
-
-    def to_str(self):
-        return self.ident
-
-    def to_smt(self, env: Environment) -> ExprRef:
-        return env[self.ident]
-
-    def evaluate(self, env: Environment) -> object:
-        return env[self.ident]
-
-    def get_type(self, symbols: SymbolTable) -> FieldType:
-        return symbols.get_variable_type(self.ident)
-
-
-@dataclass
-class LTLNumberExpression(LTLExpression):
-    """10"""
-
-    number: int
-
-    def to_str(self):
-        return self.number.__str__()
-
-    def to_smt(self, env: Environment) -> ExprRef:
-        return IntVal(self.number)
-
-    def evaluate(self, env: Environment) -> int:
-        return self.number
-
-    def get_type(self, symbols: SymbolTable) -> FieldType:
-        return BaseType.INT
-
-
-@dataclass
-class LTLStringExpression(LTLExpression):
-    """ "somestring" """
-
-    string: str
-
-    def to_str(self):
-        return f'"{self.string}"'
-
-    def to_smt(self, env: Environment) -> ExprRef:
-        return StringVal(self.string)
-
-    def evaluate(self, env: Environment) -> str:
-        return self.string
-
-    def get_type(self, symbols: SymbolTable) -> FieldType:
-        return BaseType.STRING
-
-
-@dataclass
-class LTLRelation(LTLFormula):
-    """x < 10"""
-    exp1: LTLExpression
-    oper: str
-    exp2: LTLExpression
-
-    def to_str(self, indent: int = 0):
-        result = TAB * indent
-        result += f'{self.exp1.to_str()} {self.oper} {self.exp2.to_str()}'
+        result = ''
+        result += f'{self.kw} {self.rule_name}:\n'
+        result += f'{self.formula.to_str(1)}'
         return result
 
-    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
-        value1 = self.exp1.to_smt(env)
-        value2 = self.exp2.to_smt(env)
+    def active(self) -> bool:
+        return self.kw == 'rule'
 
-        if self.oper == "<":
-            return value1 < value2
-        elif self.oper == "<=":
-            return value1 <= value2
-        elif self.oper == "=":
-            return value1 == value2
-        elif self.oper == "!=":
-            return value1 != value2
-        elif self.oper == ">":
-            return value1 > value2
-        elif self.oper == ">=":
-            return value1 >= value2
+    def to_smt(self, end_time: int) -> BoolRef:
+        if self.active():
+            return self.formula.to_smt({}, 0, end_time)
         else:
-            raise ValueError(f"Invalid relational operator: {self.oper}")
+            return True
 
-    def evaluate(self, env: Environment, t: int, end_time: int) -> bool:
-        value1 = self.exp1.evaluate(env)
-        value2 = self.exp2.evaluate(env)
-        if self.oper == "<":
-            return value1 < value2
-        elif self.oper == "<=":
-            return value1 <= value2
-        elif self.oper == "=":
-            return value1 == value2
-        elif self.oper == "!=":
-            return value1 != value2
-        elif self.oper == ">":
-            return value1 > value2
-        elif self.oper == ">=":
-            return value1 >= value2
+    def evaluate(self, test: Test) -> bool:
+        if self.active():
+            return self.formula.evaluate({}, test, 0)
         else:
-            raise ValueError(f"Invalid relational operator: {self.oper}")
+            return True
 
-    def wellformed(self, symbols: SymbolTable) -> bool:
-        ty1 = self.exp1.get_type(symbols)
-        ty2 = self.exp2.get_type(symbols)
-        arithmetic_operators = ["<", "<=", ">", ">="]
-        number_types = [BaseType.INT, BaseType.FLOAT]
-        if self.oper in arithmetic_operators:
-            ok_types = ty1 in number_types and ty2 in number_types
-            if not ok_types:
-                report(f'expressions {self.exp1}:{ty1} and {self.exp2}:{ty2} are not number types')
+    def wellformed(self) -> bool:
+        if self.kw == 'norule':
+            return True # we do not check the formula
         else:
-            one_enum_one_string = isinstance(ty1, EnumType) and ty2 == BaseType.STRING
-            ok_types = ty1 == ty2 or one_enum_one_string
-            if not ok_types:
-                report(f'expressions {self.exp1}:{ty1} and {self.exp2}:{ty2} do not have compatible types')
-        return ok_types
+            if not self.formula.wellformed(SymbolTable()):
+                print('-------------------')
+                print(self.formula.to_str())
+                print('-------------------')
+                return False
+            else:
+                return True
+
+
+@dataclass
+class LTLSpec(ASTNode):
+    """collection of rules."""
+
+    rules: list[LTLRule]
+
+    def to_str(self):
+        result = ''
+        for rule in self.rules:
+            result += f'{rule.to_str()}\n\n'
+        return result
+
+    def to_smt(self, end_time: int) -> BoolRef:
+        smt_formulas: list[BoolRef] = [rule.to_smt(end_time) for rule in self.rules]
+        return And(smt_formulas)
+
+    def evaluate(self, test: Test) -> bool:
+        return all(rule.evaluate(test) for rule in self.rules)
+
+    def wellformed(self) -> bool:
+        names = [rule.rule_name for rule in self.rules]
+        counts = Counter(names)
+        duplicates = {name for name, count in counts.items() if count > 1}
+        ok_names = len(duplicates) == 0
+        if not ok_names:
+            report(f'duplicate rule names: {duplicates}')
+        ok_rules = all([rule.wellformed() for rule in self.rules])
+        return ok_names and ok_rules
+
+
+
+
+
 
 
 
