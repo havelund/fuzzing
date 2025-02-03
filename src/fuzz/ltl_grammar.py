@@ -285,7 +285,7 @@ def parse_spec(spec: str) -> LTLSpec:
         ast: LTLSpec = FormulaTransformer().transform(tree)
         headline('AST')
         ast.pretty_print()
-        print(ast)
+        print(ast.to_str())
         if not ast.wellformed():
             print("Specification is not wellformed")
             sys.exit(1)

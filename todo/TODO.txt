@@ -38,7 +38,9 @@ Todo:
 
 [>] Wellformedness check
     [x] TURN(angle = "42") does not explain what the problem is
+    [x] pretty printing formulas
     [>] missing indicating which rule is broken, and even which part of the rule
+    [ ] stop without exceptions
 [ ] Comment code
 [ ] Document package
 

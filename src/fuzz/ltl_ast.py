@@ -74,7 +74,7 @@ class SymbolTable:
 # Auxilliary Functions #
 ########################
 
-def unary_to_str(self, indent: int, oper: str, formula: LTLFormula):
+def unary_to_str(indent: int, oper: str, formula: LTLFormula):
     result = TAB * indent
     result += oper + '\n'
     result += formula.to_str(indent + 1)
@@ -200,6 +200,9 @@ class ASTNode(ABC):
 class LTLConstraint(ASTNode,ABC):
     """Base class for all command parameter constraints."""
 
+    def to_str(self):
+        raise NotImplementedError("Subclasses should implement this!")
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         raise NotImplementedError("Subclasses should implement this!")
 
@@ -217,6 +220,9 @@ class LTLVariableConstraint(LTLConstraint):
     command_name: str
     field: str  # id
     variable: str  # x
+
+    def to_str(self):
+        return f'{self.field} = {self.variable}'
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         actual_value = extract_field(self.command_name, self.field, timeline(t))
@@ -252,6 +258,9 @@ class LTLVariableBinding(LTLConstraint):
     field: str  # id
     variable: str  # x
 
+    def to_str(self):
+        return f'{self.field} = {self.variable}?'
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return True
 
@@ -278,6 +287,9 @@ class LTLNumberConstraint(LTLConstraint):
     command_name: str
     field: str
     value: int
+
+    def to_str(self):
+        return f'{self.field} = {self.value}'
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         actual_value = extract_field(self.command_name, self.field, timeline(t))
@@ -307,6 +319,9 @@ class LTLStringConstraint(LTLConstraint):
     command_name: str
     field: str
     value: str
+
+    def to_str(self):
+        return f'{self.field} = "{self.value}"'
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         actual_value = extract_field(self.command_name, self.field, timeline(t))
@@ -407,7 +422,7 @@ class LTLCommandMatch(LTLFormula):
         result += f'{self.command_name}('
         result += ','.join(c.to_str() for c in self.constraints)
         result += ')'
-        result += '=>\n'
+        result += f' {self.arrow}\n'
         result += self.subformula.to_str(indent + 1)
         return result
 
@@ -1179,7 +1194,9 @@ class LTLRelation(LTLFormula):
     exp2: LTLExpression
 
     def to_str(self, indent: int = 0):
-        return f'{self.exp1.to_str()} {self.oper} {self.exp2.to_str()}'
+        result = TAB * indent
+        result += f'{self.exp1.to_str()} {self.oper} {self.exp2.to_str()}'
+        return result
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         value1 = self.exp1.to_smt(env)
