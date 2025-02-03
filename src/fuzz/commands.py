@@ -1,18 +1,17 @@
+from dataclasses import dataclass
+from enum import Enum
 import json
 import random
 import string
 from typing import Callable, Optional
+import typing
 from abc import ABC, abstractmethod
 from pprint import pprint
 
 from z3 import *
 
-
-
-
 from src.fuzz.gencmds import generate_commands
 from src.fuzz.utils import debug, error, headline
-
 
 DEFAULT_MIN_UINT = 0
 DEFAULT_MAX_UINT = 2**32 - 1
@@ -25,6 +24,24 @@ DEFAULT_MAX_FLOAT64 = 1.7976931348623157e+308
 
 Command: Datatype = None
 timeline: Function = None
+
+
+class BaseType(Enum):
+    INT = "int"
+    FLOAT = "float"
+    STRING = "string"
+
+
+@dataclass
+class EnumType:
+    name: str
+    values: list[str]
+
+
+FieldType = typing.Union[BaseType, EnumType]
+
+VariableTypeEnvironment = dict[str, FieldType]
+CommandTypeEnvironment = dict[str, VariableTypeEnvironment]
 
 
 class FSWArgument(ABC):
@@ -48,6 +65,11 @@ class FSWArgument(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def field_type(self) -> FieldType:
+        """Return the Python type for the argument."""
+        raise NotImplementedError()
+
+    @abstractmethod
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         raise NotImplementedError()
 
@@ -66,6 +88,9 @@ class FSWUnassignedIntArgument(FSWArgument):
 
     def smt_type(self) -> Sort:
         return IntSort()
+
+    def field_type(self) -> FieldType:
+        return BaseType.INT
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return And(self.min <= value, value <= self.max)
@@ -86,6 +111,9 @@ class FSWFloat32Argument(FSWArgument):
     def smt_type(self) -> Sort:
         return RealSort()
 
+    def field_type(self) -> FieldType:
+        return BaseType.FLOAT
+
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return And(value >= self.min, value <= self.max)
 
@@ -104,6 +132,9 @@ class FSWFloat64Argument(FSWArgument):
 
     def smt_type(self) -> Sort:
         return RealSort()
+
+    def field_type(self) -> FieldType:
+        return BaseType.FLOAT
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return And(value >= self.min, value <= self.max)
@@ -124,6 +155,9 @@ class FSWStringArgument(FSWArgument):
     def smt_type(self) -> Sort:
         return StringSort()
 
+    def field_type(self) -> FieldType:
+        return BaseType.STRING
+
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return Length(value) <= self.length
 
@@ -141,6 +175,9 @@ class FSWEnumArgument(FSWArgument):
 
     def smt_type(self) -> Sort:
         return StringSort()
+
+    def field_type(self) -> FieldType:
+        return EnumType(self.name, self.enum_values)
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return Or([value == StringVal(enum) for enum in self.enum_values])
@@ -280,6 +317,14 @@ class FSWCommandDictionary:
         else:
             raise ValueError(f"Unsupported SMT type for command {cmd_name} and argument {arg_name}")
 
+    def generate_command_type_env(self) -> CommandTypeEnvironment:
+        cmd_env: CommandTypeEnvironment = {}
+        for cmd in self.commands:
+            arg_env: VariableTypeEnvironment = {}
+            for arg in cmd.arguments:
+                arg_env[arg.name] = arg.field_type()
+            cmd_env[cmd.name] = arg_env
+        return cmd_env
 
 def initialize():
     """

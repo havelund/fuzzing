@@ -1,3 +1,4 @@
+import signal
 
 from lark import Lark, Transformer, v_args, Tree, Token
 from graphviz import Digraph
@@ -281,9 +282,13 @@ def parse_spec(spec: str) -> LTLSpec:
             visualize_parse_tree(tree)
         headline('SPECIFICATION')
         print(spec)
-        ast = FormulaTransformer().transform(tree)
+        ast: LTLSpec = FormulaTransformer().transform(tree)
         headline('AST')
         ast.pretty_print()
+        print(ast)
+        if not ast.wellformed():
+            print("Specification is not wellformed")
+            sys.exit(1)
         return ast
     except Exception as e:
         print("Parsing error:", e)
