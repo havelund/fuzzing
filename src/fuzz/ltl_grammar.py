@@ -1,10 +1,18 @@
-import signal
+
+"""
+This module defines the grammar and parser for the constraint language.
+It uses the lark parser generator: https://github.com/lark-parser/lark.
+"""
 
 from lark import Lark, Transformer, v_args, Tree, Token
 from graphviz import Digraph
 
 from src.fuzz.options import Options
 from src.fuzz.ltl_ast import *
+
+# ============
+# The grammar.
+# ============
 
 grammar = """
 ?start: specification
@@ -99,6 +107,9 @@ NUMBER: "-"? NUMBER_INT
 %ignore COMMENT
 """
 
+# =====================================
+# Converting the parse tree to our AST.
+# =====================================
 
 @v_args(inline=True)
 class FormulaTransformer(Transformer):
@@ -243,6 +254,9 @@ class FormulaTransformer(Transformer):
     def multirelation(self, exp1, kw1, exp2, kw2, exp3):
         return LTLMultiRelation(exp1, kw1, exp2, kw2, exp3)
 
+# ================================
+# Methods for visualizing the AST.
+# ================================
 
 def pretty_print(tree, level=0):
     """Pretty prints a Lark parse tree."""
@@ -273,8 +287,18 @@ def visualize_sub_tree(tree: Tree, graph=None, parent=None):
             visualize_sub_tree(child, graph, node_id)
     return graph
 
+# =====================
+# The parsing function.
+# =====================
 
 def parse_spec(spec: str) -> LTLSpec:
+    """Parses the specification, generates an AST,
+    which is checked for wellformedness, and returns the AST.
+    If the AST is not wellformed the program stops.
+
+    :param spec: the specification of constraints.
+    :return: the AST representing the specification.
+    """
     parser = Lark(grammar, parser="earley")
     try:
         tree = parser.parse(spec)
@@ -295,14 +319,3 @@ def parse_spec(spec: str) -> LTLSpec:
         sys.exit(1)
 
 
-if __name__ == "__main__":
-    parser = Lark(grammar, parser="earley")
-
-    spec = """
-    rule p1 : ! EXECUTE() & CLOSE() | OPEN(y=3) -> STOP(x=someField, y=3) & true 
-    rule p2 : always DISPATCH() -> [d := degree] eventually EXECUTE(id = i)
-    rule p3 : true
-    """
-
-    ast = parse_spec(spec)
-    print(ast)

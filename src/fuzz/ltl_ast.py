@@ -1,4 +1,9 @@
 
+"""
+This module defines the abstract syntax for the constraint language.
+This includes also type checking (wellformedness check).
+"""
+
 from __future__ import annotations
 from abc import ABC
 from enum import Enum
@@ -14,29 +19,54 @@ Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or i
 TAB = '  '
 
 
-###################
-# Static Analysis #
-###################
+# ==================================================================
+# Auxiliary functions and data structures for static analysis
+# ==================================================================
 
 def report(msg: str):
+    """Reports an error message.
+
+    :param msg: the message to be printed.
+    """
     print(f'*** ill formed: {msg}')
 
 
 class SymbolTable:
+    """The symbol table defining what commands exits, their argument types,
+    as well as the variables in scope when a formula is checked for wellformedness.
+
+    Attributes:
+        cmd_env: a dictionary of dictionaries reflecting command and their argument types.
+        var_env: variable types updated when variables are bound in a `LTLCommandMatch`.
+    """
     def __init__(self):
         self.cmd_env: CommandTypeEnvironment = command_dictionary.generate_command_type_env()
         self.var_env: VariableTypeEnvironment = {}
 
     def copy(self) -> SymbolTable:
+        """Makes a copy of the symbol table, keeping the `cmd_env` the same."""
         new_instance = SymbolTable.__new__(SymbolTable)  # Create uninitialized instance
         new_instance.cmd_env = self.cmd_env  # Keep reference to the same cmd_env
         new_instance.var_env = copy.deepcopy(self.var_env)
         return new_instance
 
     def is_command(self, cmd: str) -> bool:
+        """A name is a command if it is defined as such or if it is `any`.
+
+        :param cmd: the command name to check.
+        :return: True if it is a defined command or `any`.
+        """
         return cmd in self.cmd_env or cmd == 'any'
 
     def is_field(self, cmd: str, field: str) -> bool:
+        """A name is a field of a command if defined as such.
+        In the case the command name is `any`, it has to be a field of all commands,
+        and their types should all be the same.
+
+        :param cmd: the command name.
+        :param field: the field of the command being checked.
+        :return: True iff the field is a field of the command.
+        """
         if not self.is_command(cmd):
             return False
         if cmd == 'any':
@@ -51,6 +81,12 @@ class SymbolTable:
             return field in var_env
 
     def get_field_type(self, cmd: str, field: str) -> FieldType:
+        """Returns the type if an argument field of a command.
+
+        :param cmd: the command name.
+        :param field: the field name.
+        :return: the type of the field.
+        """
         assert self.is_command(cmd)
         if cmd == 'any':
             var_envs = list(self.cmd_env.values())
@@ -61,28 +97,58 @@ class SymbolTable:
             return self.cmd_env[cmd][field]
 
     def update_variable_type(self, variable: str, ty: FieldType):
+        """Updates a variable to have a type.
+
+        :param variable: the variable name.
+        :param ty: the type.
+        """
         self.var_env[variable] = ty
 
     def is_variable(self, variable: str) -> bool:
+        """Returns true of a variable is in scope.
+
+        :param variable: the variable name.
+        :return: True iff it is in scope.
+        """
         return variable in self.var_env
 
     def get_variable_type(self, variable: str) -> FieldType:
+        """Returns the type of a variable.
+
+        :param variable: the variable name.
+        :return: the type of the variable.
+        """
         assert self.is_variable(variable)
         return self.var_env[variable]
 
 
-########################
-# Auxilliary Functions #
-########################
+# ==================================================================
+# Other Auxiliary Functions
+# ==================================================================
 
-def unary_to_str(indent: int, oper: str, formula: LTLFormula):
+def unary_to_str(indent: int, oper: str, formula: LTLFormula) -> str:
+    """Function used for pretty printing a unary formula, such as e.g. `next f`
+
+    :param indent: the amount of indentations.
+    :param oper: the unary operator.
+    :param formula: the formula.
+    :return: the formatted string.
+    """
     result = TAB * indent
     result += oper + '\n'
     result += formula.to_str(indent + 1)
     return result
 
 
-def binary_to_str(indent: int, left: LTLFormula, oper: str, right: LTLFormula):
+def binary_to_str(indent: int, left: LTLFormula, oper: str, right: LTLFormula) -> str:
+    """Function used for pretty printing a binary formula, such as e.g. `f and g`
+
+    :param indent: the amount of indentation.
+    :param left: the leftmost formula.
+    :param oper: the binary operator.
+    :param right: the rightmost formula.
+    :return: the formatted string.
+    """
     result = ''
     result += f'{left.to_str(indent)}\n'
     result += TAB * indent + oper + '\n'
@@ -152,9 +218,18 @@ def extract_field(command_name, field_name, command):
             raise ValueError(f"Field '{field_name}' does not exist in constructor '{command_name}'.")
 
 
+# ==================================================================
+# Abstract Syntax
+# ==================================================================
+
 @dataclass
 class ASTNode(ABC):
+    """
+    Abstract class for all AST nodes, which must extend this.
+    """
+
     # Color codes
+
     RED = "\033[31m"
     GREEN = "\033[32m"
     BLUE = "\033[34m"
@@ -169,8 +244,11 @@ class ASTNode(ABC):
     def green(self, text: str) -> str:
         return f"{ASTNode.GREEN}{text}{ASTNode.RESET}"
 
-    def pretty_print(self, indent: int = 0) -> None:
-        """Generic method to pretty print the dataclass instance with tree-like indentation."""
+    def pretty_print(self, indent: int = 0):
+        """Generic method to pretty print the dataclass instance with tree-like indentation.
+
+        :param indent: the amount to indent.
+        """
         TAB = 2
         indent_str = "|  " * indent
         cls_name = self.red(self.__class__.__name__)
@@ -202,15 +280,33 @@ class LTLExpression(ASTNode, ABC):
     """x or 10"""
 
     def to_str(self):
+        """Returns a pretty printed version of the expression.
+        :return: the pretty printed expression.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def to_smt(self, env: Environment) -> ExprRef:
+        """Returns a Z3 representation of the expression.
+
+        :param env: the environment defining variables in scope.
+        :return: the Z3 representation of the expression.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def evaluate(self, env: Environment) -> object:
+        """Evaluates the expression.
+
+        :param env: the environment defining variables in scope.
+        :return: the value of the expression.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def get_type(self, symbols: SymbolTable) -> FieldType:
+        """Returns the type of an expression.
+
+        :param symbols: the symbols table.
+        :return: the type of the expression.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
 
@@ -254,7 +350,7 @@ class LTLNumberExpression(LTLExpression):
 
 @dataclass
 class LTLStringExpression(LTLExpression):
-    """ "somestring" """
+    """ "hello" """
 
     string: str
 
@@ -276,15 +372,36 @@ class LTLConstraint(ASTNode,ABC):
     """Base class for all command parameter constraints."""
 
     def to_str(self):
+        """Returns a pretty printed version of the constraint.
+        :return: the pretty printed constraint.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        """Returns a Z3 representation of the constraint.
+
+        :param env: the environment defining variables in scope.
+        :param t: the current time.
+        :param end_time: the end time of the timeline.
+        :return: the Z3 representation of the constraint.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
+        """Evaluates the constraint.
+
+        :param env: the environment defining variables in scope.
+        :param cmd: dictionary mapping field names to their values.
+        :return: the value of the expression.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def wellformed(self, symbols: SymbolTable) -> bool:
+        """Checks if the constraint is wellformed. Reports if not.
+
+        :param symbols: the symbol table.
+        :return: True iff there are no errors.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
 
@@ -430,15 +547,39 @@ class LTLFormula(ASTNode,ABC):
     """Base class for all formulas."""
 
     def to_str(self, indent: int = 0):
+        """Returns a pretty printed version of the constraint.
+
+        :param indent: amount to indent.
+        :return: the pretty printed formula.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        """Returns a Z3 representation of the formula.
+
+        :param env: the environment defining variables in scope.
+        :param t: the current time.
+        :param end_time: the end time of the timeline.
+        :return: the Z3 representation of the formula.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
+        """Evaluates the formula.
+
+        :param env: the environment defining variables in scope.
+        :param test: the test to evaluate the formula on.
+        :param index: the current position in the test.
+        :return: True iff the test satisfies the formula.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
     def wellformed(self, symbols: SymbolTable) -> bool:
+        """Checks if the formula is wellformed. Reports if not.
+
+        :param symbols: the symbol table.
+        :return: True iff there are no errors.
+        """
         raise NotImplementedError("Subclasses should implement this!")
 
 
@@ -1040,13 +1181,18 @@ class LTLCountPast(LTLFormula):
         return ok_min and ok_max and ok_formula
 
 
-#######################
-# Derived Constructs: #
-#######################
+# ===================
+# Derived Constructs:
+# ===================
 
 @dataclass
 class LTLDerivedFormula(LTLFormula):
+    """
+    Abstract class for all derived formula. These are given semantics
+    by expanding them to a formula in the core set of formulas.
+    """
     def expand(self) -> LTLFormula:
+        """Expland a formula to a formula representing its meaning."""
         raise NotImplementedError("Subclasses should implement this!")
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:

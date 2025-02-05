@@ -1,5 +1,12 @@
 #!/usr/bin/python3
 
+"""
+This module extracts the two dictionaries for:
+(1) commands
+(2) the enumeration types of their arguments.
+The main function is `generate_commands`.
+"""
+
 from __future__ import print_function
 from __future__ import absolute_import
 from __future__ import unicode_literals
@@ -250,9 +257,14 @@ def write_enum(node, enumName):
     return enumValue
 
 
-#def generate_commands(fsw_path, areas):
 def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
-    
+    """
+    Generates the enumeration type and command dictionary from the XML files.
+
+    :param fsw_path: file path to the XML fsw directory.
+    :param areas: the fsw areas to generate commands from.
+    :return: the dictionaries representing resp. enumeration types and commands.
+    """
     global enumEntireList
     global cmdEntireList
 

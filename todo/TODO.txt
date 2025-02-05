@@ -42,5 +42,13 @@ Todo:
     [x] missing indicating which rule is broken, and even which part of the rule
     [x] stop without exceptions
 [>] Comment code
-[ ] Document package
-
+    [x] commands.py
+    [x] gencmds.py
+    [x] lst_ast.py
+    [x] ltl_grammar.py
+    [x] options.py
+    [x] utils.py
+    [x] solver.py
+[>] Document package
+    export CONFIG_PATH=/etc/myproject/config.json
+    python your_script.py

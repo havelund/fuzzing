@@ -1,4 +1,8 @@
 
+"""
+Various utilities used throughout.
+"""
+
 import sys
 from typing import Callable, List, Union
 from dotmap import DotMap
@@ -6,9 +10,9 @@ from dotmap import DotMap
 import z3
 
 
-#########
-# Types #
-#########
+# =====
+# Types
+# =====
 
 CommandDict = dict
 Test = List[CommandDict]
@@ -18,9 +22,9 @@ FreezeId = Union[int, str]
 CommandConstraint = Callable[[Environment, CommandDict], bool]
 
 
-#############
-# Constants #
-#############
+# =========
+# Constants
+# =========
 
 class INDEX:
     """
@@ -64,9 +68,9 @@ class VALUE:
     VAR_STRING_ARG = 'var_string_arg'
 
 
-#######################
-# Auxiliary Functions #
-#######################
+# ===================
+# Auxiliary Functions
+# ===================
 
 def headline(text: str):
     """Prints a text surrounded by frame lines.

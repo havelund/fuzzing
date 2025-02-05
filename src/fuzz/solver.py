@@ -1,3 +1,7 @@
+"""
+Z3 solver functions.
+"""
+
 from typing import Optional, List
 
 from src.fuzz.options import *
@@ -6,6 +10,11 @@ from src.fuzz.utils import debug, error, convert_z3_value, lookup_dict
 
 
 def print_model(model: ModelRef, end_time: int):
+    """Prints the timeline evaluated in a model.
+
+    :param model: the model to evaluate the timeline in.
+    :param end_time: the end time of the timeline.
+    """
     headline("SOLUTION FOUND")
     for i in range(end_time):
         try:
@@ -17,6 +26,10 @@ def print_model(model: ModelRef, end_time: int):
 
 
 def print_test(test: Test):
+    """Prints a test, command by command.
+
+    :param test: the test to print.
+    """
     headline("SOLUTION FOUND")
     for i, cmd in enumerate(test):
         print(f"{i}: {cmd}")
@@ -65,6 +78,13 @@ def extract_command(command: Command, model: ModelRef) -> dict:
 
 
 def solve_formula(solver: Solver, formula: BoolRef, end_time: int) -> Optional[ModelRef]:
+    """Adds a formula to a solver and checks whether it has a model, which is returned if so.
+
+    :param solver: the solver to add the formula to.
+    :param formula: the formula to add to the solver.
+    :param end_time: the end time of the timeline.
+    :return: A model if the formula results in a model, and `None` if not.
+    """
     solver.add(formula)
     if solver.check() == sat:
         model = solver.model()
@@ -75,7 +95,14 @@ def solve_formula(solver: Solver, formula: BoolRef, end_time: int) -> Optional[M
         return None
 
 
-def refine_solver_using_to_smt(ast: LTLSpec, solver: Solver, end_time: int) -> ModelRef:
+def refine_solver_using_to_smt(ast: LTLSpec, solver: Solver, end_time: int) -> Test:
+    """Refines a solver using Z3 itself, and returns a resulting test.
+
+    :param ast: the specifiation of constraints.
+    :param solver: the solver.
+    :param end_time: the end time of the timeline.
+    :return: the test extracted from the final extracted model.
+    """
     print('Refining solution')
     for i in range(end_time):
         solver.push()
@@ -98,6 +125,13 @@ def refine_solver_using_to_smt(ast: LTLSpec, solver: Solver, end_time: int) -> M
 
 
 def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) -> Test:
+    """Refines a test, and returns a resulting test.
+
+    :param ast: the specifiation of constraints.
+    :param solver: the solver.
+    :param end_time: the end time of the timeline.
+    :return: the final test.
+    """
     print('Refining solution')
     test = extract_and_verify_test(ast, solver.model(), end_time).copy()
     for i in range(end_time):
@@ -116,6 +150,17 @@ def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) ->
 
 
 def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> list[Test]:
+    """Generates tests from XML files describing commands and their types.
+
+    If the specification is not provided, the specifiation is extracted from a file provided
+    in the configuration file. Similartly test suite size and test size are extracted
+    from the configuration file if `None`.
+
+    :param spec: an optional specification of constraints.
+    :param test_suite_size: an optional number indicating number of tests to generate.
+    :param test_size: an optional number of commands to generate in each test.
+    :return:
+    """
     if spec is None:
         spec_path = command_dictionary.spec_path
         if spec_path is None:
@@ -146,6 +191,13 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
 
 
 def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
+    """Generates one test.
+
+    :param ast: the specification of constraints.
+    :param smt_formula: the formula as a Z3 datatype.
+    :param end_time: the end time of the timeline.
+    :return: the resulting test.
+    """
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
         extract_and_verify_test(ast, solver.model(), end_time)
@@ -160,6 +212,13 @@ def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
 
 
 def extract_and_verify_test(ast: LTLSpec, model: ModelRef, end_time: int) -> Test:
+    """Extracts a test from a model.
+
+    :param ast: the specification of constraints.
+    :param model: the model to extract the test from.
+    :param end_time: the end time of the timeline.
+    :return: the resulting test.
+    """
     test = [extract_command(model.eval(timeline(i)), model) for i in range(end_time)]
     print('checking generated test against semantics')
     if not ast.evaluate(test):

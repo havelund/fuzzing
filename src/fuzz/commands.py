@@ -1,3 +1,16 @@
+"""
+This module provides data structures and functions for initializing the variable:
+
+    command_dictionary: FSWCommandDictionary
+
+which will store the contents of the command and enumeration XML files defining the commands
+and the enumeration types of the command arguments. This variable is visible throughout the
+application code as a global variable.
+
+It is necessary to make it a global variable initialized as the first thing in order to
+make the Z3 SMT solver able to construct the corresponding type of commands.
+"""
+
 from dataclasses import dataclass
 from enum import Enum
 import json
@@ -13,6 +26,11 @@ from z3 import *
 from src.fuzz.gencmds import generate_commands
 from src.fuzz.utils import debug, error, headline
 
+# ==================================================================
+# Minimal and maximal values used when command arguments are defined
+# using `None` for minimum and/or maximum.
+# ==================================================================
+
 DEFAULT_MIN_UINT = 0
 DEFAULT_MAX_UINT = 2**32 - 1
 
@@ -22,9 +40,20 @@ DEFAULT_MAX_FLOAT32 = 3.4028235e+38
 DEFAULT_MIN_FLOAT64 = -1.7976931348623157e+308
 DEFAULT_MAX_FLOAT64 = 1.7976931348623157e+308
 
+
+# ==================================================================
+# The fundamental data types used by Z3, name the type of command
+# and the timeline representing the list of generated commands.
+# ==================================================================
+
 Command: Datatype = None
 timeline: Function = None
 
+
+# ==================================================================
+# Types of arguments as Python datatypes (in contrast to Z3 types).
+# These types are used for type checking a specification.
+# ==================================================================
 
 class BaseType(Enum):
     INT = "int"
@@ -43,6 +72,10 @@ FieldType = typing.Union[BaseType, EnumType]
 VariableTypeEnvironment = dict[str, FieldType]
 CommandTypeEnvironment = dict[str, VariableTypeEnvironment]
 
+
+# ==================================================================
+# Definition of types representing arguments to commands.
+# ==================================================================
 
 class FSWArgument(ABC):
     def __init__(self, name: str, length: int):
@@ -71,10 +104,13 @@ class FSWArgument(ABC):
 
     @abstractmethod
     def smt_constraint(self, value: ExprRef) -> BoolRef:
+        """Return the SMT constraint for the argument"""
         raise NotImplementedError()
 
 
 class FSWUnassignedIntArgument(FSWArgument):
+    """An integer argument."""
+
     def __init__(self, name: str, length: int, min: int, max: int):
         super().__init__(name, length)
         self.min = min if min is not None else DEFAULT_MIN_UINT
@@ -97,6 +133,8 @@ class FSWUnassignedIntArgument(FSWArgument):
 
 
 class FSWFloat32Argument(FSWArgument):
+    """A 32 bit floating point argument."""
+
     def __init__(self, name: str, length: int, min: float, max: float):
         super().__init__(name, length)
         self.min = min if min is not None else DEFAULT_MIN_FLOAT32
@@ -119,6 +157,8 @@ class FSWFloat32Argument(FSWArgument):
 
 
 class FSWFloat64Argument(FSWArgument):
+    """A 64 bit floating point argument."""
+
     def __init__(self, name: str, length: int, min: float, max: float):
         super().__init__(name, length)
         self.min = min if min is not None else DEFAULT_MIN_FLOAT64
@@ -141,6 +181,8 @@ class FSWFloat64Argument(FSWArgument):
 
 
 class FSWStringArgument(FSWArgument):
+    """A string argument."""
+
     def __init__(self, name: str, length: int):
         super().__init__(name, length)
 
@@ -163,6 +205,8 @@ class FSWStringArgument(FSWArgument):
 
 
 class FSWEnumArgument(FSWArgument):
+    """An enumeration type argument."""
+
     def __init__(self, name: str, length: int, enum_values: list[str]):
         super().__init__(name, length)
         self.enum_values = enum_values
@@ -183,13 +227,34 @@ class FSWEnumArgument(FSWArgument):
         return Or([value == StringVal(enum) for enum in self.enum_values])
 
 
+# ==================================================================
+# Type of FSW commands.
+# ==================================================================
+
 class FSWCommand:
+    """A flight software command."""
+
     def __init__(self, name: str, arguments: list[FSWArgument]):
         self.name = name
         self.arguments = arguments
 
 
+# ==================================================================
+# The command dictionary.
+# ==================================================================
+
 class FSWCommandDictionary:
+    """The key dictionary of commands and their types.
+
+    Attributes:
+        enum_dict: the enumeration type dictionary generated from XML.
+        cmd_dict: the command dictionary generated from XML.
+        spec_path: path to file containing specification of constraints.
+        test_suite_size: the number of tests to be generated.
+        test_size: the number of commands in a single test.
+        commands:
+    """
+
     def __init__(self, enum_dict: dict, cmd_dict: dict, spec_path: Optional[str], test_suite_size: Optional[int], test_size: Optional[int]):
         self.enum_dict = enum_dict
         self.cmd_dict = cmd_dict
@@ -201,12 +266,18 @@ class FSWCommandDictionary:
         self._initialize()
 
     def print_dictionaries(self):
+        """Prints the enumeration and command dictionaries read in from XML files."""
         headline('ENUM DICT')
         pprint(self.enum_dict)
         headline('CMD DICT:')
         pprint(self.cmd_dict)
 
     def _validate_dicts(self):
+        """Validates that the dictionaries are wellformed.
+        This means that:
+        - commands have an `args` field mapping to a list
+        - each argument must have the following entries `name`, `length`, and `type`.
+        """
         for cmd_name, cmd_data in self.cmd_dict.items():
             if 'args' not in cmd_data or not isinstance(cmd_data['args'], list):
                 raise ValueError(f"Command {cmd_name} is missing 'args' or 'args' is not a list.")
@@ -215,6 +286,7 @@ class FSWCommandDictionary:
                     raise ValueError(f"Argument in command {cmd_name} is missing required keys.")
 
     def _initialize(self):
+        """Initializes the state."""
         commands: list[FSWCommand] = []
         for cmd_name in self.cmd_dict:
             arguments: list[FSWArgument] = []
@@ -246,6 +318,7 @@ class FSWCommandDictionary:
         self.commands = commands
 
     def to_smt_type(self) -> Datatype:
+        """Creates and returns the `Command` Z3 type representing the type of commands."""
         try:
             Command = Datatype('Command')
             for cmd in self.commands:
@@ -263,9 +336,11 @@ class FSWCommandDictionary:
     def generate_smt_constraint(self, end_time: int) -> BoolRef:
         """
         Generate an SMT constraint for all commands' arguments
-        across all time values from 0 to `end_time`. At each time point,
-        if the command matches a specific type, its fields must satisfy
-        the declared constraints.
+        across all time values from 0 to `end_time`.
+        These include min/max constraints as well as string values
+        which must be in some enumerated type.
+        At each time point, if the command matches a specific type, its fields
+        must satisfy the declared constraints.
 
         :param end_time: The maximum time value for the timeline.
         :return: A combined SMT constraint (BoolRef).
@@ -285,12 +360,14 @@ class FSWCommandDictionary:
         return And(constraints) if constraints else BoolVal(True)
 
     def generate_random_smt_command(self) -> Command:
+        """Generates a random Z3 command. Used for test refinement with Z3."""
         command: FSWCommand = random.choice(self.commands)
         arguments = [arg.random_value() for arg in command.arguments]
         constructor = getattr(Command, command.name)
         return constructor(*arguments)
 
     def generate_random_dict_command(self) -> dict:
+        """generates a random Python command. Used for test refinement with just Python."""
         fsw_command: FSWCommand = random.choice(self.commands)
         command_name = {'name': fsw_command.name}
         arguments = {arg.name: arg.random_python_value() for arg in fsw_command.arguments}
@@ -298,6 +375,12 @@ class FSWCommandDictionary:
         return command
 
     def get_argument_type(self, cmd_name: str, arg_name: str) -> SortRef:
+        """Returns the Z3 type corresponding to an argument to a command.
+
+        :param cmd_name: the command name.
+        :param arg_name: the argument name.
+        :return: The Z3 type of the argument.
+        """
         for cmd in self.commands:
             if cmd_name == cmd.name:
                 for arg in cmd.arguments:
@@ -307,6 +390,12 @@ class FSWCommandDictionary:
         error(f'Unknown command name {cmd_name}')
 
     def get_argument_type_constructor(self, cmd_name: str, arg_name: str) -> Callable[[str, Context | None], ArithRef]:
+        """Get Python type constructor corresponding to an argument.
+
+        :param cmd_name: the command name.
+        :param arg_name: the argument name.
+        :return: the Python type constructor corresponding to the argument
+        """
         smt_type = self.get_argument_type(cmd_name, arg_name)
         if smt_type == IntSort():
             return Int
@@ -318,6 +407,7 @@ class FSWCommandDictionary:
             raise ValueError(f"Unsupported SMT type for command {cmd_name} and argument {arg_name}")
 
     def generate_command_type_env(self) -> CommandTypeEnvironment:
+        """Generate an environment mapping command names to maps, mapping argument names to types."""
         cmd_env: CommandTypeEnvironment = {}
         for cmd in self.commands:
             arg_env: VariableTypeEnvironment = {}
@@ -326,11 +416,14 @@ class FSWCommandDictionary:
             cmd_env[cmd.name] = arg_env
         return cmd_env
 
+
 def initialize():
-    """
-    ...
-    export CONFIG_PATH=/etc/myproject/config.json
-    python your_script.py
+    """ Initialize the `command_dictionary` variable.
+
+    It assumes the existence of a configration file in json format.
+    The path to the configuration file is either determined by an environment
+    variable `FUZZ_CONFIG_PATH`, or the default `fuzz_config.json` in the
+    current directory.
     """
     global command_dictionary, Command, timeline
     config_path = os.getenv("FUZZ_CONFIG_PATH", os.path.join(os.getcwd(), "fuzz_config.json"))
@@ -353,6 +446,10 @@ def initialize():
     Command = command_dictionary.to_smt_type()
     timeline = Function('timeline', IntSort(), Command)
 
+
+# ==================================================================
+# Initializing the command dictionary.
+# ==================================================================
 
 command_dictionary: FSWCommandDictionary = None
 initialize()
