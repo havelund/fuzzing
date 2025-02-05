@@ -6,7 +6,7 @@ spec = """
     rule time_progresses: 
       always any(time=t1?) => wnext any(time=t2?) => t1 < t2
 
-    rule two_turns: count (2,3) TURN()
+    rule two_turns: count 2 TURN()
     
     rule limit_degree:
       always TURN(angle=a?) => -90 <= a <= 90
