@@ -794,7 +794,7 @@ a number (e.g. -4 or 42), or a string (e.g. "hot").
 
 #### Past Time Temporal Logic Operators
 
-|   Formula    | Explanation                                                                                                                                                             |
+|   Formula &nbsp;   | Explanation                                                                                                                                                             |
 |:------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 |  `sofar` F   | F is true now and in in all past positions.                                                                                                                             |
 |   `once` F   | F is true now or in some past position.                                                                                                                                 |
