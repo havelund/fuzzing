@@ -254,6 +254,11 @@ the enumeration types:
 
 A complete but made up example is shown below:
 
+[here](https://github.jpl.nasa.gov/lars/fuzzing/blob/main/tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml)
+and
+[here](tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml)
+
+
 ```xml
 <command_dictionary>
         <header mission_name="FUZZ_MISSION" schema_version="1.0" version="10.1.0.2">
