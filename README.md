@@ -1,7 +1,7 @@
 # fuzz
 
-|: Formula          :| Explanation                                                                                   |
-|--------------------|-----------------------------------------------------------------------------------------------|
+|  Formula           | Explanation                                                                                   |
+|:------------------:|-----------------------------------------------------------------------------------------------|
 | ID(c1,...,cn)      | The current command has the name ID and has arguments that satisfy the constraints c1,...,cn. |
 | ID(c1,...,cn) => F | If the current command matches ID(c1,...cn) then the formula F must be satisfied.             |
 | ID(c1,...,cn) &> F | The current command matches ID(c1,...cn) and the formula F is satisfied.                      |
