@@ -16,4 +16,4 @@ class Options:
     GRAPH_PARSE_TREE: bool = False
 
     # Drives how the refinement of a test is performed.
-    REFINEMENT_STRATEGY: RefinementStrategy = RefinementStrategy.PYTHON
+    REFINEMENT_STRATEGY: RefinementStrategy = RefinementStrategy.SMT

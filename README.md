@@ -9,18 +9,16 @@
 This repository contains a library `fuzz` for fuzz testing
 flight software. The main function, `generate_tests`, provided by the library, generates a test suite,
 which is a list of tests. Each test is a list of commands, which can be sent
-to the flight software from a FIT script, either as a command list,
-or one by one, as preferred. Each test is randomly generated, potentially
+to the flight software from a FIT script. Each test is randomly generated, optionally
 restricted by user provided constraints.
-
 The objective of fuzzing is to invoke unlikely, untried, command sequences on the flight
 software in an attempt to break it.
 
-`generate_tests` takes as input a description of possible commands in XML format,
+The function `generate_tests` takes as input a description of possible commands in XML format,
 a description of what particular flight software modules should be tested (areas),
 and an optinal specification of constraints, which limits the amount of randomness,
-thereby avoiding completely unrealistic command sequences. Tests are generated using
-a constraint solver ([z3](https://github.com/Z3Prover/z3)).
+allowing to avoid unrealistic command sequences or to focus on specific command sequences of interest. 
+Tests are generated using a constraint solver ([z3](https://github.com/Z3Prover/z3)).
 
 ```
 +--------------------------------------------------+
@@ -40,6 +38,10 @@ a constraint solver ([z3](https://github.com/Z3Prover/z3)).
 |  |          list of generated tests        |     |
 |  +-----------------------------------------+     |
 +--------------------------------------------------+
+```
+
+```plantuml
+a -> b
 ```
 
 A generated test suite is a list of tests, each being a list of commands,
@@ -145,12 +147,14 @@ as described in [here](README-PACKAGING.md) before executing the above command.
 
 ## Usage
 
-A demo example is shown in [src/tests/demo](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which is explained below.
-When having installed `fuzz` you can go to the folder containing the demo:
+A complete demo example is shown in [src/tests/demo](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which shall be
+our throughgoing example.  When having installed `fuzz` you can go to the folder containing the demo:
 
 ```
 cd fuzzing/tests/demo2
 ```
+
+
 
 ```json
 {
@@ -252,283 +256,8 @@ the enumeration types:
 </command_dictionary>
 ```
 
-A complete but made up example is shown below:
+The complete XML file for our example is shown [here](tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml).
 
-[here](https://github.jpl.nasa.gov/lars/fuzzing/blob/main/tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml)
-and
-[here](tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml)
-
-
-```xml
-<command_dictionary>
-        <header mission_name="FUZZ_MISSION" schema_version="1.0" version="10.1.0.2">
-        </header>
-
-        <enum_definitions>
-
-          <enum_table name="speed">
-            <values>
-              <enum numeric="0" symbol="slow"/>
-              <enum numeric="1" symbol="medium"/>
-              <enum numeric="2" symbol="fast"/>
-            </values>
-          </enum_table>
-
-          <enum_table name="image_quality">
-            <values>
-              <enum numeric="0" symbol="low"/>
-              <enum numeric="1" symbol="high"/>
-            </values>
-          </enum_table>
-
-        </enum_definitions>
-
-        <command_definitions>
-
-          <fsw_command class="FSW" opcode="0x0001" stem="MOVE">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="distance" units="meters">
-                <range_of_values>
-                  <include max="100" min="1"/>
-                </range_of_values>
-                <description>The distance to move.</description>
-              </unsigned_arg>
-
-              <float_arg bit_length="64" name="speed" units="m/h">
-                <range_of_values>
-                  <include max="10" min="1"/>
-                </range_of_values>
-                <description>The speed</description>
-              </float_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-
-            <description>Move command.</description>
-          </fsw_command>
-
-          <fsw_command class="FSW" opcode="0x0002" stem="ALIGN">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <float_arg bit_length="64" name="angle" units="degrees">
-                <range_of_values>
-                  <include max="180" min="-180"/>
-                </range_of_values>
-                <description>Degree to turn.</description>
-              </float_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-          </fsw_command>
-
-          <fsw_command class="FSW" opcode="0x0003" stem="TURN">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <float_arg bit_length="64" name="angle" units="degrees">
-                <range_of_values>
-                  <include max="180" min="-180"/>
-                </range_of_values>
-                <description>Degree to turn.</description>
-              </float_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-          </fsw_command>
-
-          <fsw_command class="FSW" opcode="0x0004" stem="CANCEL">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-          </fsw_command>
-
-          <fsw_command class="FSW" opcode="0x0005" stem="STOP">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-          </fsw_command>
-
-          <fsw_command class="FSW" opcode="0x0006" stem="PIC">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="images">
-                <range_of_values>
-                  <include max="10" min="1"/>
-                </range_of_values>
-                <description>Number of images to take.</description>
-              </unsigned_arg>
-
-              <enum_arg bit_length="8" enum_name="image_quality" name="quality">
-                <description>Image quality.</description>
-              </enum_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-          </fsw_command>
-
-          <fsw_command class="FSW" opcode="0x0007" stem="SEND">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="images">
-                <range_of_values>
-                  <include max="100" min="1"/>
-                </range_of_values>
-                <description>Number of images to send.</description>
-              </unsigned_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-          </fsw_command>
-
-          <fsw_command class="FSW" opcode="0x0008" stem="LOG">
-            <arguments>
-
-              <unsigned_arg bit_length="32" name="time" units="seconds">
-                <range_of_values>
-                  <include max="1000" min="0"/>
-                </range_of_values>
-                <description>The current time.</description>
-              </unsigned_arg>
-
-              <unsigned_arg bit_length="32" name="number">
-                <range_of_values>
-                  <include max="100" min="0"/>
-                </range_of_values>
-                <description>Command number.</description>
-              </unsigned_arg>
-
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
-                <description>Message</description>
-              </var_string_arg>
-
-            </arguments>
-          </fsw_command>
-
-        </command_definitions>
-
-</command_dictionary>
-```
 
 ### The Test Script
 
@@ -604,29 +333,29 @@ Running this script yields the following:
 ```
 === reset fsw ===
 
-send {'name': 'ALIGN', 'time': 55, 'number': 16, 'angle': -1.0, 'message': ''}
-send {'name': 'ALIGN', 'time': 164, 'number': 23, 'angle': 0.0, 'message': ''}
-send {'name': 'MOVE', 'time': 123, 'number': 92, 'distance': 96, 'speed': 1.0, 'message': ''}
-send {'name': 'STOP', 'time': 587, 'number': 92, 'message': ''}
-send {'name': 'TURN', 'time': 16, 'number': 94, 'angle': -2.0, 'message': ''}
-send {'name': 'TURN', 'time': 927, 'number': 99, 'angle': 4.0, 'message': ''}
-send {'name': 'PIC', 'time': 802, 'number': 1, 'images': 5, 'quality': 'low', 'message': ''}
-send {'name': 'PIC', 'time': 652, 'number': 27, 'images': 9, 'quality': 'low', 'message': ''}
-send {'name': 'CANCEL', 'time': 684, 'number': 8, 'message': ''}
-send {'name': 'CANCEL', 'time': 552, 'number': 100, 'message': 'AeUWnNG8pN'}
+send {'name': 'PIC', 'time': 206, 'number': 19, 'images': 2, 'quality': 'low', 'message': 'J83cJqqOYb'}
+send {'name': 'PIC', 'time': 600, 'number': 45, 'images': 1, 'quality': 'high', 'message': 'oGLteEvNBg'}
+send {'name': 'CANCEL', 'time': 389, 'number': 65, 'message': 'kS9fR47PJy'}
+send {'name': 'STOP', 'time': 69, 'number': 85, 'message': 'LImwc1W8AU'}
+send {'name': 'TURN', 'time': 1000, 'number': 57, 'angle': -5.0, 'message': ''}
+send {'name': 'TURN', 'time': 205, 'number': 14, 'angle': -7.0, 'message': ''}
+send {'name': 'ALIGN', 'time': 456, 'number': 88, 'angle': 0.25, 'message': ''}
+send {'name': 'ALIGN', 'time': 155, 'number': 100, 'angle': 0.375, 'message': ''}
+send {'name': 'MOVE', 'time': 76, 'number': 50, 'distance': 12, 'speed': 10.0, 'message': ''}
+send {'name': 'STOP', 'time': 510, 'number': 50, 'message': ''}
 
 === reset fsw ===
 
-send {'name': 'ALIGN', 'time': 277, 'number': 65, 'angle': -1.0, 'message': ''}
-send {'name': 'ALIGN', 'time': 369, 'number': 91, 'angle': -115.04129160719944, 'message': '1Pcr9mECX4'}
-send {'name': 'MOVE', 'time': 664, 'number': 92, 'distance': 66, 'speed': 1.0, 'message': ''}
-send {'name': 'STOP', 'time': 802, 'number': 92, 'message': ''}
-send {'name': 'TURN', 'time': 209, 'number': 15, 'angle': 0.0, 'message': ''}
-send {'name': 'TURN', 'time': 474, 'number': 74, 'angle': 9.0, 'message': ''}
-send {'name': 'PIC', 'time': 652, 'number': 38, 'images': 4, 'quality': 'low', 'message': ''}
-send {'name': 'PIC', 'time': 565, 'number': 60, 'images': 6, 'quality': 'low', 'message': ''}
-send {'name': 'CANCEL', 'time': 731, 'number': 23, 'message': ''}
-send {'name': 'CANCEL', 'time': 723, 'number': 46, 'message': ''}
+send {'name': 'MOVE', 'time': 471, 'number': 21, 'distance': 44, 'speed': 9.291831993020972, 'message': 'zPxinq2dvU'}
+send {'name': 'CANCEL', 'time': 43, 'number': 1, 'message': '2I1xwToYJ9'}
+send {'name': 'ALIGN', 'time': 681, 'number': 38, 'angle': 0.0, 'message': 'l'}
+send {'name': 'ALIGN', 'time': 133, 'number': 30, 'angle': 56.2942111744307, 'message': 'zB9qZm9cE6'}
+send {'name': 'PIC', 'time': 133, 'number': 87, 'images': 6, 'quality': 'low', 'message': 'j8xT1HOf7Z'}
+send {'name': 'STOP', 'time': 971, 'number': 74, 'message': 'sSpT2kYUdp'}
+send {'name': 'MOVE', 'time': 589, 'number': 21, 'distance': 45, 'speed': 1.0, 'message': ''}
+send {'name': 'TURN', 'time': 158, 'number': 86, 'angle': -9.0, 'message': 'o'}
+send {'name': 'STOP', 'time': 326, 'number': 21, 'message': ''}
+send {'name': 'TURN', 'time': 642, 'number': 35, 'angle': 10.0, 'message': ''}
 ```
 
 The reader can try and convince him or herself, that each of these two tests satisfies the constraints.
@@ -691,17 +420,17 @@ As an example, consider the test _t_ (from our previous example):
 
 ```
 [
-  {'name': 'ALIGN', 'time': 55, 'number': 16, 'angle': -1.0, 'message': ''},
-  {'name': 'ALIGN', 'time': 164, 'number': 23, 'angle': 0.0, 'message': ''},
-  {'name': 'MOVE', 'time': 123, 'number': 92, 'distance': 96, 'speed': 1.0, 'message': ''},
-  {'name': 'STOP', 'time': 587, 'number': 92, 'message': ''},
-  {'name': 'TURN', 'time': 16, 'number': 94, 'angle': -2.0, 'message': ''},
-  {'name': 'TURN', 'time': 927, 'number': 99, 'angle': 4.0, 'message': ''},
-  {'name': 'PIC', 'time': 802, 'number': 1, 'images': 5, 'quality': 'low', 'message': ''},
-  {'name': 'PIC', 'time': 652, 'number': 27, 'images': 9, 'quality': 'low', 'message': ''},
-  {'name': 'CANCEL', 'time': 684, 'number': 8, 'message': ''},
-  {'name': 'CANCEL', 'time': 552, 'number': 100, 'message': 'AeUWnNG8pN'}
-]
+  {'name': 'PIC', 'time': 206, 'number': 19, 'images': 2, 'quality': 'low', 'message': 'J83cJqqOYb'},
+  {'name': 'PIC', 'time': 600, 'number': 45, 'images': 1, 'quality': 'high', 'message': 'oGLteEvNBg'},
+  {'name': 'CANCEL', 'time': 389, 'number': 65, 'message': 'kS9fR47PJy'},
+  {'name': 'STOP', 'time': 69, 'number': 85, 'message': 'LImwc1W8AU'},
+  {'name': 'TURN', 'time': 1000, 'number': 57, 'angle': -5.0, 'message': ''},
+  {'name': 'TURN', 'time': 205, 'number': 14, 'angle': -7.0, 'message': ''},
+  {'name': 'ALIGN', 'time': 456, 'number': 88, 'angle': 0.25, 'message': ''},
+  {'name': 'ALIGN', 'time': 155, 'number': 100, 'angle': 0.375, 'message': ''},
+  {'name': 'MOVE', 'time': 76, 'number': 50, 'distance': 12, 'speed': 10.0, 'message': ''},
+  {'name': 'STOP', 'time': 510, 'number': 50, 'message': ''}
+] 
 ```
 
 This test satisfies for example the formula 
@@ -818,6 +547,8 @@ a number (e.g. -4 or 42), or a string (e.g. "hot").
 |     `countpast` (n1,n2) F     | F is true in the previous position, if there is a previous position (weak prev), which is not the case for the first postion                                            |
 |          F `then` G           | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true                                                                      |
 |          F `after` G          | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or (weak since) G never was true, and F is true always in the past. |
+
+A special command name is `any`. This will match any command.
 
 ### Grammar
 
