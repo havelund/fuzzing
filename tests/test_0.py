@@ -82,3 +82,13 @@ def test_wrong_type():
         pass
 
 
+def test_enum_string_constraint():
+    run("""
+    rule p: PIC(quality="LOW") =>! next SEND() 
+    """)
+
+
+def test_enum_string():
+    run("""
+    rule p: PIC(quality="high") => always PIC(quality=q?) => q = "HIGH"
+    """)

@@ -673,20 +673,32 @@ class LTLRelation(LTLFormula):
         else:
             raise ValueError(f"Invalid relational operator: {self.oper}")
 
+    def _enum_string(self, ty1: FieldType, ty2: FieldType, exp2: LTLExpression):
+         if isinstance(ty1, EnumType) and ty2 == BaseType.STRING and isinstance(exp2, LTLStringExpression):
+             return exp2.string in ty1.values
+         else:
+             return False
+
     def wellformed(self, symbols: SymbolTable) -> bool:
         ty1 = self.exp1.get_type(symbols)
         ty2 = self.exp2.get_type(symbols)
         arithmetic_operators = ["<", "<=", ">", ">="]
         number_types = [BaseType.INT, BaseType.FLOAT]
-        if self.oper in arithmetic_operators:
-            ok_types = ty1 in number_types and ty2 in number_types
-            if not ok_types:
-                report(f'expressions {self.exp1}:{ty1} and {self.exp2}:{ty2} are not number types')
-        else:
-            one_enum_one_string = isinstance(ty1, EnumType) and ty2 == BaseType.STRING
-            ok_types = ty1 == ty2 or one_enum_one_string
-            if not ok_types:
-                report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not have compatible types')
+        same_types = (
+            ty1 == ty2 or
+            (ty1 in number_types and ty2 in number_types) or
+            self._enum_string(ty1, ty2, self.exp2) or
+            self._enum_string(ty2, ty1, self.exp1)
+        )
+        if not same_types:
+            report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not have compatible types')
+        comparable_types = (
+                self.oper not in arithmetic_operators or
+                (ty1 in number_types and ty2 in number_types)
+        )
+        if not comparable_types:
+            report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not match the operator {self.oper}')
+        ok_types = same_types and comparable_types
         return ok_types
 
 

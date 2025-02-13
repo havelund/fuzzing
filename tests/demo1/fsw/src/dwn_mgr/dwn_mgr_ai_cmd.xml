@@ -2,36 +2,36 @@
         <header mission_name="FUZZ_MISSION" schema_version="1.0" version="10.1.0.2">
         </header>
         <enum_definitions>
-          <enum_table name="fuzz_enum_def1">
+          <enum_table name="enum1">
             <values>
-              <enum numeric="0" symbol="fuzz_val_1"/>
-              <enum numeric="1" symbol="fuzz_val_2"/>
-              <enum numeric="2" symbol="fuzz_val_3"/>
+              <enum numeric="0" symbol="enum11"/>
+              <enum numeric="1" symbol="enum12"/>
+              <enum numeric="2" symbol="enum13"/>
             </values>
           </enum_table>
-          <enum_table name="enable_disable">
+          <enum_table name="enum2">
             <values>
-              <enum numeric="0" symbol="DISABLE"/>
-              <enum numeric="1" symbol="ENABLE"/>
+              <enum numeric="0" symbol="enum21"/>
+              <enum numeric="1" symbol="enum22"/>
             </values>
           </enum_table>
           </enum_definitions>
         <command_definitions>
-          <fsw_command class="FSW" opcode="0x0001" stem="FUZZ_CMD_UNSIGNED_ARG_1">
+          <fsw_command class="FSW" opcode="0x0001" stem="CMD1">
             <arguments>
-              <unsigned_arg bit_length="32" name="fuzz_cmd1_arg_1" units="seconds">
+              <unsigned_arg bit_length="32" name="cmd1_arg1" units="seconds">
                 <range_of_values>
                   <include max="800" min="1"/>
                 </range_of_values>
                 <description>First argument for fuzzing command 1.</description>
               </unsigned_arg>
-              <unsigned_arg bit_length="16" name="fuzz_cmd1_arg_2" units="seconds">
+              <unsigned_arg bit_length="16" name="cmd1_arg2" units="seconds">
                 <range_of_values>
                   <include max="200" min="1"/>
                 </range_of_values>
                 <description>Second argument for fuzzing command 1.</description>
               </unsigned_arg>
-              <unsigned_arg bit_length="8" name="fuzz_cmd1_arg_3" units="frames">
+              <unsigned_arg bit_length="8" name="cmd1_arg3" units="frames">
                 <range_of_values>
                   <include max="10" min="1"/>
                 </range_of_values>
@@ -40,78 +40,76 @@
             </arguments>
             <description>Fuzzing command 1 with unsigned integers as arguments.</description>
           </fsw_command>
-          <fsw_command class="FSW" opcode="0x0002" stem="FUZZ_CMD_ENUM_2">
+          <fsw_command class="FSW" opcode="0x0002" stem="CMD2">
             <arguments>
-              <enum_arg bit_length="8" enum_name="fuzz_enum_def1" name="fuzz_cmd2_arg_1">
+              <enum_arg bit_length="8" enum_name="enum1" name="cmd2_arg1">
                 <description>First argument for fuzzing command 2.</description>
               </enum_arg>
-              <enum_arg bit_length="8" enum_name="enable_disable" name="fuzz_cmd2_arg_2">
-                <description>enable or disable selection</description>
+              <enum_arg bit_length="8" enum_name="enum2" name="cmd2_arg2">
+                <description>Second argument for fuzzing command 2.</description>
               </enum_arg>
             </arguments>
-            <description>Fuzzing command 2 with enum as argument.</description>
+            <description>Fuzzing command 2 with enums as argument.</description>
           </fsw_command>
-          <fsw_command class="FSW" opcode="0x0003" stem="FUZZ_CMD_STRING_3">
+          <fsw_command class="FSW" opcode="0x0003" stem="CMD3">
             <arguments>
-              <var_string_arg max_bit_length="10" name="fuzz_cmd3_arg_1" prefix_bit_length="8">
+              <var_string_arg max_bit_length="10" name="cmd3_arg1" prefix_bit_length="8">
                 <description>First argument for fuzzing command 3</description>
               </var_string_arg>
-              <var_string_arg max_bit_length="10" name="fuzz_cmd3_arg_2" prefix_bit_length="8">
-                <description>First argument for fuzzing command 3</description>
+              <var_string_arg max_bit_length="10" name="cmd3_arg2" prefix_bit_length="8">
+                <description>Second argument for fuzzing command 3</description>
               </var_string_arg>
             </arguments>
             <description>Fuzzing command 3 with strings as arguments.</description>
-            <completion>When command completes.</completion>
           </fsw_command>
-          <fsw_command class="FSW" opcode="0x0004" stem="FUZZ_CMD_FLOAT_4">
+          <fsw_command class="FSW" opcode="0x0004" stem="CMD4">
             <arguments>
-              <float_arg bit_length="64" name="fuzz_cmd4_arg_1" units="None">
+              <float_arg bit_length="64" name="cmd4_arg1" units="None">
                 <range_of_values>
                   <include max="1" min="-1"/>
                 </range_of_values>
-                <description>First argument for fuzzing command 4</description>
+                <description>First argument for fuzzing command 4.</description>
               </float_arg>
-              <float_arg bit_length="64" name="fuzz_cmd4_arg_2" units="None">
+              <float_arg bit_length="64" name="cmd4_arg2" units="None">
                 <range_of_values>
                   <include max="1" min="-1"/>
                 </range_of_values>
-                <description>Second argument for fuzzing command 4</description>
+                <description>Second argument for fuzzing command 4.</description>
               </float_arg>
-              <float_arg bit_length="64" name="fuzz_cmd4_arg_3" units="None">
+              <float_arg bit_length="64" name="cmd4_arg3" units="None">
                 <range_of_values>
                   <include max="1" min="-1"/>
                 </range_of_values>
-                <description>Third argument for fuzzing command 4</description>
+                <description>Third argument for fuzzing command 4.</description>
               </float_arg>
             </arguments>
             <description>Fuzzing command 4 with floats as arguments.</description>
           </fsw_command>
-          <fsw_command class="FSW" opcode="0x0005" stem="FUZZ_CMD_MIXED_5">
+          <fsw_command class="FSW" opcode="0x0005" stem="CMD5">
             <arguments>
-              <enum_arg bit_length="8" enum_name="fuzz_enum_def1" name="fuzz_cmd5_arg_1">
+              <enum_arg bit_length="8" enum_name="enum1" name="cmd5_arg1">
                 <description>First argument for fuzzing command 5.</description>
               </enum_arg>
-              <enum_arg bit_length="8" enum_name="enable_disable" name="fuzz_cmd5_arg_2">
+              <enum_arg bit_length="8" enum_name="enum2" name="cmd5_arg2">
                 <description>Second argument for fuzzing command 5.</description>
               </enum_arg>
-              <float_arg bit_length="32" name="fuzz_cmd5_arg_3" units="radian/s">
+              <float_arg bit_length="32" name="cmd5_arg3" units="radian/s">
                 <range_of_values>
                   <include max="2" min="-2"/>
                 </range_of_values>
                 <description>Third argument for fuzzing command 5.</description>
               </float_arg>
-              <float_arg bit_length="32" name="fuzz_cmd5_arg_4" units="radian/s">
+              <float_arg bit_length="32" name="cmd5_arg4" units="radian/s">
                 <range_of_values>
                   <include max="2" min="-2"/>
                 </range_of_values>
                 <description>Fourth argument for fuzzing command 5.</description>
               </float_arg>
-              <unsigned_arg bit_length="32" name="fuzz_cmd5_arg_5" units="ETR/ticks">
+              <unsigned_arg bit_length="32" name="cmd5_arg5" units="ETR/ticks">
                 <description>Fifth argument for fuzzing command 5.</description>
               </unsigned_arg>
             </arguments>
-            <description>Fuzzing command 5 with a mixture of different types as arguments</description>
-            <completion>Once the command has been sent.</completion>
+            <description>Fuzzing command 5 with a mixture of different types as arguments.</description>
           </fsw_command>
         </command_definitions>
       </command_dictionary>
