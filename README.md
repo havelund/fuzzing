@@ -794,25 +794,25 @@ a number (e.g. -4 or 42), or a string (e.g. "hot").
 
 #### Past Time Temporal Logic Operators
 
-|   Formula    | Explanation                                                                                                                                                             |
-|:------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|  `sofar` F   | F is true now and in in all past positions.                                                                                                                             |
-|   `once` F   | F is true now or in some past position.                                                                                                                                 |
-|   `prev` F   | F is true in the previous position.                                                                                                                                     |
-|  `wprev` F   | F is true in the previous position, if there is a previous position                                             |
-| F `since` G  | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true                                                                      |
-| F `wsince` G | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or (weak since) G never was true, and F is true always in the past. |
+|    Formula     | Explanation                                                                                                                                                             |
+|:--------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|   `sofar` F    | F is true now and in in all past positions.                                                                                                                             |
+|    `once` F    | F is true now or in some past position.                                                                                                                                 |
+|    `prev` F    | F is true in the previous position.                                                                                                                                     |
+|   `wprev` F    | F is true in the previous position, if there is a previous position                                             |
+|  F `since` G   | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true                                                                      |
+|  F `wsince` G  | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or (weak since) G never was true, and F is true always in the past. |
 
 #### Other Temporal Logic Operators
 
-|        Formula        | Explanation                                                                                                                                                             |
-|:---------------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|     `count` n  F      | F is true now and in in all past positions.                                                                                                                             |
-|   `count` (n1,n2) F   | F is true now or in some past position.                                                                                                                                 |
-|    `countpast` n F    | F is true in the previous position.                                                                                                                                     |
-| `countpast` (n1,n2) F | F is true in the previous position, if there is a previous position (weak prev), which is not the case for the first postion                                            |
-|      F `then` G       | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true                                                                      |
-|      F `after` G      | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or (weak since) G never was true, and F is true always in the past. |
+|          Formula          | Explanation                                                                                                                                                             |
+|:-------------------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|       `count` n  F        | F is true now and in in all past positions.                                                                                                                             |
+|     `count` (n1,n2) F     | F is true now or in some past position.                                                                                                                                 |
+|      `countpast` n F      | F is true in the previous position.                                                                                                                                     |
+|   `countpast` (n1,n2) F   | F is true in the previous position, if there is a previous position (weak prev), which is not the case for the first postion                                            |
+|        F `then` G         | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true                                                                      |
+|        F `after` G        | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or (weak since) G never was true, and F is true always in the past. |
 
 ### Grammar
 
