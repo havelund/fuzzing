@@ -40,13 +40,6 @@ Tests are generated using a constraint solver ([z3](https://github.com/Z3Prover/
 +--------------------------------------------------+
 ```
 
-```plantuml
-@startuml
-Alice -> Bob: Hello
-Bob -> Alice: Hi!
-@enduml
-```
-
 A generated test suite is a list of tests, each being a list of commands,
 each being represented as  a dictionary containing the name of the command and any arguments.
 Here this is shown in schematic form with _m_ tests with _n_ commands in each test.
@@ -151,13 +144,16 @@ as described in [here](README-PACKAGING.md) before executing the above command.
 ## Usage
 
 A complete demo example is shown in [src/tests/demo](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which shall be
-our throughgoing example.  When having installed `fuzz` you can go to the folder containing the demo:
+our throughgoing example.  When having installed `fuzz` you can go to the folder containing the demo, and have a look at its contents, which
+we shall explain in the following.
 
 ```
 cd fuzzing/tests/demo2
 ```
 
+## The Configuation File.
 
+The folder contains a configuration file in JSON format:
 
 ```json
 {
@@ -168,6 +164,8 @@ cd fuzzing/tests/demo2
     "test_size": 10
 }
 ```
+
+
 
 ## The Command and Enumeration XML Dictionaries
 
@@ -274,6 +272,9 @@ test (`test_size`).
 from src.fuzz import generate_tests
 
 spec = """
+    rule time_moves_forward:
+      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
+
     rule stop:
       always MOVE(number=n?) => eventually STOP(number=n)
 
@@ -309,6 +310,9 @@ consisting of five constraints, all of which a test (command sequence) must sati
 is a temporal logic, which will be explained in detail below. Here we provide a quick explanation of the five
 properties.
 
+- **time_moves_forward**: This property states that for any command with a time value `t1`, if there is a next command (we are not
+  at the end of the command list = weak next) with a time value `t2`, then `t2` is strictly bigger than `t1`.
+
 - **stop**: This property, named `stop`, states that it is always the case (for every position in the test), that if the command in that
 position is a `MOVE` command with a `number` field which we **bind** (indicated ny `?`) to `n`, then eventually
 later in the test there should be a `STOP` command with the `number` field being `n`. 
@@ -336,29 +340,29 @@ Running this script yields the following:
 ```
 === reset fsw ===
 
-send {'name': 'PIC', 'time': 206, 'number': 19, 'images': 2, 'quality': 'low', 'message': 'J83cJqqOYb'}
-send {'name': 'PIC', 'time': 600, 'number': 45, 'images': 1, 'quality': 'high', 'message': 'oGLteEvNBg'}
-send {'name': 'CANCEL', 'time': 389, 'number': 65, 'message': 'kS9fR47PJy'}
-send {'name': 'STOP', 'time': 69, 'number': 85, 'message': 'LImwc1W8AU'}
-send {'name': 'TURN', 'time': 1000, 'number': 57, 'angle': -5.0, 'message': ''}
-send {'name': 'TURN', 'time': 205, 'number': 14, 'angle': -7.0, 'message': ''}
-send {'name': 'ALIGN', 'time': 456, 'number': 88, 'angle': 0.25, 'message': ''}
-send {'name': 'ALIGN', 'time': 155, 'number': 100, 'angle': 0.375, 'message': ''}
-send {'name': 'MOVE', 'time': 76, 'number': 50, 'distance': 12, 'speed': 10.0, 'message': ''}
-send {'name': 'STOP', 'time': 510, 'number': 50, 'message': ''}
+send {'name': 'SEND', 'time': 360, 'number': 90, 'images': 25, 'message': 'PEgQXr670x'}
+send {'name': 'CANCEL', 'time': 755, 'number': 17, 'message': 'gL0DhifwUb'}
+send {'name': 'ALIGN', 'time': 757, 'number': 47, 'angle': -129.71814708552742, 'message': ''}
+send {'name': 'TURN', 'time': 759, 'number': 75, 'angle': -3.0, 'message': 'ooBo'}
+send {'name': 'TURN', 'time': 764, 'number': 26, 'angle': 7.0, 'message': ''}
+send {'name': 'STOP', 'time': 766, 'number': 38, 'message': 'xC0N5H0ukh'}
+send {'name': 'PIC', 'time': 995, 'number': 92, 'images': 2, 'quality': 'high', 'message': 'GiLfzecqRR'}
+send {'name': 'ALIGN', 'time': 996, 'number': 27, 'angle': -129.59314708552742, 'message': 'o'}
+send {'name': 'MOVE', 'time': 997, 'number': 93, 'distance': 95, 'speed': 3.0, 'message': ''}
+send {'name': 'STOP', 'time': 999, 'number': 93, 'message': 'oo'}
 
 === reset fsw ===
 
-send {'name': 'MOVE', 'time': 471, 'number': 21, 'distance': 44, 'speed': 9.291831993020972, 'message': 'zPxinq2dvU'}
-send {'name': 'CANCEL', 'time': 43, 'number': 1, 'message': '2I1xwToYJ9'}
-send {'name': 'ALIGN', 'time': 681, 'number': 38, 'angle': 0.0, 'message': 'l'}
-send {'name': 'ALIGN', 'time': 133, 'number': 30, 'angle': 56.2942111744307, 'message': 'zB9qZm9cE6'}
-send {'name': 'PIC', 'time': 133, 'number': 87, 'images': 6, 'quality': 'low', 'message': 'j8xT1HOf7Z'}
-send {'name': 'STOP', 'time': 971, 'number': 74, 'message': 'sSpT2kYUdp'}
-send {'name': 'MOVE', 'time': 589, 'number': 21, 'distance': 45, 'speed': 1.0, 'message': ''}
-send {'name': 'TURN', 'time': 158, 'number': 86, 'angle': -9.0, 'message': 'o'}
-send {'name': 'STOP', 'time': 326, 'number': 21, 'message': ''}
-send {'name': 'TURN', 'time': 642, 'number': 35, 'angle': 10.0, 'message': ''}
+send {'name': 'LOG', 'time': 285, 'number': 30, 'message': 'TywNkxqiZA'}
+send {'name': 'LOG', 'time': 952, 'number': 53, 'message': 'S0ebT2qCDA'}
+send {'name': 'ALIGN', 'time': 961, 'number': 51, 'angle': 48.93563793402194, 'message': ''}
+send {'name': 'ALIGN', 'time': 968, 'number': 85, 'angle': 49.06063793402194, 'message': 'h'}
+send {'name': 'MOVE', 'time': 972, 'number': 58, 'distance': 98, 'speed': 1.0, 'message': ''}
+send {'name': 'TURN', 'time': 977, 'number': 16, 'angle': 3.0, 'message': 'B'}
+send {'name': 'TURN', 'time': 979, 'number': 56, 'angle': 6.0, 'message': ''}
+send {'name': 'CANCEL', 'time': 983, 'number': 44, 'message': ''}
+send {'name': 'TURN', 'time': 984, 'number': 91, 'angle': -9.0, 'message': ''}
+send {'name': 'STOP', 'time': 1000, 'number': 58, 'message': 'B'}
 ```
 
 The reader can try and convince him or herself, that each of these two tests satisfies the constraints.
@@ -423,16 +427,16 @@ As an example, consider the test _t_ (from our previous example):
 
 ```
 [
-  {'name': 'PIC', 'time': 206, 'number': 19, 'images': 2, 'quality': 'low', 'message': 'J83cJqqOYb'},
-  {'name': 'PIC', 'time': 600, 'number': 45, 'images': 1, 'quality': 'high', 'message': 'oGLteEvNBg'},
-  {'name': 'CANCEL', 'time': 389, 'number': 65, 'message': 'kS9fR47PJy'},
-  {'name': 'STOP', 'time': 69, 'number': 85, 'message': 'LImwc1W8AU'},
-  {'name': 'TURN', 'time': 1000, 'number': 57, 'angle': -5.0, 'message': ''},
-  {'name': 'TURN', 'time': 205, 'number': 14, 'angle': -7.0, 'message': ''},
-  {'name': 'ALIGN', 'time': 456, 'number': 88, 'angle': 0.25, 'message': ''},
-  {'name': 'ALIGN', 'time': 155, 'number': 100, 'angle': 0.375, 'message': ''},
-  {'name': 'MOVE', 'time': 76, 'number': 50, 'distance': 12, 'speed': 10.0, 'message': ''},
-  {'name': 'STOP', 'time': 510, 'number': 50, 'message': ''}
+  {'name': 'SEND', 'time': 360, 'number': 90, 'images': 25, 'message': 'PEgQXr670x'},
+  {'name': 'CANCEL', 'time': 755, 'number': 17, 'message': 'gL0DhifwUb'},
+  {'name': 'ALIGN', 'time': 757, 'number': 47, 'angle': -129.71814708552742, 'message': ''},
+  {'name': 'TURN', 'time': 759, 'number': 75, 'angle': -3.0, 'message': 'ooBo'},
+  {'name': 'TURN', 'time': 764, 'number': 26, 'angle': 7.0, 'message': ''},
+  {'name': 'STOP', 'time': 766, 'number': 38, 'message': 'xC0N5H0ukh'},
+  {'name': 'PIC', 'time': 995, 'number': 92, 'images': 2, 'quality': 'high', 'message': 'GiLfzecqRR'},
+  {'name': 'ALIGN', 'time': 996, 'number': 27, 'angle': -129.59314708552742, 'message': 'o'},
+  {'name': 'MOVE', 'time': 997, 'number': 93, 'distance': 95, 'speed': 3.0, 'message': ''},
+  {'name': 'STOP', 'time': 999, 'number': 93, 'message': 'oo'}
 ] 
 ```
 

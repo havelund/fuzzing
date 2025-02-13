@@ -2,6 +2,9 @@
 from src.fuzz import generate_tests
 
 spec = """
+    rule time_moves_forward:
+      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
+
     rule stop:
       always MOVE(number=n?) => eventually STOP(number=n)
 
