@@ -41,7 +41,10 @@ Tests are generated using a constraint solver ([z3](https://github.com/Z3Prover/
 ```
 
 ```plantuml
-a -> b
+@startuml
+Alice -> Bob: Hello
+Bob -> Alice: Hi!
+@enduml
 ```
 
 A generated test suite is a list of tests, each being a list of commands,
