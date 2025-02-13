@@ -766,17 +766,17 @@ referred to in F. There are four kinds of constraints, each consraining a field,
 #### Boolean Logic Operators
 
 
-|      Formula       | Explanation                                                                                 |
-|:------------------:|---------------------------------------------------------------------------------------------|
-|       `true`       | The true formula.                                                                           |
-|      `false`       | The false formula.                                                                          |
-|      `not` F       | True if and only if F is false.                                                             |
-|     F `and` G      | F and G.                                                                                    |
-|      F `or` G      | F or G.                                                                                     |
-|   F `implies` G    | F implies G.                                                                                |
-|        (F)         | True if and only if F is true.                                                              |
-|     (e1 op e2)     | For op being one of: <, <=, =, !=, >, >=. A relation between the values of two expressions. |
-| (e1 op1 e2 op2 e3) | Equivalent to: (e1 op1 e2) and (e2 op2 e3).                                                 |
+|     Formula      | Explanation                                                                                 |
+|:----------------:|---------------------------------------------------------------------------------------------|
+|      `true`      | The true formula.                                                                           |
+|     `false`      | The false formula.                                                                          |
+|     `not` F      | True if and only if F is false.                                                             |
+|    F `and` G     | F and G.                                                                                    |
+|     F `or` G     | F or G.                                                                                     |
+|  F `implies` G   | F implies G.                                                                                |
+|       (F)        | True if and only if F is true.                                                              |
+|     e1 op e2     | For op being one of: <, <=, =, !=, >, >=. A relation between the values of two expressions. |
+| e1 op1 e2 op2 e3 | Equivalent to: (e1 op1 e2) and (e2 op2 e3).                                                 |
 
 An expression can be an identifier (e.g. x) introduced elsewhere in the formula, 
 a number (e.g. -4 or 42), or a string (e.g. "hot").
@@ -788,20 +788,20 @@ a number (e.g. -4 or 42), or a string (e.g. "hot").
 |   `always` F   | F is true now and in in all future positions.                                                                                                                                   |
 | `eventually` F | F is true now or in some future position.                                                                                                                                       |
 |    `next` F    | F is true in the next position.                                                                                                                                                 |
-|   `wnext` F    | F is true in the next position, if there is a next position (weak next), which is not the case for the last postion                                                             |
+|   `wnext` F    | F is true in the next position, if there is a next position (weak next)                                                             |
 |  F `until` G   | G is true now or in some future position _i_, and for all positions __j_ < _i__ until then F is true                                                                            |
 |  F `wuntil` G  | G is true now or in some future position _i_, and for all positions __j_ < _i__ until then F is true, or (weak until) G never becomes true, and F is true always in the future. |
 
 #### Past Time Temporal Logic Operators
 
-|      Formula       | Explanation                                                                                                                                                             |
-|:------------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-|     `sofar` F      | F is true now and in in all past positions.                                                                                                                             |
-|      `once` F      | F is true now or in some past position.                                                                                                                                 |
-|      `prev` F      | F is true in the previous position.                                                                                                                                     |
-|     `wprev` F      | F is true in the previous position, if there is a previous position (weak prev), which is not the case for the first postion                                            |
-| F `since` G &nbsp;&nbsp;&nbsp; | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true                                                                      |
-|    F `wsince` G    | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or (weak since) G never was true, and F is true always in the past. |
+|   Formula    | Explanation                                                                                                                                                             |
+|:------------:|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+|  `sofar` F   | F is true now and in in all past positions.                                                                                                                             |
+|   `once` F   | F is true now or in some past position.                                                                                                                                 |
+|   `prev` F   | F is true in the previous position.                                                                                                                                     |
+|  `wprev` F   | F is true in the previous position, if there is a previous position                                             |
+| F `since` G  | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true                                                                      |
+| F `wsince` G | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or (weak since) G never was true, and F is true always in the past. |
 
 #### Other Temporal Logic Operators
 
