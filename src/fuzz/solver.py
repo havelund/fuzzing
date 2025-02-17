@@ -149,7 +149,7 @@ def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) ->
     return test
 
 
-def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> list[Test]:
+def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> TestSuite:
     """Generates tests from XML files describing commands and their types.
 
     If the specification is not provided, the specifiation is extracted from a file provided

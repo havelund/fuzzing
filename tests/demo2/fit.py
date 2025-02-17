@@ -1,5 +1,5 @@
 
-from src.fuzz import generate_tests
+from src.fuzz import generate_tests, TestSuite
 
 spec = """
     rule time_moves_forward:
@@ -21,8 +21,8 @@ spec = """
 
 
 if __name__ == '__main__':
-    tests: list[dict[str, object]] = generate_tests(spec, test_suite_size=2, test_size=10)
-    for test in tests:
-        print('\n=== reset fsw ===\n')
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
+    for test_nr, test in enumerate(tests):
+        print(f'\n=== test nr. {test_nr} ===\n')
         for cmd in test:
-            print(f'send {cmd}')
+            print(cmd)

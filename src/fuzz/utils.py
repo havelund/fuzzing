@@ -4,7 +4,7 @@ Various utilities used throughout.
 """
 
 import sys
-from typing import Callable, List, Union
+from typing import Callable, List, Union, Dict
 from dotmap import DotMap
 
 import z3
@@ -14,7 +14,7 @@ import z3
 # Types
 # =====
 
-CommandDict = dict
+CommandDict = Dict[str, Union[int, float, str]]
 Test = List[CommandDict]
 TestSuite = List[Test]
 Environment = DotMap

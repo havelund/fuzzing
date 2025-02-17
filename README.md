@@ -144,41 +144,28 @@ as described in [here](README-PACKAGING.md) before executing the above command.
 ## Usage
 
 A complete demo example is shown in [src/tests/demo](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which shall be
-our throughgoing example.  When having installed `fuzz` you can go to the folder containing the demo, and have a look at its contents, which
-we shall explain in the following.
+our throughgoing example.  
+
+The folder contains a folder `fsw` with the definitions of commands, a configuration file `fuzz_config.json`,
+a file `spec.txt` containing in this case one constraint, and finally the script `fit.py` which generates test cases.
+Run the script to test the installation:
 
 ```
-cd fuzzing/tests/demo2
+python fit.py
 ```
 
-## The Configuation File.
+## The Command Dictionary
 
-The folder contains a configuration file in JSON format:
+Test generation is based on a description of what commands, inclcuding types and ranges
+of their arguments, which can be submitted to the SUO. This command dictionary is provided
+as an XML file, as is commont for JPL flight missions.
+In this section we shall describe how this looks like.
 
-```json
-{
-    "fsw_path": "fsw",
-    "fsw_areas": ["mov"],
-    "spec_path": "spec.txt",
-    "test_suite_size": 10,
-    "test_size": 10
-}
-```
-
-
-
-## The Command and Enumeration XML Dictionaries
-
-The first argument to the `generate_tests` function is a path to the flight software, where
-XML files describing commands and enumeration types of command arguments are described.
-
-Let's first describe the commands of our made up example at a high informal level of abstraction:
+We based our description on an artificial example with commands for operating a rover.
+Using an informal succinct notation (in contrast to XML which is quite verbose), we consider
+the following eight commands.
 
 ```python
-types
-    speed = {"slow", "medium", "fast"}
-    image_quality = {"low", "high"}
-
 commands
     MOVE(time:uint[0:1000], number:uint[0,100], distance:uint[1,100], speed:uint[1,10], message:string[10])
     ALIGN(time:uint[0:1000], number:uint[0,100], degrees:float[0,360], message:string[10])
@@ -190,10 +177,6 @@ commands
     LOG(time:uint[0:1000], number:uint[0,100], message:string[10])
 ```
 
-Each command carries a time stamp and a command number. Types are indicated as (unsigned) `uint`, `float`, 'string',
-or the name of an enumerated type, e.g. `image_quality`. For numeric types a range is indicated with lower and upper bound
-between square brackets. For strings the length is indicated between square brackets. 
-
 The command set offers commands for moving (`MOVE`) a rover, 
 aligning (`ALIGN`) the rover to face in a particular absolute direction, 
 turning (`TURN`) the rover a relative number of degrees,
@@ -203,7 +186,39 @@ take a picture (`PIC`),
 send (`SEND`) pictures to ground,
 log (`LOG`) data.
 
-The structure of the flight software directory is assumed to be the following:
+Each command carries a time stamp and a command number. Types are indicated as (unsigned) `uint`, `float`, 'string',
+or the name of an enumerated type, in this case `speed` and `image_quality`: 
+
+```python
+types
+    speed = {"slow", "medium", "fast"}
+    image_quality = {"low", "high"}
+```
+
+For numeric types a range is indicated with lower and upper bound
+between square brackets. For strings the length is indicated between square brackets.
+
+These commands are now represented formally as collection of XML files, each of which 
+has the following format, defining an entry of enumeration
+types and an entry of command definitions, with arguments having types which include
+the enumeration types:
+
+```xml
+<command_dictionary>
+  
+    <enum_definitions>
+       ... 
+    </enum_definitions>
+
+    <command_definitions>
+       ...   
+    </command_definitions>
+
+</command_dictionary>
+```
+
+The complete XML file for our example is shown [here](tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml).
+These files must be stored in a folder, here named `fsw` with the following structure:
 
 ```
 fsw
@@ -229,6 +244,7 @@ fsw
 
 Where `aaa`, `bbb`, and `ccc` are areas, and
 where `xxx`, `yyy`, `zzz` is each one of `mgr`, `ctl`, `svc`, `exe`, and `ptm`.
+
 In our case, the `fsw` folder has the following structure:
 
 ```
@@ -238,38 +254,39 @@ fsw
              |___ mov_mgr_ai_cmd.xml
 ```
 
+## The Configuration File
 
-Each of the XML files have the following format, defining an entry of enumeration
-types and an entry of command definitions, with arguments having types which include
-the enumeration types:
+The folder contains a configuration file named `fuzz_config.json` (it must have this name). In our case it looks as follows.
 
-```xml
-<command_dictionary>
-  
-    <enum_definitions>
-       ... 
-    </enum_definitions>
-
-    <command_definitions>
-       ...   
-    </command_definitions>
-
-</command_dictionary>
+```json
+{
+    "fsw_path": "fsw",
+    "fsw_areas": ["mov"],
+    "spec_path": "spec.txt",
+    "test_suite_size": 10,
+    "test_size": 10
+}
 ```
 
-The complete XML file for our example is shown [here](tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml).
+Explanation:
 
+- **fsw_path**: the path to the folder containing the command definitions.
+- **fsw_areas**: a list of the areas for which commands should be generated.
+- **spec_path**: the path to the specification of constraints. Note that this is optional as the specification
+  can be provided in the script, which it is in our case.
+- **test_suite_size**: the number of tests to be generated.
+- **test_size**: the number of commands in each test.
 
-### The Test Script
+Instead of providing the configuration file as a member of the folder one can define its location
+using the following environment variable: `FUZZ_CONFIG_PATH`.
 
-The folder contains the following script `fit.py`, which underneath reads in the XML 
-command dictionary, specifies constraints as a text string, 
-calls the `generate_tests` function with the specification as argument,
-as well as indicating how many tests to generate (`test_suite_size`) and how many commands in each 
-test (`test_size`).
+## The Test Script
+
+The folder contains the following script `fit.py`, which underneath reads the configuration file,
+and then the XML command dictionary indicated in the configuration file.
 
 ```python
-from src.fuzz import generate_tests
+from src.fuzz import generate_tests, TestSuite
 
 spec = """
     rule time_moves_forward:
@@ -291,24 +308,25 @@ spec = """
 
 
 if __name__ == '__main__':
-    tests: list[dict[str, object]] = generate_tests(spec, test_suite_size=2, test_size=10)
-    for test in tests:
-        print('=========')
-        print('reset fsw')
-        print('=========')
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
+    for test_nr, test in enumerate(tests):
+        print(f'\n=== test nr. {test_nr} ===\n')
         for cmd in test:
-            print(f'send {cmd}')
+            print(cmd)
 ```
 
-The script first generates the tests, storing them in the `tests` file as a list of dictionaries, each representing a test.
-At this point it is up to the script writer how to use the tests. We here go through each test in a `for` loop, and for each 
-command we print it out. For testing purposes, we would here submit the command to the SUT.
+### Imports
 
-If the `spec` was empty (`spec = ""`), `generate_tests` will generate completely random commands, although respecting the minimal
-and maximal bounds provided in the XML command dictionary. In the case above we have provided a non-empty specification
-consisting of five constraints, all of which a test (command sequence) must satisfy. The language in which these constraints
-is a temporal logic, which will be explained in detail below. Here we provide a quick explanation of the five
-properties.
+The script imports the `generate_tests` function from the fuzz library, and the type `TestSuite` which is the result
+type of the function.
+
+### The Specification of Constraints
+
+It then defines a specification of constraints as a text string, here named
+`spec`. If the `spec` was empty (`spec = ""`), `generate_tests` will generate completely random commands, although respecting the minimal
+and maximal bounds provided in the XML command dictionary. We here briefly explain the constraints, a full explanation of the constraint language
+is provided below. The specification consists of five constraints, all of which each generated  test (command sequence) must satisfy. The language in which these constraints
+is a temporal logic. The five properties state:
 
 - **time_moves_forward**: This property states that for any command with a time value `t1`, if there is a next command (we are not
   at the end of the command list = weak next) with a time value `t2`, then `t2` is strictly bigger than `t1`.
@@ -328,102 +346,138 @@ the interval -10 and 10.
 `ALIGN` command with an angle `a', then from the `next` position in the test, there is no `ALIGN` command
 with the same angle `a`, `until` a `MOVE` command occurs, and it has to occur.
 
+### The `generate_tests` Function
+
+The script then calls the `generate_tests` function, which has the following type:
+
+```python
+def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> TestSuite
+```
+
+It returns a test suite, which is a list of tests, each consisting of a list of commands. The `TestSuite` type is defined 
+as follows.
+
+```python
+CommandDict = Dict[str, Union[int, float, str]]
+Test = List[CommandDict]
+TestSuite = List[Test]
+```
+
+The function reads definitions of commands and their argument types, including enumerations,
+from the XML dictionary pointed out in the configuration file. It takes as argument the 
+specification of constraints, how many tests to generate (`test_suite_size`) and how many commands in each 
+test (`test_size`). Note that in case any of the three arguments is left out, the default values in the configuration file
+are used.
+
+At this point it is up to the script writer how to use the tests. We here go through each test in a `for` loop, 
+and for each command in a test we print it out. For testing purposes, we would here submit the command to the SUT.
 
 ### Run the Script
+
+Running the script
 
 ```
 python fit.py
 ```
 
-Running this script yields the following:
+can yield the following output (note that there is dandomness in the output):
 
 ```
-=== reset fsw ===
+=== test nr. 0 ===
 
-send {'name': 'SEND', 'time': 360, 'number': 90, 'images': 25, 'message': 'PEgQXr670x'}
-send {'name': 'CANCEL', 'time': 755, 'number': 17, 'message': 'gL0DhifwUb'}
-send {'name': 'ALIGN', 'time': 757, 'number': 47, 'angle': -129.71814708552742, 'message': ''}
-send {'name': 'TURN', 'time': 759, 'number': 75, 'angle': -3.0, 'message': 'ooBo'}
-send {'name': 'TURN', 'time': 764, 'number': 26, 'angle': 7.0, 'message': ''}
-send {'name': 'STOP', 'time': 766, 'number': 38, 'message': 'xC0N5H0ukh'}
-send {'name': 'PIC', 'time': 995, 'number': 92, 'images': 2, 'quality': 'high', 'message': 'GiLfzecqRR'}
-send {'name': 'ALIGN', 'time': 996, 'number': 27, 'angle': -129.59314708552742, 'message': 'o'}
-send {'name': 'MOVE', 'time': 997, 'number': 93, 'distance': 95, 'speed': 3.0, 'message': ''}
-send {'name': 'STOP', 'time': 999, 'number': 93, 'message': 'oo'}
+{'name': 'SEND', 'time': 360, 'number': 90, 'images': 25, 'message': 'PEgQXr670x'}
+{'name': 'CANCEL', 'time': 755, 'number': 17, 'message': 'gL0DhifwUb'}
+{'name': 'ALIGN', 'time': 757, 'number': 47, 'angle': -129.71814708552742, 'message': ''}
+{'name': 'TURN', 'time': 759, 'number': 75, 'angle': -3.0, 'message': 'ooBo'}
+{'name': 'TURN', 'time': 764, 'number': 26, 'angle': 7.0, 'message': ''}
+{'name': 'STOP', 'time': 766, 'number': 38, 'message': 'xC0N5H0ukh'}
+{'name': 'PIC', 'time': 995, 'number': 92, 'images': 2, 'quality': 'high', 'message': 'GiLfzecqRR'}
+{'name': 'ALIGN', 'time': 996, 'number': 27, 'angle': -129.59314708552742, 'message': 'o'}
+{'name': 'MOVE', 'time': 997, 'number': 93, 'distance': 95, 'speed': 3.0, 'message': ''}
+{'name': 'STOP', 'time': 999, 'number': 93, 'message': 'oo'}
 
-=== reset fsw ===
+=== test nr. 1 ===
 
-send {'name': 'LOG', 'time': 285, 'number': 30, 'message': 'TywNkxqiZA'}
-send {'name': 'LOG', 'time': 952, 'number': 53, 'message': 'S0ebT2qCDA'}
-send {'name': 'ALIGN', 'time': 961, 'number': 51, 'angle': 48.93563793402194, 'message': ''}
-send {'name': 'ALIGN', 'time': 968, 'number': 85, 'angle': 49.06063793402194, 'message': 'h'}
-send {'name': 'MOVE', 'time': 972, 'number': 58, 'distance': 98, 'speed': 1.0, 'message': ''}
-send {'name': 'TURN', 'time': 977, 'number': 16, 'angle': 3.0, 'message': 'B'}
-send {'name': 'TURN', 'time': 979, 'number': 56, 'angle': 6.0, 'message': ''}
-send {'name': 'CANCEL', 'time': 983, 'number': 44, 'message': ''}
-send {'name': 'TURN', 'time': 984, 'number': 91, 'angle': -9.0, 'message': ''}
-send {'name': 'STOP', 'time': 1000, 'number': 58, 'message': 'B'}
+{'name': 'LOG', 'time': 285, 'number': 30, 'message': 'TywNkxqiZA'}
+{'name': 'LOG', 'time': 952, 'number': 53, 'message': 'S0ebT2qCDA'}
+{'name': 'ALIGN', 'time': 961, 'number': 51, 'angle': 48.93563793402194, 'message': ''}
+{'name': 'ALIGN', 'time': 968, 'number': 85, 'angle': 49.06063793402194, 'message': 'h'}
+{'name': 'MOVE', 'time': 972, 'number': 58, 'distance': 98, 'speed': 1.0, 'message': ''}
+{'name': 'TURN', 'time': 977, 'number': 16, 'angle': 3.0, 'message': 'B'}
+{'name': 'TURN', 'time': 979, 'number': 56, 'angle': 6.0, 'message': ''}
+{'name': 'CANCEL', 'time': 983, 'number': 44, 'message': ''}
+{'name': 'TURN', 'time': 984, 'number': 91, 'angle': -9.0, 'message': ''}
+{'name': 'STOP', 'time': 1000, 'number': 58, 'message': 'B'}
 ```
 
 The reader can try and convince him or herself, that each of these two tests satisfies the constraints.
 
-## The Functions in the `fuzz` library
-
-### generate_test
-
-```python
-def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[str,dict]] = None) -> List[List[dict]]:
-```
-
-Generates a test suite, which is a list of tests, each consisting of a list of commands.
-
-It reads definitions of commands and their argument types, including enumerations,
-from XML files stored in a given directory. It only generates commands for certain FSW areas,
-provided as an argument as well. A configuration defines how many tests should be generated,
-how many commands in each test, and constraints on what sequences of commands should be generated.
-
-Parameters:
-
-- fsw_dir: the directory containing command and enumeration descriptions in XML format.
-- fsw_areas: the FSW areas commands should be generated for.
-- config: configuration. If not provided, it is assumed that it is defined in a file
-  named `config.json` stored in the same place the script is run. If provided, it can be
-  provided in one of two forms: (1) as a string, which indicates the path to a `.json`
-  file containing the configuration; (2) as a dictionary representing the configuration.
-
-Returns
-
-- the generated test suite, a list of tests, each being a list of commands.
-
-### print_tests
-
-```python
-def print_tests(tests: List[List[dict]]):
-```
-
-Pretty prints a generated test. A test can also be printed with just calling `print`. However, this will
-result in all tests being printed on one line, which is difficult to read.
-
-Parameter:
-
-- tests: the test to be printed.
-
 ## Constraint Language
 
+We first provide a very quick introduction to the general principles of temporal logic, and then
+subsequently present our temporal logic.
+
 ### General Introduction to Temporal Logic
+
+We all know Boolean logic: `true`, `false`, `P and Q` (`P /\ Q`), 
+`P or Q` (`P \/ Q`), and `P implies Q` (`P -> Q`). Boolean logic allows to formulate
+statements about e.g. Python dictionaties. Say we want to describe the properties of the dictionary:
+
+```python
+d = {'x': 1, 'y': 2}
+```
+
+It satisfies e.g. the Boolean property:
+
+```python
+'x' in d and 'y' in d and d['x'] < d['y'] 
+```
+
+Note that there are in fact many dictionaries (in fact infinitelyt many) that satisfy this property, e.g. also:
+
+```python
+d = {'x': 10, 'y': 200, 'z': 2, 'p': 2}
+```
+Temporal logic allows us to formulate statements about a _sequence_ of things, for example, in our
+case, a sequence of dictionaries. Take for example the following sequence of five dictionaries:
+
+```python
+s = [
+  {'x': 0, 'y': 1}, 
+  {'x': 2, 'y': 3}, 
+  {'x': 4, 'y': 5}, 
+  {'x': 6, 'y': 7}, 
+  {'x': 8, 'y': 9}
+]
+```
+
+The following temporal properties using the temporal operators **always**, **eventually**, 
+and **next**, are all true about this sequence (we here just refer
+to the variables, the meaning should be clear):
+
+1. **always** x < y
+2. **eventually** x == 6
+3. **not eventually** x >= 9
+4. **always** x < 9
+5. **always** x == 2 implies **next** x == 4
+5. **always** ((x < 8 **and** x _has a value_ k) **implies next** x == k+2)
+
+For example a sequence satisfies `always F` if F is true in every 
+single position of the sequence.  A sequence satisfies `eventually F` if `F`
+is true at some position in the future. A sequence satisfies `next F` if `F`
+is true at the next future position.
+
+We can evaluate a sequence like the one above and check that it
+satisfies the formulas. As you may have guessed, we can also turn this around
+and from the formulas generate sequences that satisfy them. This is exactly our
+test generation task.
+
+### Introduction to the Temporal Logic MATL
 
 The constraint language is a temporal logic with future and past time
 operators, and which enables capturing values of command arguments in
 one part of a formula, and refer to them  in another part of the formula.
-The temporal logic is given a semantics such that for a given test _t_ and formula
-_F_, the test satisfies the formula or not. We write:
-
-```
-           t |= F
-```
-
-to indicate that the trace _t_ satisfies the formula _F_.
-As an example, consider the test _t_ (from our previous example):
+As an example, consider the test (from our previous example):
 
 ```
 [
@@ -440,41 +494,16 @@ As an example, consider the test _t_ (from our previous example):
 ] 
 ```
 
-This test satisfies for example the formula 
-`always MOVE(number=n?) => eventually STOP(number=n)` and we write this as:
+This test satisfies for example the following formula: 
+  
+    always MOVE(number=n?) => eventually STOP(number=n) 
 
-Our logic thus can be used to verify that a test satisfies a formula.
-Turning this around, a formula can be used to **generate** a test that
-satisfies the formula, and this is the game we are plying here. In fact,
-we play both games: we can verify that a test satisfiles a formula, and we can
-generate a test from a formula that satisfies the formula.
+We have here taken the liberty to refer to command names and arguments ina  special manner. 
+The property states:
 
-A temporal formula contains operators, such as `always` and
-`eventually`, which refer to positions in the test.
-For example a test satisfies `always F` if F is true in every 
-single position of the test. A test satisfies `eventually F` if `F`
-is true at some point in the future.
-
-It is important to note that a formula is evaluated on a trace **and** a current
-position _i_ in the trace, which we write as:
-
-```
-           t,i |= F
-```
-
-The whole test satisfies _F_ if
-
-```
-           t,0 |= F
-```
-
-which we abbreviate as:
-
-```
-           t |= F
-```
-
-### Detailed Explanation of Formulas
+- It is **always** the case, for any position in the sequence, that if this is
+  a `MOVE` command with a `number` argument which is _n_, then after that follows
+  **eventually** a `STOP` command with the same `number` argument _n_.
 
 A specification has the form, where F1, F2, ..., are formulas:
 

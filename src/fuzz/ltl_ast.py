@@ -11,7 +11,7 @@ from typing import Dict, Any
 from dataclasses import dataclass, is_dataclass, fields
 from collections import Counter
 
-from src.fuzz.utils import Test, CommandDict
+from src.fuzz.utils import CommandDict, Test, TestSuite
 from src.fuzz.commands import *
 
 Environment = Dict[str, Any]  # Environment maps strings to Z3 expressions (or ints)
