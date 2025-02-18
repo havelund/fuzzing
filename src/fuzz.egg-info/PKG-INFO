@@ -1,6 +1,6 @@
-Metadata-Version: 2.1
+Metadata-Version: 2.2
 Name: fuzz
-Version: 1.0.0
+Version: 2.0.0
 Summary: A package for fuzz testing command driven flight software.
 Author-email: Tracy Clark <tracy.a.clark@jpl.nasa.gov>, Klaus Havelund <klaus.havelund@jpl.nasa.gov>, Vivek Reddy <vivek.j.reddy@jpl.nasa.gov>
 Project-URL: Homepage, https://github.jpl.nasa.gov/lars/fuzzing
@@ -12,34 +12,33 @@ Requires-Dist: future>=1.0.0
 Requires-Dist: z3>=0.2.0
 Requires-Dist: z3-solver>=4.13.2.0
 
-
 # fuzz
- 
-**Version**: 1.0.0
+
+**Version**: 2.0.0
 
 ## Introduction
 
-This repository contains a library `fuzz` for fuzz testing 
-flight software. The main
-function, `generate_tests`, provided by the library, generates a test suite,
-which is a list of tests. Each test is a list of commands, which can be sent
-to the flight software from a FIT script, either as a command list,
-or one by one, as preferred. Each test is randomly generated, potentially 
-restricted by user provided constraints.
-
+This repository contains a library `fuzz` for fuzz testing
+flight software. The main function, `generate_tests`, provided by the library, generates a test suite,
+which is a list of tests. Each test is a list of commands (a named data record), which can be sent
+to the flight software, referred to as the _System Under Test_ (SUT), from a FIT script. Each test is randomly generated, optionally
+restricted by user provided constraints written in an expressive temporal logic.
 The objective of fuzzing is to invoke unlikely, untried, command sequences on the flight
 software in an attempt to break it.
 
-`generate_tests` takes as input a description of possible commands in XML format, 
-a description of what particular flight software modules should be tested (areas), 
-and a configuration which guides how tests are generated.
+The function `generate_tests` takes as input a description of possible commands in XML format,
+a description of what particular flight software modules should be tested (areas),
+and an optional specification of constraints, which limits the amount of randomness,
+allowing to avoid unrealistic command sequences or to focus on specific command sequences of interest. 
+It returns a _test suite_ (a list of tests), generated using a constraint 
+solver ([z3](https://github.com/Z3Prover/z3)).
 
 ```
 +--------------------------------------------------+
 |                The fuzz Module                   |
 |                                                  |
 |  +------------------+   +--------------------+   |
-|  | commands + areas |   |    configuration   |   |
+|  | commands + areas |   |    constraints     |   |
 |  +--------+---------+   +---------+----------+   |
 |           |                       |              |
 |           V                       V              |
@@ -49,21 +48,23 @@ and a configuration which guides how tests are generated.
 |                        |                         |
 |                        V                         |
 |  +-----------------------------------------+     |
-|  |          list of generated tests        |     |
+|  |       test suite = list of tests        |     |
 |  +-----------------------------------------+     |
 +--------------------------------------------------+
 ```
+
 A generated test suite is a list of tests, each being a list of commands,
 each being represented as  a dictionary containing the name of the command and any arguments.
 Here this is shown in schematic form with _m_ tests with _n_ commands in each test.
 
 ```
-[
-  [cmd_11, cmd_12, ...,cmd_1n],
-  [cmd_21, cmd_22, ...,cmd_2n],
+test_suite =
+  [
+    [cmd_11, cmd_12, ...,cmd_1n], <--- test number 1 containing n commands
+    [cmd_21, cmd_22, ...,cmd_2n], <--- test number 2 containing n commands
   
-  [cmd_m1, cmd_m2, ...,cmd_mn],
-]
+    [cmd_m1, cmd_m2, ...,cmd_mn], <--- test number m containing n commands
+  ]
 ```
 
 Below is an example of a generated test suite consisting of two tests, each containing three commands.
@@ -109,6 +110,11 @@ in the order in which they must be provided (it is an ordered dictionary).
 ]
 ```
 
+The approach is very general and can in principle be applied to any software that is driven by a commands.
+Note that the system **currently** does not check whether the SUT behaves correctly since there is no
+verification of output from the SUT. The sole purpose is to break the SUT. Output verification will be
+added in a later version of the system.
+
 ## Installation
 
 ### Prerequisites
@@ -123,7 +129,7 @@ Clone or copy the fuzzing project to your local machine, say in:
 /path/to/fuzzing/
 ```
 
-### Set the PYTHONPATH
+### Installation Using The PYTHONPATH Approach
 
 Set the PYTHONPATH environment variable to include this path, as example:
 
@@ -131,293 +137,503 @@ Set the PYTHONPATH environment variable to include this path, as example:
 export PYTHONPATH=/path/to/fuzzing:$PYTHONPATH
 ```
 
-### Install Dependencies
-
-`fuzz` uses a few packages that must be installed, if not already installed.
-These include dotmap and future. These can be installed e.g. with pip as follows:
+Install Dependencies: `fuzz` uses a few packages that must be installed, if not already installed.
+These can be installed e.g. with pip as follows:
 
 ```
 pip install dotmap
 pip install future
+pip install z3-solver
 ```
+
+### Installation Using the PIP INSTALL Approach
+
+Execute the following command:
+
+```
+pip install /path/to/fuzzing
+```
+
+This will install `fuzz` with all its dependencies.
+
+Note that if you want to install it in a virtual environment of a project, you
+must first create this project (the steps below) and activate the virtual environment,
+as described in [here](README-PACKAGING.md) before executing the above command.
 
 ## Usage
 
-### Create and/or Go to a New Directory
+A complete demo example is shown in [src/tests/demo2](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which shall be
+our throughgoing example.  
 
-```
-mkdir /path/to/testfuzz
-cd /path/to/testfuzz
-```
-
-### Create a Script, named e.g. `fit.py`:
-
-```python
-from fuzz import generate_tests, print_tests
-
-path_to_fsw = 'path/to/fsw'
-fsw_areas = ['area1','area2','area3']
-
-tests = generate_tests(path_to_fsw, fsw_areas)
-
-print_tests(tests)  
-
-# Example showing intended use:
-
-for test in tests:
-    print('=========')
-    print('reset fsw')
-    print('=========')    
-    for cmd in test:
-        print('---')
-        print(f'send {cmd}')
-```
-
-The idea is that the FIT module walks through the generated tests and submit them to the flight software.
-
-### Run the Script
+The folder contains a folder `fsw` with the definitions of commands, a configuration file `fuzz_config.json`,
+a file `spec.txt` containing constraints, and finally the script `fit.py` which generates test cases.
+Run the script to test the installation:
 
 ```
 python fit.py
 ```
 
-## The Functions in the `fuzz` library
+It will print two generated test cases, each consisting of 10 commands.
 
-### generate_test
+## The Command Dictionary
+
+The test generation is based on a _command dictionary_
+describing what commands can be submitted to the SUT,
+including types and ranges of their arguments. This command dictionary is provided
+as one or more XML files, as is common for some JPL flight missions.
+In this section we shall describe how this looks like. Some knowledge of this approach
+will be beneficial, but the explanation should be self-contained. 
+
+We base our description on an artificial example with commands for operating a rover.
+Using an informal succinct notation (in contrast to XML which is quite verbose), we consider
+the following eight commands.
 
 ```python
-def generate_tests(fsw_dir: str, fsw_areas: List[str], config: Optional[Union[str,dict]] = None) -> List[List[dict]]:
+Commands:
+
+    MOVE(time:uint[0:1000], number:uint[0,100], distance:uint[1,100], speed:uint[1,10], message:string[10])
+    ALIGN(time:uint[0:1000], number:uint[0,100], degrees:float[0,360], message:string[10])
+    TURN(time:uint[0:1000], number:uint[0,100], angle:float[-180,180], message:string[10])
+    CANCEL(time:uint[0:1000], number:uint[0,100], message:string[10])
+    STOP(time:uint[0:1000], number:uint[0,100], message:string[10])
+    PIC(time:uint[0:1000], number:uint[0,100], images:uint[1,10], quality:image_quality, message:string[10])
+    SEND(time:uint[0:1000], number:uint[0,100], images:uint[1,100], message:string[10])   
+    LOG(time:uint[0:1000], number:uint[0,100], message:string[10])
 ```
 
-Generates a test suite, which is a list of tests, each consisting of a list of commands.
+The command set offers commands for moving (`MOVE`) a rover, 
+aligning (`ALIGN`) the rover to face in a particular absolute direction, 
+turning (`TURN`) the rover a relative number of degrees,
+cancel (`CANCEL`) a command,
+stop (`STOP`) a driving,
+take a picture (`PIC`),
+send (`SEND`) pictures to ground, and
+log (`LOG`) data.
 
-It reads definitions of commands and their argument types, including enumerations,
-from XML files stored in a given directory. It only generates commands for certain FSW areas,
-provided as an argument as well. A configuration defines how many tests should be generated,
-how many commands in each test, and constraints on what sequences of commands should be generated.
-
-Parameters:
-- fsw_dir: the directory containing command and enumeration descriptions in XML format.
-- fsw_areas: the FSW areas commands should be generated for.
-- config: configuration. If not provided, it is assumed that it is defined in a file
-  named `config.json` stored in the same place the script is run. If provided, it can be
-  provided in one of two forms: (1) as a string, which indicates the path to a `.json`
-  file containing the configuration; (2) as a dictionary representing the configuration.
-
-Returns
-- the generated test suite, a list of tests, each being a list of commands.
-
-### print_tests
+Each command carries a time stamp and a command number. Types are indicated as (unsigned) `uint`, `float`, 'string',
+or the name of an enumerated type, in this case `speed` and `image_quality`: 
 
 ```python
-def print_tests(tests: List[List[dict]]):
-```  
-Pretty prints a generated test. A test can also be printed with just calling `print`. However, this will
-result in all tests being printed on one line, which is difficult to read.
+Types:
 
-Parameter:
+    speed = {"slow", "medium", "fast"}
+    image_quality = {"low", "high"}
+```
 
-- tests: the test to be printed.
+For numeric types a range is indicated with lower and upper bound
+between square brackets. For strings the length is indicated between square brackets.
 
-## The Command and Enumeration XML Dictionaries
+These commands are formally represented as a collection of XML files, each of which 
+has the following format, defining an entry of enumeration
+types and an entry of command definitions, with arguments having types which include
+the enumeration types:
 
-The first argument to the `generate_tests` function is a path to the flight software, where
-XML files describing commands and enumeration types of command arguments are described. The structure
-of the flight software directory is assumed to be the following (amongst other information):
+```xml
+<command_dictionary>
+  
+    <enum_definitions>
+       ... 
+    </enum_definitions>
+
+    <command_definitions>
+       ...   
+    </command_definitions>
+
+</command_dictionary>
+```
+
+The complete XML file for our example is shown [here](tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml).
+These files must be stored in a folder, here named `fsw` with the following structure:
 
 ```
 fsw
   |__ src
-        |___ area1_xxx/area1_xxx_ai_cmd.xml
-        |___ area2_yyy/area2_yyy_ai_cmd.xml
-        |___ area3_zzz/area3_zzz_ai_cmd.xml
-        |___ ...
+        |___ aaa_xxx
+        |    |___ aaa_xxx_ai_cmd.xml
+        |
+        |____aaa_yyy
+        |    |___ aaa_yyy_ai_cmd.xml
+        |
+        |___ bbb_xxx
+        |    |___ bbb_xxx_ai_cmd.xml
+        |
+        |____bbb_yyy
+        |    |___ bbb_yyy_ai_cmd.xml 
+        |
+        |___ ccc_xxx
+        |    |___ ccc_xxx_ai_cmd.xml
+        |
+        |____ccc_yyy
+             |___ ccc_yyy_ai_cmd.xml  
 ```
 
+Where `aaa`, `bbb`, and `ccc` are areas, and
 where `xxx`, `yyy`, `zzz` is each one of `mgr`, `ctl`, `svc`, `exe`, and `ptm`.
-Each of the XML files have the following format, defining an entry of enumeration
-types and an entry of command definitions, with arguments having types which include 
-the enumeration types:
 
-TO BE DETAILED:
+In our case, the `fsw` folder has the following structure containing one single XML file:
 
-```xml
-<command_dictionary>
-    ...
-    <enum_definitions>
-       ... 
-    </enum_definitions>
-    <command_definitions>
-       ...   
-    </command_definitions>
-</command_dictionary>
+```
+fsw
+  |__ src
+        |___ mov_mgr
+             |___ mov_mgr_ai_cmd.xml
 ```
 
-## Constraint Language
+## The Configuration File
 
-The second argument to the `generate_tests` function is a configuration file in 
-JSON format or a dictionary similar information. Specifically, the configuration 
-must have the following format (either as a `.json` file or as a dictionary):
+The folder contains a configuration file named `fuzz_config.json` (it must have this name). 
+In our case it looks as follows.
 
 ```json
 {
-  "testsuite_size": int,
-  "test_size": int,
-  "constraints": [
-    constraint_1,
-    ...
-    constraint_n
-  ]
+    "fsw_path": "fsw",
+    "fsw_areas": ["mov"],
+    "spec_path": "spec.txt",
+    "test_suite_size": 10,
+    "test_size": 10
 }
 ```
 
-Each constraint must be one of the following kinds of objects.
+Explanation:
 
-### Range
+- **fsw_path**: the path to the folder containing the command definitions.
+- **fsw_areas**: a list of the areas for which commands should be generated.
+- **spec_path**: the path to the specification of constraints. 
+- **test_suite_size**: the number of tests to be generated.
+- **test_size**: the number of commands in each test.
 
-```json
-   {
-      "active": bool,
-      "kind": "range",
-      "cmd": str,
-      "arg": str,
-      "range_min": int,
-      "range_max": int
-    }
+Note that `spec_path`, `test_suite_size`, and `test_size` can be left out and instead
+provided in the test script.
+
+Instead of providing the configuration file as a member of the folder one can define its location
+using the following environment variable: `FUZZ_CONFIG_PATH`.
+
+## The Test Script
+
+The folder contains the following script `fit.py`, which underneath reads the configuration file,
+and then the XML command dictionary indicated in the configuration file. 
+
+```python
+from src.fuzz import generate_tests, TestSuite
+
+spec = """
+    rule stop:
+      always MOVE(number=n?) => eventually STOP(number=n)
+
+    rule two_align: count 2 ALIGN()
+    
+    rule two_three_turns: count (2,3) TURN()
+    
+    rule limit_degree:
+      always TURN(angle=a?) => -10 <= a <= 10
+        
+    rule align_followed_by_turn: 
+      always ALIGN(angle=a?) => next ! ALIGN(angle=a) until MOVE()
+      
+    rule time_moves_forward:
+      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
+    """
+
+
+if __name__ == '__main__':
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
+    for test_nr, test in enumerate(tests):
+        print(f'\n=== test nr. {test_nr} ===\n')
+        for cmd in test:
+            print(cmd)
 ```
 
-The `range` constraint limits the range of a particular argument of
-a particular command.
+### Imports
 
-The `active` field indicates whether the constraint should be applied
-(`true`) or not (`false`). It can be used to switch off or on constraints. If this field 
-is not present, it is the same as `"active": true`. 
+The script imports the `generate_tests` function from the fuzz library, and the type `TestSuite` which is the result
+type of the function (if not referred to we do not need to import it, we do it here for explanatory purposes).
 
-### Include
+### The Specification of Constraints
 
-```json
-    {
-      "active": bool,
-      "kind": "include",
-      "cmds": List[str]
-    }
+The script then defines a specification of constraints as a text string, here named
+`spec`. If the `spec` was empty (`spec = ""`), `generate_tests` will generate completely random commands, although respecting the minimal
+and maximal bounds provided in the XML command dictionary. If the specification is not provided, the specification indicated
+in the configuration file is used.
+We here briefly explain the constraints, a full explanation of the constraint language
+is provided below. The specification consists of six constraints, 
+all of which each generated  test must satisfy. The five properties state:
+
+- **stop**: This property, named `stop`, states that it is always the case 
+  (for every position in the test), that if the command in that
+  position is a `MOVE` command with a `number` field which we **bind** (indicated ny `?`) to `n`, 
+  then eventually later in the test, starting from that position, there should be a `STOP` command with the `number` field being `n`. 
+
+- **two_align**: This property states that there should be exactly two `ALIGN` commands, and we don't care about the arguments (in this constraint).
+
+- **two_three_turns**: This property states that there should be between two or three `TURN` commands, and we don't care about the arguments (in this constraint).
+
+- **limit_degree**: This property states that every `TURN` command should have an `angle`, which is bound to `a`, which is in
+the interval -10 to 10.
+
+- **align_followed_by_turn**: This property is slightly more complicated. It states that it is always the case, that if there is an
+`ALIGN` command with an angle `a`, then from the `next` position in the test, there is no `ALIGN` command
+with the same angle `a`, `until` a `MOVE` command occurs, and it has to occur.
+
+- **time_moves_forward**: This property states that for any command with a time value `t1`, if there is a next command (i.e. if we are not
+  at the end of the command list, it is a _weak_ next) with a time value `t2`, then `t1` < `t2`.
+
+### The `generate_tests` Function
+
+The script then calls the `generate_tests` function, which has the following type:
+
+```python
+def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> TestSuite
 ```
 
-The `include` constraint restricts generated commands to a given subset.
-Only those commands will be generated.
+It returns a test suite, which is a list of tests, each consisting of a list of commands. The `TestSuite` type is defined 
+as follows.
 
-### Exclude
-
-```json
-    {
-      "active": bool,
-      "kind": "exclude",
-      "cmds": List[str]
-    }
+```python
+Command = Dict[str, Union[int, float, str]]
+Test = List[Command]
+TestSuite = List[Test]
 ```
 
-The `exclude` constraint restricts generated commands to those not in 
-a given subset. The command in the provided set will not be
-generated.
+The function reads definitions of commands and their argument types, 
+from the XML dictionary pointed out in the configuration file. It takes as argument the 
+specification of constraints (`spec`), how many tests to generate (`test_suite_size`) and how many commands in each 
+test (`test_size`). Note that in case any of the three arguments is left out, the default values in the configuration file
+are used.
 
-### Followed_by
+At this point it is up to the script writer how to use the tests. We here go through each test in a `for` loop, 
+and for each command in the test we print it out. 
+For testing purposes, we would here submit the commands to the SUT, and reset the SUT in between each test.
 
-```json
-    {
-      "active": bool,
-      "kind": "followed_by",
-      "cmd1": str,
-      "cmd2": str
-    }
+### Run the Script
+
+Running the script
+
+```
+python fit.py
 ```
 
-The `followed_by` constraint restricts tests to such where: if there is a 
-`cmd1` in the test, it will be followed eventually by a `cmd2` in the test.
-It is not one-to-one. That is, a single `cmd2` can match two `cmd1`s for example.
+can yield the following output (note that the output is random within the constraints):
 
-### Precedes
+```
+=== test nr. 0 ===
 
-```json
-    {
-      "active": bool,
-      "kind": "precedes",
-      "cmd1": str,
-      "cmd2": str
-    }
+{'name': 'SEND', 'time': 360, 'number': 90, 'images': 25, 'message': 'PEgQXr670x'}
+{'name': 'CANCEL', 'time': 755, 'number': 17, 'message': 'gL0DhifwUb'}
+{'name': 'ALIGN', 'time': 757, 'number': 47, 'angle': -129.71814708552742, 'message': ''}
+{'name': 'TURN', 'time': 759, 'number': 75, 'angle': -3.0, 'message': 'ooBo'}
+{'name': 'TURN', 'time': 764, 'number': 26, 'angle': 7.0, 'message': ''}
+{'name': 'STOP', 'time': 766, 'number': 38, 'message': 'xC0N5H0ukh'}
+{'name': 'PIC', 'time': 995, 'number': 92, 'images': 2, 'quality': 'high', 'message': 'GiLfzecqRR'}
+{'name': 'ALIGN', 'time': 996, 'number': 27, 'angle': -129.59314708552742, 'message': 'o'}
+{'name': 'MOVE', 'time': 997, 'number': 93, 'distance': 95, 'speed': 3.0, 'message': ''}
+{'name': 'STOP', 'time': 999, 'number': 93, 'message': 'oo'}
+
+=== test nr. 1 ===
+
+{'name': 'LOG', 'time': 285, 'number': 30, 'message': 'TywNkxqiZA'}
+{'name': 'LOG', 'time': 952, 'number': 53, 'message': 'S0ebT2qCDA'}
+{'name': 'ALIGN', 'time': 961, 'number': 51, 'angle': 48.93563793402194, 'message': ''}
+{'name': 'ALIGN', 'time': 968, 'number': 85, 'angle': 49.06063793402194, 'message': 'h'}
+{'name': 'MOVE', 'time': 972, 'number': 58, 'distance': 98, 'speed': 1.0, 'message': ''}
+{'name': 'TURN', 'time': 977, 'number': 16, 'angle': 3.0, 'message': 'B'}
+{'name': 'TURN', 'time': 979, 'number': 56, 'angle': 6.0, 'message': ''}
+{'name': 'CANCEL', 'time': 983, 'number': 44, 'message': ''}
+{'name': 'TURN', 'time': 984, 'number': 91, 'angle': -9.0, 'message': ''}
+{'name': 'STOP', 'time': 1000, 'number': 58, 'message': 'B'}
 ```
 
-The `precedes` constraint restricts tests to such where: if there is a 
-`cmd2` in the test, it will be preceded earlier in the test by a `cmd1` in the test.
-It is not one-to-one. That is, a single `cmd1` can match two `cmd2`s for example.
+The reader can try and convince him or herself, that each of these two tests satisfies the constraints.
 
-### Followed_by_next
+## Constraint Language
 
-```json
-    {
-      "active": bool,
-      "kind": "precedes_prev",
-      "cmd1": str,
-      "cmd2": str
-    }
+In this section we dive into a more detailed explanation of the temporal logic.
+We first provide a very quick introduction to the general principles of temporal logic, and then
+subsequently present our temporal logic.
+
+### General Introduction to Temporal Logic
+
+We all know Boolean logic from programming languages: `true`, `false`, `not P` (`!P`), `P and Q` (`P && Q`), 
+`P or Q` (`P || Q`), and `P implies Q` (`!P || Q`). Boolean logic allows to formulate
+statements about objects, e.g. Python dictionaries. Say we want to describe the properties of the dictionary:
+
+```python
+d = {'x': 1, 'y': 2}
 ```
 
-The `followed_by_next` constraint restricts tests to such where: if there is a 
-`cmd1` in the test, it will be followed immediately after by a `cmd2` in the test.
+It satisfies e.g. the Boolean property:
 
-### Precedes_prev
-
-```json
-    {
-      "active": bool,
-      "kind": "precedes_prev",
-      "cmd1": str,
-      "cmd2": str
-    }
+```python
+'x' in d and 'y' in d and d['x'] < d['y'] 
 ```
 
-The `precedes_prev` constraint restricts tests to such where: if there is a 
-`cmd2` in the test, it will be preceded immediately before in the test by a `cmd1` in the test.
+Note that there are in fact many dictionaries (in fact infinitely many) that satisfy this property, e.g. also:
 
-### Eventually
+```python
+d = {'x': 10, 'y': 200, 'z': 2, 'p': 2}
+```
+Temporal logic allows us to formulate statements about a _sequence_ of things, for example, in our
+case, a sequence of dictionaries. Take for example the following sequence of five dictionaries:
 
-```json
-    {
-      "active": bool,
-      "kind": "eventually",
-      "cmd": str
-    }
+```python
+s = [
+  {'x': 0, 'y': 1}, 
+  {'x': 2, 'y': 3}, 
+  {'x': 4, 'y': 5}, 
+  {'x': 6, 'y': 7}, 
+  {'x': 8, 'y': 9}
+]
 ```
 
-The `eventually` constraint restricts tests to such where there is at least one 
-`cmd` in the test.
+The following temporal properties using the temporal operators **always**, **eventually**, 
+and **next**, are all true about this sequence (we here just refer
+to the variables, the meaning should be clear):
 
-### Example
+1. **always** x < y
+2. **eventually** x == 6
+3. **not eventually** x >= 9
+4. **always** x < 9
+5. **always** x == 2 implies **next** x == 4
+5. **always** ((x < 8 **and** x _has a value_ k) **implies next** x == k+2)
 
-Here is an example of a [config.json](https://github.jpl.nasa.gov/lars/fuzzing/blob/main/data/input/constraints/config.json) file.
+For example a sequence satisfies `always F` if F is true in every 
+single position of the sequence.  A sequence satisfies `eventually F` if `F`
+is true at some position in the future. A sequence satisfies `next F` if `F`
+is true at the next future position (and there is a next position).
+Property 6 is stated informally. We shall see its formal form below.
 
-### A Few Words on Constraints
+Note that the above formulas are true at the beginning of the test. Generally
+a temporal formula is stated to hold for a particular position in a sequence.
+E.g. the formula `not eventually x == 2` is false at the beginning of the sequence,
+at position 0, but is true at position 3 when x == 6.
 
-#### Two Categories
+We can evaluate a sequence like the one above and check that it
+satisfies the formulas. As you may have guessed, we can also turn this around
+and from the formulas generate sequences that satisfy them. This is exactly our
+test generation task.
 
-The constraints above can be classified into two categories:
+### Temporal Logic of Commands
 
-- _Command modifying constraints_: these include `range`, `include`, and `exclude`. These are applied immediately before
-  test case generation begins, limiting the commands and their arguments. Such constraints are therefore very efficient.
-- _Test verifying constraints_: these include the rest. These are applied after each test has been generated. If the generated test
-  does not satisfy one of these constraints it is rejected (the number of rejected tests are printed out). This can therefore be
-  ineffecient, depending on the constraints. The more constraining they are, the less likely it is that the random test generator
-  will generate a test that satisfies them, resulting in more computation time, and in worst case non-termination.
+The temporal logic has future time operators (referring to the future) and past time
+operators (referring to the past), and binding operators, which enable capturing values 
+of command's arguments in  one part of a formula, and refer to them  in another part of the formula.
+As an example, consider the test (from our previous example):
 
-#### Temporal Logic
+```
+[
+  {'name': 'SEND', 'time': 360, 'number': 90, 'images': 25, 'message': 'PEgQXr670x'},
+  {'name': 'CANCEL', 'time': 755, 'number': 17, 'message': 'gL0DhifwUb'},
+  {'name': 'ALIGN', 'time': 757, 'number': 47, 'angle': -129.71814708552742, 'message': ''},
+  {'name': 'TURN', 'time': 759, 'number': 75, 'angle': -3.0, 'message': 'ooBo'},
+  {'name': 'TURN', 'time': 764, 'number': 26, 'angle': 7.0, 'message': ''},
+  {'name': 'STOP', 'time': 766, 'number': 38, 'message': 'xC0N5H0ukh'},
+  {'name': 'PIC', 'time': 995, 'number': 92, 'images': 2, 'quality': 'high', 'message': 'GiLfzecqRR'},
+  {'name': 'ALIGN', 'time': 996, 'number': 27, 'angle': -129.59314708552742, 'message': 'o'},
+  {'name': 'MOVE', 'time': 997, 'number': 93, 'distance': 95, 'speed': 3.0, 'message': ''},
+  {'name': 'STOP', 'time': 999, 'number': 93, 'message': 'oo'}
+] 
+```
 
-Behind the scenes `fuzz` uses an advanced temporal logic with future and past time operators, and a so-called freeze operator enabling capturing data values in commands and relate them across commands. However, this temporal logic is currently not made available to
-the user. At some point it will be.
+This test satisfies for example the following formula: 
+  
+    always MOVE(number=n?) => eventually STOP(number=n) 
 
-#### Algorithms
+Note how we refer to commands (`MOVE`, `STOP`) , their parameter names (`number`), 
+and variables representing the actual values they have (`n`). The property states:
 
-As mentioned, the test case algorithm works by repeatedly generate a test randomly and then check whether it satisfies 
-the constraints. A more efficient approach is if the two phases are merged. We are working on such an approach
-using the [z3](https://github.com/Z3Prover/z3) SMT solver. We are also considering a rule-based approach.
+- It is **always** the case, for any position in the sequence, that if this is
+  a `MOVE` command with a `number` argument which is _n_, then after that follows
+  **eventually** a `STOP` command with the same `number` argument _n_.
+
+A specification has the form, where F1, F2, ..., are formulas:
+
+```python
+rule name1 : F1
+rule name2 : F2
+...
+rule nameN : FN
+```
+
+In the following tables we explain the possible formulas.
+
+#### Capturing Commands and their Arguments
+
+|      Formula       | Explanation                                                                                   |
+|:------------------:|-----------------------------------------------------------------------------------------------|
+|   ID(c1,...,cn)    | The current command has the name ID and has arguments that satisfy the constraints c1,...,cn. |
+| ID(c1,...,cn) => F | If the current command matches ID(c1,...cn) then the formula F must be satisfied.             |
+| ID(c1,...,cn) &> F | The current command matches ID(c1,...cn) and the formula F is satisfied.                      |
+
+The constraints c1,...,cn can constrain the arguments, but they can also bind parameter values, which can then be
+referred to in F. There are four kinds of constraints, each constraining a field, here named f, of the command:
+
+- f = x      : f must have the same value as the variable x introduced by one of the patterns above,
+- f = x?     : f's value is bound to x and is now visible in the formula following => and &> above.
+- f = 42     : f must be a number and have the value 42 (example).
+- f = "hot"  : f must be a string or an enumerated type and have the value "hot" (example).
+
+
+#### Boolean Logic Operators
+
+
+|     Formula      | Explanation                                                                                 |
+|:----------------:|---------------------------------------------------------------------------------------------|
+|      `true`      | The true formula.                                                                           |
+|     `false`      | The false formula.                                                                          |
+|     `not` F      | True if and only if F is false.                                                             |
+|    F `and` G     | F and G.                                                                                    |
+|     F `or` G     | F or G.                                                                                     |
+|  F `implies` G   | F implies G.                                                                                |
+|       (F)        | True if and only if F is true.                                                              |
+|     e1 op e2     | For op being one of: <, <=, =, !=, >, >=. A relation between the values of two expressions. |
+| e1 op1 e2 op2 e3 | Equivalent to: (e1 op1 e2) and (e2 op2 e3).                                                 |
+
+An expression can be an identifier (e.g. x) introduced elsewhere in the formula, 
+a number (e.g. -4 or 42), or a string (e.g. "hot").
+
+#### Future Time Temporal Logic Operators
+
+|    Formula     | Explanation                                                                                                        |
+|:--------------:|--------------------------------------------------------------------------------------------------------------------|
+|   `always` F   | F is true now and in in all future positions.                                                                      |
+| `eventually` F | F is true now or in some future position.                                                                          |
+|    `next` F    | F is true in the next position.                                                                                    |
+|   `wnext` F    | F is true in the next position, if there is a next position (weak next)                                            |
+|  F `until` G   | G is true now or in some future position _i_, and for all positions __j_ < _i__ until then F is true               |
+|  F `wuntil` G  | G is true now or in some future position _i_, and for all positions __j_ < _i__ until then F is true, or always F. |
+
+#### Past Time Temporal Logic Operators
+
+|    Formula     | Explanation                                                                                                     |
+|:--------------:|-----------------------------------------------------------------------------------------------------------------|
+|   `sofar` F    | F is true now and in in all past positions.                                                                     |
+|    `once` F    | F is true now or in some past position.                                                                         |
+|    `prev` F    | F is true in the previous position.                                                                             |
+|   `wprev` F    | F is true in the previous position, if there is a previous position                                             |
+|  F `since` G   | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true              |
+|  F `wsince` G  | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or sofar F. |
+
+#### Other Temporal Logic Operators
+
+|            Formula            | Explanation                                                            |
+|:-----------------------------:|------------------------------------------------------------------------|
+|         `count` n  F          | F is satisfied exactly _n_ times from now and in the future.           |
+|       `count` (n1,n2) F       | F is satisfied between _n1_ and _n2_ times from now and in the future. |
+|        `countpast` n F        | F is satisfied exactly _n_ times from now and in the past.             |
+|     `countpast` (n1,n2) F     | F is satisfied between _n1_ and _n2_ times from now and in the past.   |
+|          F `then` G           | Equivalent to: always (F implies eventually G)                         |
+|          F `after` G          | Equivalent to: always (F implies once G)                               |
+
+A special command name is `any`. This will match any command.
+
+A [grammar](README-GRAMMAR.md) precisely defines the
+format of specifications. One can here see alternative 
+symbol representations for keywords. E.g.
+
+    always MOVE(number=n?) => eventually STOP(number=n)
+
+can alternatively be written as:
+
+    [] MOVE(number=n?) => <> STOP(number=n)
 
 ## Contributing
 

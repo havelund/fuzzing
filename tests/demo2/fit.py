@@ -1,5 +1,5 @@
 
-from src.fuzz import generate_tests, TestSuite
+from fuzz import generate_tests, TestSuite
 
 spec = """
     rule stop:
