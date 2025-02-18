@@ -37,33 +37,6 @@ Then activate it:
 source .venv/bin/activate
 ```
 
-Do the following to see what the environment contains:
-
-```
-pip list
-```
-
-Now install various packages needed in the virtual environment, e.g.:
-
-```
-pip install dotmap
-```
-
-You can also see what dependencies are needed for export by:
-
-```
-pip freeze
-```
-
-This lists the dependencies in such a format that can be directly used when creating a package for
-distribution with a `pyproject.toml` file (see below).
-
-Deactivate the virtual environemt as follows when no longer needed
-
-```
-deactivate
-```
-
 ## Packaging a Project for Distribution and Using it
 
 ### Packaging the Project
@@ -83,7 +56,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fuzz"
-version = "1.0.0"
+version = "2.0.0"
 description = "A package for fuzz testing command driven flight software."
 readme = "README.md"
 authors = [
@@ -91,14 +64,18 @@ authors = [
     { name = "Klaus Havelund", email = "klaus.havelund@jpl.nasa.gov"},
     { name = "Vivek Reddy", email = "vivek.j.reddy@jpl.nasa.gov"}
 ]
-license = { file = "LICENSE" }
+license = { file = "LICENSE.txt" }
 dependencies = [
-  "dotmap >= 1.3.30",
-  "future >= 1.0.0",
-  "z3 >= 0.2.0",
-  "z3-solver >= 4.13.2.0"
+    "dotmap >= 1.3.30",
+    "future >= 1.0.0",
+    "z3-solver >= 4.13.2.0",
+    "lark >= 1.2.2"
 ]
 requires-python = ">=3.6"
+
+[tool.setuptools]
+packages = ["fuzz"]
+package-dir = { "" = "src" }
 
 [project.urls]
 Homepage = "https://github.jpl.nasa.gov/lars/fuzzing"
@@ -121,13 +98,12 @@ Now build the project:
 python -m build
 ```
 
-Apparently not when in virtual mode (should be checked).
-
 ### Using the Project
 
 Now another project can install this project:
 
 ```
-pip install /path/to/fuzz
+cd fuzzing
+pip install .
 ```
 

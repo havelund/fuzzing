@@ -109,42 +109,57 @@ added in a later version of the system.
 
 ### Obtain the Project
 
-Clone or copy the fuzzing project to your local machine, say in:
+Clone or copy the fuzzing project to your local machine (cloning done in `HTTPS` mode):
 
 ```
-/path/to/fuzzing/
+git clone https://github.jpl.nasa.gov/lars/fuzzing.git
 ```
 
-### Installation Using The PYTHONPATH Approach
+This will create a folder `fuzzing` with the project.
 
-Set the PYTHONPATH environment variable to include this path, as example:
+There are now two different ways to install it.
+
+### Installation Using `pip install`
+
+Execute the following commands:
+
+```
+cd fuzzing
+pip install .
+```
+
+This will install `fuzz` with all its dependencies.
+
+To test this:
+
+```
+cd tests/demo2
+python fit.py
+```
+
+This should print out two generated tests, to be explained in detail below.
+
+_PS: Note that if you want to install it in a virtual environment of a project (not necessary), you
+must first create this environment and activate it, as described [here](README-PACKAGING.md) 
+before executing the above command._
+
+### Installation Using the `PYTHONPATH`
+
+Set the PYTHONPATH environment variable to include the path to fuzzing:
 
 ```bash
 export PYTHONPATH=/path/to/fuzzing:$PYTHONPATH
 ```
 
-Install Dependencies: `fuzz` uses a few packages that must be installed, if not already installed.
+Then install dependencies that `fuzz` uses. if not already installed.
 These can be installed e.g. with pip as follows:
 
 ```
 pip install dotmap
 pip install future
 pip install z3-solver
+pip install lark
 ```
-
-### Installation Using the PIP INSTALL Approach
-
-Execute the following command:
-
-```
-pip install /path/to/fuzzing
-```
-
-This will install `fuzz` with all its dependencies.
-
-Note that if you want to install it in a virtual environment of a project, you
-must first create this project (the steps below) and activate the virtual environment,
-as described in [here](README-PACKAGING.md) before executing the above command.
 
 ## Usage
 
