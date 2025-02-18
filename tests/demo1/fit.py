@@ -1,5 +1,5 @@
 
-from src.fuzz import generate_tests, print_tests
+from fuzz import generate_tests, print_tests
 
 spec = """
     rule range:

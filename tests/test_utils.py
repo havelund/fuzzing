@@ -1,5 +1,5 @@
 
-from src.fuzz.solver import *
+from fuzz.solver import *
 
 
 TEST_SUITE_SIZE = 1

@@ -1,6 +1,6 @@
 
-from src.fuzz import generate_tests, print_tests
-from src.fuzz.options import Options, RefinementStrategy
+from fuzz import generate_tests, print_tests
+from fuzz.options import Options, RefinementStrategy
 
 spec = """
     rule time_progresses: 

@@ -4,9 +4,9 @@ Z3 solver functions.
 
 from typing import Optional, List
 
-from src.fuzz.options import *
-from src.fuzz.ltl_grammar import *
-from src.fuzz.utils import debug, error, convert_z3_value, lookup_dict
+from fuzz.options import *
+from fuzz.ltl_grammar import *
+from fuzz.utils import debug, error, convert_z3_value, lookup_dict
 
 
 def print_model(model: ModelRef, end_time: int):

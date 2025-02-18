@@ -7,8 +7,8 @@ It uses the lark parser generator: https://github.com/lark-parser/lark.
 from lark import Lark, Transformer, v_args, Tree, Token
 from graphviz import Digraph
 
-from src.fuzz.options import Options
-from src.fuzz.ltl_ast import *
+from fuzz.options import Options
+from fuzz.ltl_ast import *
 
 # ============
 # The grammar.
