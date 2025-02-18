@@ -36,12 +36,12 @@ Todo:
 [x] Create XML file for tests
 [x] Rework tests
 
-[>] Wellformedness check
+[x] Wellformedness check
     [x] TURN(angle = "42") does not explain what the problem is
     [x] pretty printing formulas
     [x] missing indicating which rule is broken, and even which part of the rule
     [x] stop without exceptions
-[>] Comment code
+[x] Comment code
     [x] commands.py
     [x] gencmds.py
     [x] lst_ast.py
@@ -49,6 +49,6 @@ Todo:
     [x] options.py
     [x] utils.py
     [x] solver.py
-[>] Document package
-    export CONFIG_PATH=/etc/myproject/config.json
-    python your_script.py
+[x] Document package
+    [x] export CONFIG_PATH=/etc/myproject/config.json
+    [x] python your_script.py
