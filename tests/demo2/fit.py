@@ -2,13 +2,10 @@
 from src.fuzz import generate_tests, TestSuite
 
 spec = """
-    rule time_moves_forward:
-      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
-
     rule stop:
       always MOVE(number=n?) => eventually STOP(number=n)
 
-    rule one_align: count 2 ALIGN()
+    rule two_align: count 2 ALIGN()
     
     rule two_three_turns: count (2,3) TURN()
     
@@ -17,6 +14,9 @@ spec = """
         
     rule align_followed_by_turn: 
       always ALIGN(angle=a?) => next ! ALIGN(angle=a) until MOVE()
+
+    rule time_moves_forward:
+      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
     """
 
 
