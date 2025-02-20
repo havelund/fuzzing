@@ -23,8 +23,8 @@ from pprint import pprint
 
 from z3 import *
 
-from src.fuzz.gencmds import generate_commands
-from src.fuzz.utils import debug, error, headline
+from fuzz.gencmds import generate_commands
+from fuzz.utils import debug, error, headline
 
 # ==================================================================
 # Minimal and maximal values used when command arguments are defined

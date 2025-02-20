@@ -156,6 +156,7 @@ These can be installed e.g. with pip as follows:
 
 ```
 pip install dotmap
+pip install graphviz
 pip install future
 pip install z3-solver
 pip install lark
