@@ -125,8 +125,8 @@ Execute the following commands:
 
 ```
 cd fuzzing
-pip install .
 source venv/bin/activate
+pip install .
 ```
 
 This will install `fuzz` with all its dependencies.
