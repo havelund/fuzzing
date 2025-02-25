@@ -3,11 +3,7 @@
 Run using Europa Clipper directories.
 """
 
-import json
-
 from tests.data.dicts.dict_clipper import enumDict, cmdDict
-from src.fuzz.core import *
-
 
 constraints1: list[Constraint] = [
     CountFuture(N('TIME_CORR_REQUEST'), 1, 1),

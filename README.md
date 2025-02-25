@@ -165,7 +165,7 @@ pip install lark
 
 ## Usage
 
-A complete demo example is shown in [src/tests/demo2](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which shall be
+A complete demo example is shown in [tests/demo2](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which shall be
 our throughgoing example.  
 
 The folder contains a folder `fsw` with the definitions of commands, a configuration file `fuzz_config.json`,
@@ -314,10 +314,10 @@ using the following environment variable: `FUZZ_CONFIG_PATH`.
 ## The Test Script
 
 The folder contains the following script `fit.py`, which underneath reads the configuration file,
-and then the XML command dictionary indicated in the configuration file. 
+and then the XML command dictionary indicated in the configuration file.
 
 ```python
-from src.fuzz import generate_tests, TestSuite
+from fuzz import generate_tests, TestSuite
 
 spec = """
     rule stop:
@@ -337,13 +337,12 @@ spec = """
       always any(time=t1?) => wnext any(time=t2?) => t1 < t2
     """
 
-
 if __name__ == '__main__':
-    tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
-    for test_nr, test in enumerate(tests):
-        print(f'\n=== test nr. {test_nr} ===\n')
-        for cmd in test:
-            print(cmd)
+  tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
+  for test_nr, test in enumerate(tests):
+    print(f'\n=== test nr. {test_nr} ===\n')
+    for cmd in test:
+      print(cmd)
 ```
 
 ### Imports
