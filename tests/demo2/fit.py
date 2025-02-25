@@ -13,7 +13,7 @@ spec = """
       always TURN(angle=a?) => -10 <= a <= 10
         
     rule align_followed_by_turn: 
-      always ALIGN(angle=a?) => next ! ALIGN(angle=a) until MOVE()
+      always ALIGN(angle=a?) => next (! ALIGN(angle=a) until MOVE())
 
     rule time_moves_forward:
       always any(time=t1?) => wnext any(time=t2?) => t1 < t2

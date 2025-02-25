@@ -1,6 +1,7 @@
 
-# FIT script:
 
+
+"""
 import os
 import json
 
@@ -13,3 +14,4 @@ def generate(version: str) -> list[list[dict]]:
 
 
 generate('3.11')
+"""
