@@ -125,8 +125,11 @@ Execute the following commands:
 
 ```
 cd fuzzing
-python3 -m venv venv
-source venv/bin/activate
+python -m venv venv
+# bash or sh shell:
+source venv/bin/activate 
+# csh or tcsh shell:
+source venv/bin/activate.csh
 pip install .
 ```
 
