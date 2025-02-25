@@ -27,7 +27,6 @@ requires-python = ">=3.6"
 
 [tool.setuptools]
 packages = ["fuzz"]
-package-dir = { "" = "src" }
 
 [project.urls]
 Homepage = "https://github.jpl.nasa.gov/lars/fuzzing"
