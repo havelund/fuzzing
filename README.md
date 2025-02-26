@@ -125,10 +125,11 @@ Execute the following commands:
 
 ```
 cd fuzzing
+# If virtual env has not been created already:
 python -m venv venv
-# bash or sh shell:
+# if using bash, zshrc, or sh shell:
 source venv/bin/activate 
-# csh or tcsh shell:
+# else of using csh or tcsh shell:
 source venv/bin/activate.csh
 pip install .
 ```
@@ -144,9 +145,6 @@ python fit.py
 
 This should print out two generated tests, to be explained in detail below.
 
-_PS: Note that if you want to install it in a virtual environment of a project (not necessary), you
-must first create this environment and activate it, as described [here](README-PACKAGING.md) 
-before executing the above command._
 
 ### Installation Using the `PYTHONPATH`
 
@@ -336,17 +334,22 @@ spec = """
         
     rule align_followed_by_turn: 
       always ALIGN(angle=a?) => next (! ALIGN(angle=a) until MOVE())
-      
+
     rule time_moves_forward:
       always any(time=t1?) => wnext any(time=t2?) => t1 < t2
     """
 
+
+def send(cmd):
+    print(cmd)
+
+
 if __name__ == '__main__':
-  tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
-  for test_nr, test in enumerate(tests):
-    print(f'\n=== test nr. {test_nr} ===\n')
-    for cmd in test:
-      print(cmd)
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
+    for test in tests:
+        send(f'RESET_FSW')
+        for cmd in test:
+            send(cmd)
 ```
 
 ### Imports
@@ -405,6 +408,9 @@ from the XML dictionary pointed out in the configuration file. It takes as argum
 specification of constraints (`spec`), how many tests to generate (`test_suite_size`) and how many commands in each 
 test (`test_size`). Note that in case any of the three arguments is left out, the default values in the configuration file
 are used.
+
+The function **also** stores the test as a JSON file with the name `fuzz-testsuite.json`. This can then e.g. be read 
+in from other scripts.
 
 At this point it is up to the script writer how to use the tests. We here go through each test in a `for` loop, 
 and for each command in the test we print it out. 

@@ -152,14 +152,16 @@ def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) ->
 def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> TestSuite:
     """Generates tests from XML files describing commands and their types.
 
-    If the specification is not provided, the specifiation is extracted from a file provided
-    in the configuration file. Similartly test suite size and test size are extracted
+    If the specification is not provided, the specification is extracted from a file provided
+    in the configuration file. Similarly test suite size and test size are extracted
     from the configuration file if `None`.
+
+    The returned test is also stored in the file `testsuite.json`.
 
     :param spec: an optional specification of constraints.
     :param test_suite_size: an optional number indicating number of tests to generate.
     :param test_size: an optional number of commands to generate in each test.
-    :return:
+    :return: the testsuite, a list of lists of dictionaries, each representing a command.
     """
     if spec is None:
         spec_path = command_dictionary.spec_path
@@ -187,6 +189,13 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
         print(f"Generating test number {test_nr}")
         test = generate_test(ast, smt_formula, test_size)
         tests.append(test)
+    for test_nr, test in enumerate(tests):
+        print(f'\n=== test nr. {test_nr} ===\n')
+        for cmd in test:
+            print(cmd)
+    print('\nWriting to file: fuzz-testsuite.json\n')
+    with open('fuzz-testsuite.json', 'w') as file:
+        json.dump(tests, file, indent=4)
     return tests
 
 
