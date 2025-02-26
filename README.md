@@ -129,7 +129,7 @@ cd fuzzing
 python -m venv venv
 # if using bash, zshrc, or sh shell:
 source venv/bin/activate 
-# else of using csh or tcsh shell:
+# else if using csh or tcsh shell:
 source venv/bin/activate.csh
 pip install .
 ```
