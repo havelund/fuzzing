@@ -454,22 +454,22 @@ The reader can try and convince him or herself, that each of these two tests sat
 
 ## Separating Testsuite Generation from Testsuite Utilization
 
-It may be desirable to generate testsuite using one script, which stores the testsuite in the JSON
-file `fuzz-testsuite.json`, which is then picked up by another script, which subsequently sends
-the commands from the testsuite to the SUO. This may e.g. be needed if a lower version of Python
-than version 3.11 (in which fuzz is implemented) is used for interacting with the SUO. In this case 
-the first script (say `fit1.py`) may look as follows:
+It may be desirable to first generate the testsuite using one script, which stores the testsuite in the JSON
+file `fuzz-testsuite.json`, and then pick it up by another script, which subsequently sends
+the commands from the testsuite to the SUT. This may e.g. be needed if a lower version of Python
+than version 3.11 (in which fuzz is implemented) is used for interacting with the SUT. 
 
 ### fit1.py
+
+In this case the first script (say `fit1.py`) may look as follows:
 
 ```python
 from fuzz import generate_tests
 
-spec = """
-    ...
-    """
+spec = """ ... """
 
 if __name__ == '__main__':
+    # generate and store testsuite in fuzz-testsuite.json:
     generate_tests(spec=spec, test_suite_size=2, test_size=10)
 ```
 
