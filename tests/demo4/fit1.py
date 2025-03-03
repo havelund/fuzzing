@@ -4,7 +4,7 @@ Script using the fuzz library, requiring a newer version of Python, e.g. 3.11.
 It stores the generated test in the file `fuzz_testsuite.json`.
 """
 
-from fuzz import generate_tests, TestSuite
+from fuzz import generate_tests
 
 spec = """
     rule stop:

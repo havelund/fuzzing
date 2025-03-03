@@ -20,13 +20,9 @@ spec = """
     """
 
 
-def send(cmd):
-    print(cmd)
-
-
 if __name__ == '__main__':
     tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
     for test in tests:
-        send(f'RESET_FSW')
+        print(f'RESET_FSW')
         for cmd in test:
-            send(cmd)
+            print(cmd)

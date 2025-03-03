@@ -167,7 +167,7 @@ pip install lark
 
 ## Usage
 
-A complete demo example is shown in [tests/demo2](https://github.jpl.nasa.gov/lars/fuzzing/tree/main/tests/demo2), which shall be
+A complete demo example is shown in [tests/demo2](tests/demo2), which shall be
 our throughgoing example.  
 
 The folder contains a folder `fsw` with the definitions of commands, a configuration file `fuzz_config.json`,
@@ -340,16 +340,12 @@ spec = """
     """
 
 
-def send(cmd):
-    print(cmd)
-
-
 if __name__ == '__main__':
     tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
     for test in tests:
-        send(f'RESET_FSW')
+        print(f'RESET_FSW')
         for cmd in test:
-            send(cmd)
+            print(cmd)
 ```
 
 ### Imports
@@ -455,6 +451,44 @@ can yield the following output (note that the output is random within the constr
 ```
 
 The reader can try and convince him or herself, that each of these two tests satisfies the constraints.
+
+## Separating Testsuite Generation from Testsuite Utilization
+
+It may be desirable to generate testsuite using one script, which stores the testsuite in the JSON
+file `fuzz-testsuite.json`, which is then picked up by another script, which subsequently sends
+the commands from the testsuite to the SUO. This may e.g. be needed if a lower version of Python
+than version 3.11 (in which fuzz is implemented) is used for interacting with the SUO. In this case 
+the first script (say `fit1.py`) may look as follows:
+
+### fit1.py
+
+```python
+from fuzz import generate_tests
+
+spec = """
+    ...
+    """
+
+if __name__ == '__main__':
+    generate_tests(spec=spec, test_suite_size=2, test_size=10)
+```
+
+### fit2.py
+
+The second script can then look as follows.
+
+```python
+import json
+
+if __name__ == '__main__':
+    with open('fuzz-testsuite.json', 'r') as file: tests = json.load(file)
+    for test in tests:
+        print(f'RESET_FSW')
+        for cmd in test:
+            print(cmd)
+```
+
+This example can be found here: [tests/demo4](tests/demo4).
 
 ## Constraint Language
 
