@@ -1,3 +1,1 @@
 
-rule r1: eventually FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1="fuzz_val_2")
-rule r2: count (2,2) FUZZ_CMD_ENUM_2(fuzz_cmd2_arg_1=x?) => x="fuzz_val_2"

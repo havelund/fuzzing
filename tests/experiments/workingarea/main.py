@@ -1,5 +1,6 @@
+
 """
-Z3 solver functions.
+Working area!
 """
 
 from typing import Optional, List
@@ -59,7 +60,7 @@ def extract_command(command: Command, model: ModelRef) -> dict:
     :param command: The Z3 Command datatype instance to extract data from.
     :param model: The Z3 model used to evaluate the values.
     :return: A dictionary containing the constructor name and field values.
-    :raises ValueError: If the command does not match any constructor.
+    :raises ValueError: If the command does not match workingarea constructor.
     """
     for i in range(Command.num_constructors()):
         constructor = Command.constructor(i)
@@ -150,22 +151,6 @@ def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) ->
 
 
 def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = None, test_size: Optional[int] = None) -> TestSuite:
-    """Generates tests from XML files describing commands and their types.
-
-    The specification is the concatenation of two specification files:
-    1) the specification extracted from the specification file identified by
-    the configuration file, or "" if not identified.
-    2) the specification provided as argument, if provied, or "" if `None`.
-    The test suite size and test size are extracted
-    from the configuration file if `None`.
-
-    The returned test is also stored in the file `testsuite.json`.
-
-    :param spec: an optional specification of constraints.
-    :param test_suite_size: an optional number indicating number of tests to generate.
-    :param test_size: an optional number of commands to generate in each test.
-    :return: the testsuite, a list of lists of dictionaries, each representing a command.
-    """
     config_spec: str = ''
     spec_path = command_dictionary.spec_path
     if spec_path is not None:
@@ -174,8 +159,8 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
                 config_spec = file.read()
         except:
             raise ValueError(f"Specification file {spec_path} cannot be read or does not exist.")
-    spec = config_spec + '\n\n' + (spec or '')
-    debug(spec)
+    spec = config_spec + (spec or '')
+
     if test_suite_size is None:
         test_suite_size: int = command_dictionary.test_suite_size
         if test_suite_size is None:

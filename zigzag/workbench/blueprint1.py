@@ -21,22 +21,22 @@ def extract_field(command_name, field_name, command):
     Extracts the value of a specified field from a Z3 Datatype instance,
     dynamically handling cases where the constructor is known or unknown.
 
-    If the constructor is unknown (indicated by `command_name == "any"`), the function
+    If the constructor is unknown (indicated by `command_name == "workingarea"`), the function
     dynamically checks all constructors of the datatype to identify the field selector
     corresponding to the given field name. If the constructor is known, it directly
     uses the appropriate field selector.
 
-    :param command_name: A string representing the name of the constructor, or "any"
+    :param command_name: A string representing the name of the constructor, or "workingarea"
                          if the constructor is unknown.
     :param field_name: A string representing the name of the field to extract (e.g., "time").
     :param command: A Z3 Datatype instance whose field value is to be extracted.
 
     :return: A Z3 expression representing the value of the specified field.
 
-    :raises ValueError: If the specified field does not exist in any constructor
-                        (when `command_name == "any"`) or if the command name is invalid.
+    :raises ValueError: If the specified field does not exist in workingarea constructor
+                        (when `command_name == "workingarea"`) or if the command name is invalid.
     """
-    if command_name == "any":
+    if command_name == "workingarea":
         # Dynamic check for field selector when constructor is unknown
         conditions = []
         fields = []
@@ -50,7 +50,7 @@ def extract_field(command_name, field_name, command):
                 fields.append(field_selector(command))
 
         if not fields:
-            raise ValueError(f"Field '{field_name}' does not exist in any constructor.")
+            raise ValueError(f"Field '{field_name}' does not exist in workingarea constructor.")
 
         # Combine into a single If-Then-Else chain
         field_expr = fields[0]
@@ -230,7 +230,7 @@ class LTLCommandMatch(LTLFormula):
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         # --- TODO:
-        if self.command_name == 'any':
+        if self.command_name == 'workingarea':
             right_command: BoolRef = True
         else:
             is_method: str = f'is_{self.command_name}'

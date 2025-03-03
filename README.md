@@ -308,7 +308,10 @@ Explanation:
 - **test_size**: the number of commands in each test.
 
 Note that `spec_path`, `test_suite_size`, and `test_size` can be left out and instead
-provided in the test script.
+provided in the test script as arguments to the `generate_tests` function. 
+If a specification is provided both via the configuration file
+and the script, the two are combined (concatenated as text strings). The `test_suite_size` 
+and `test_size` values override those of the configuration file if provided in the script.
 
 Instead of providing the configuration file as a member of the folder one can define its location
 using the following environment variable: `FUZZ_CONFIG_PATH`.
@@ -336,7 +339,7 @@ spec = """
       always ALIGN(angle=a?) => next (! ALIGN(angle=a) until MOVE())
 
     rule time_moves_forward:
-      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
+      always workingarea(time=t1?) => wnext workingarea(time=t2?) => t1 < t2
     """
 
 

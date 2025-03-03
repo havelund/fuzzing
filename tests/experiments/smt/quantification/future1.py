@@ -1,6 +1,6 @@
 from z3 import *
 
-# Create symbolic variables for the command and its arguments at any time step
+# Create symbolic variables for the command and its arguments at workingarea time step
 t = Int('t') # Symbolic variable representing time
 t1 = Int('t1')
 x = Int('x')

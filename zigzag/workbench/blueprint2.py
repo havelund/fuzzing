@@ -29,7 +29,7 @@ def extract_command(command: Command, model: ModelRef) -> dict:
     :param command: The Z3 Command datatype instance to extract data from.
     :param model: The Z3 model used to evaluate the values.
     :return: A dictionary containing the constructor name and field values.
-    :raises ValueError: If the command does not match any constructor.
+    :raises ValueError: If the command does not match workingarea constructor.
     """
     for i in range(Command.num_constructors()):
         constructor = Command.constructor(i)

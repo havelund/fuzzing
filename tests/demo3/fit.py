@@ -3,9 +3,6 @@ from fuzz import generate_tests, print_tests
 from fuzz import Options, RefinementStrategy
 
 spec = """
-    rule time_progresses: 
-      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
-
     rule two_turns: count 2 TURN()
 
     rule limit_degree:
