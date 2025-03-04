@@ -92,3 +92,9 @@ def test_enum_string():
     run("""
     rule p: PIC(quality="high") => always PIC(quality=q?) => q = "HIGH"
     """)
+
+
+def test_float_constraints():
+    run("""
+    rule p1: eventually MOVE(number=2.4, speed=2.5)
+    """)

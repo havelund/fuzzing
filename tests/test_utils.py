@@ -24,5 +24,5 @@ def run_test(spec, refinement_strategy: RefinementStrategy):
     old_strategy: RefinementStrategy = Options.REFINEMENT_STRATEGY
     Options.REFINEMENT_STRATEGY = refinement_strategy
     tests = generate_tests(spec, test_suite_size=TEST_SUITE_SIZE, test_size=TEST_SIZE)
-    print_tests(tests)
+    # print_tests(tests)
     Options.REFINEMENT_STRATEGY = old_strategy

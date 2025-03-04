@@ -44,22 +44,24 @@ grammar = """
         | "(" formula ")"                   -> parens
         | "true"                            -> true
         | "false"                           -> false
-        | COUNT "(" NUMBER "," NUMBER ")" formula       -> countfuture   // NOT LTL
-        | COUNTPAST   "(" NUMBER "," NUMBER ")" formula -> countpast     // NOT LTL
-        | COUNT NUMBER  formula              -> countfutureexact         // DERIVED
-        | COUNTPAST NUMBER formula           -> countpastexact           // DERIVED
+        | COUNT "(" INT "," INT ")" formula -> countfuture               // NOT LTL
+        | COUNTPAST   "(" INT "," INT ")" formula -> countpast           // NOT LTL
+        | COUNT INT  formula              -> countfutureexact            // DERIVED
+        | COUNTPAST INT formula           -> countpastexact              // DERIVED
         | formula THEN formula               -> then                     // DERIVED
         | formula AFTER formula              -> after                    // DERIVED
         
 ?expression: ID                             -> idexpr
-           | NUMBER                         -> numberexpr
+           | INT                            -> intexpr
+           | FLOAT                          -> floatexpr
            | STRING                         -> stringexpr
 
 constraints: constraint ("," constraint)*   -> constraint_list
 
 constraint: ID "=" ID                       -> varconstraint
           | ID "=" ID "?"                   -> varbinding 
-          | ID "=" NUMBER                   -> intconstraint
+          | ID "=" INT                      -> intconstraint
+          | ID "=" FLOAT                    -> floatconstraint
           | ID "=" STRING                   -> stringconstraint
 
 RULE: "rule" | "norule"
@@ -96,11 +98,9 @@ REQUIRED: "?" | "!"
 COMMENT: /\#[^\r\n]*/x 
 
 %import common.CNAME -> ID
-#%import common.NUMBER
-%import common.INT -> NUMBER_INT
 %import common.ESCAPED_STRING -> STRING
-
-NUMBER: "-"? NUMBER_INT
+%import common.SIGNED_INT -> INT
+%import common.SIGNED_FLOAT -> FLOAT
 
 %import common.WS
 %ignore WS
@@ -212,6 +212,9 @@ class FormulaTransformer(Transformer):
     def intconstraint(self, id_, value):
         return LTLNumberConstraint('place_holder_for_command', id_, int(value))
 
+    def floatconstraint(self, id_, value):
+        return LTLFloatConstraint('place_holder_for_command', id_, float(value))
+
     def stringconstraint(self, id_, value):
         unquoted_value = value[1:-1]
         return LTLStringConstraint('place_holder_for_command', id_, unquoted_value)
@@ -236,8 +239,11 @@ class FormulaTransformer(Transformer):
     def idexpr(self, id):
         return LTLIDExpression(id)
 
-    def numberexpr(self, number):
-        return LTLNumberExpression(int(number))
+    def intexpr(self, number):
+        return LTLIntExpression(int(number))
+
+    def floatexpr(self, number):
+        return LTLFloatExpression(float(number))
 
     def stringexpr(self, string):
         unquoted_value = string[1:-1]

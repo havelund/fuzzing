@@ -44,21 +44,22 @@ The grammar for the temporal logic uses the following notation:
         | "(" <formula> ")"
         | "true"
         | "false"
-        | COUNT "(" NUMBER "," NUMBER ")" <formula>
-        | COUNTPAST   "(" NUMBER "," NUMBER ")" <formula>
-        | COUNT NUMBER  <formula> 
-        | COUNTPAST NUMBER <formula>
+        | COUNT "(" INT "," INT ")" <formula>
+        | COUNTPAST   "(" INT "," INT ")" <formula>
+        | COUNT INT  <formula> 
+        | COUNTPAST INT <formula>
         | <formula THEN <formula>
         | <formula AFTER <formula>
         
-<expression> ::= ID | NUMBER | STRING
+<expression> ::= ID | INT | FLOAT | STRING
 
 <constraints> ::= <constraint> ("," <constraint>)*
 
 <constraint> ::= 
             ID "=" ID
           | ID "=" ID "?" 
-          | ID "=" NUMBER 
+          | ID "=" INT 
+          | ID "=" FLOAT
           | ID "=" STRING
 ```
 

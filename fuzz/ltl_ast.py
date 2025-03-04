@@ -330,7 +330,7 @@ class LTLIDExpression(LTLExpression):
 
 
 @dataclass
-class LTLNumberExpression(LTLExpression):
+class LTLIntExpression(LTLExpression):
     """10"""
 
     number: int
@@ -346,6 +346,25 @@ class LTLNumberExpression(LTLExpression):
 
     def get_type(self, symbols: SymbolTable) -> FieldType:
         return BaseType.INT
+
+
+@dataclass
+class LTLFloatExpression(LTLExpression):
+    """10.5"""
+
+    number: float
+
+    def to_str(self):
+        return self.number.__str__()
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return RealVal(self.number)
+
+    def evaluate(self, env: Environment) -> int:
+        return self.number
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        return BaseType.FLOAT
 
 
 @dataclass
@@ -499,6 +518,38 @@ class LTLNumberConstraint(LTLConstraint):
             ok_type = (ty == BaseType.INT or ty == BaseType.FLOAT)
             if not ok_type:
                 report(f'type of {self.field}:{ty} is not Int or Float')
+        else:
+            ok_type = False
+        return ok_field and ok_type
+
+
+@dataclass
+class LTLFloatConstraint(LTLConstraint):
+    """cmd(id=42.5)"""
+
+    command_name: str
+    field: str
+    value: float
+
+    def to_str(self):
+        return f'{self.field} = {self.value}'
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        actual_value = extract_field(self.command_name, self.field, timeline(t))
+        return actual_value == self.value
+
+    def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
+        return cmd[self.field] == self.value
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        ok_field = symbols.is_field(self.command_name, self.field)
+        if not ok_field:
+            report(f'{self.field} is not a field of command {self.command_name}')
+        if ok_field:
+            ty = symbols.get_field_type(self.command_name, self.field)
+            ok_type = (ty == BaseType.FLOAT)
+            if not ok_type:
+                report(f'type of {self.field}:{ty} is not Float')
         else:
             ok_type = False
         return ok_field and ok_type

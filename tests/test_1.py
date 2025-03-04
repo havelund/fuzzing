@@ -112,3 +112,15 @@ def test_now():
     """)
 
 
+def test_float_expressions():
+    run("""
+    rule p1: eventually MOVE(speed=s?) &> s = 2.5
+    rule p2: eventually TURN(angle=a?) &> a = -20.5
+    """)
+
+def test_float_constraints():
+    run("""
+    rule p1: eventually MOVE(speed=2.5)
+    rule p2: eventually TURN(angle=-20.5)
+    """)
+
