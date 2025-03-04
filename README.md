@@ -339,7 +339,7 @@ spec = """
       always ALIGN(angle=a?) => next (! ALIGN(angle=a) until MOVE())
 
     rule time_moves_forward:
-      always workingarea(time=t1?) => wnext workingarea(time=t2?) => t1 < t2
+      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
     """
 
 
