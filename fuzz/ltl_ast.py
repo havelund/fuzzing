@@ -881,7 +881,7 @@ class LTLCommandMatch(LTLFormula):
     def evaluate(self, env: Environment, test: Test, index: int) -> bool:
         if within(index, test):
             cmd = test[index]
-            if cmd['name'] == self.command_name:
+            if cmd['name'] == self.command_name or self.command_name == 'any':
                 constraints_satisfied = all([constraint.evaluate(env, cmd) for constraint in self.constraints])
                 if constraints_satisfied:
                     env_plus = env.copy()

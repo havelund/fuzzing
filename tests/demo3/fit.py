@@ -3,6 +3,9 @@ from fuzz import generate_tests, print_tests
 from fuzz import Options, RefinementStrategy
 
 spec = """
+    rule time_moves_forward:
+      always any(time=t1?) => wnext any(time=t2?) => t1 < t2
+
     rule two_turns: count 2 TURN()
 
     rule limit_degree:
@@ -22,7 +25,8 @@ spec = """
 
 
 if __name__ == '__main__':
-    Options.REFINEMENT_STRATEGY = RefinementStrategy.SMT
+    # Options.REFINEMENT_STRATEGY = RefinementStrategy.SMT
+    Options.REFINEMENT_STRATEGY = RefinementStrategy.PYTHON
     tests = generate_tests(spec, test_suite_size=1, test_size=10)
     print_tests(tests)
     for test in tests:
