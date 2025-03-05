@@ -51,10 +51,21 @@ grammar = """
         | formula THEN formula               -> then                     // DERIVED
         | formula AFTER formula              -> after                    // DERIVED
         
-?expression: ID                             -> idexpr
-           | INT                            -> intexpr
-           | FLOAT                          -> floatexpr
-           | STRING                         -> stringexpr
+?expression: sum
+
+?sum: product
+    | sum "+" product         -> addexpr
+    | sum "-" product         -> subexpr
+
+?product: primary
+        | product "*" primary -> mulexpr
+        | product "/" primary -> divexpr
+
+?primary: ID                  -> idexpr
+        | INT                 -> intexpr
+        | FLOAT               -> floatexpr
+        | STRING              -> stringexpr
+        | "(" expression ")"  -> parenexpr
 
 constraints: constraint ("," constraint)*   -> constraint_list
 
@@ -236,6 +247,18 @@ class FormulaTransformer(Transformer):
     def relation(self, exp1, kw, exp2):
         return LTLRelation(exp1, kw, exp2)
 
+    def addexpr(self, expr1, expr2):
+        return LTLAddExpression(expr1, expr2)
+
+    def subexpr(self, expr1, expr2):
+        return LTLSubExpression(expr1, expr2)
+
+    def mulexpr(self, expr1, expr2):
+        return LTLMulExpression(expr1, expr2)
+
+    def divexpr(self, expr1, expr2):
+        return LTLDivExpression(expr1, expr2)
+
     def idexpr(self, id):
         return LTLIDExpression(id)
 
@@ -248,6 +271,9 @@ class FormulaTransformer(Transformer):
     def stringexpr(self, string):
         unquoted_value = string[1:-1]
         return LTLStringExpression(unquoted_value)
+
+    def parenexpr(self, expr):
+        return LTLParenExpression(expr)
 
     # Derived constructs:
 

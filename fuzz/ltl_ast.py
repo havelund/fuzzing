@@ -311,6 +311,69 @@ class LTLExpression(ASTNode, ABC):
 
 
 @dataclass
+class LTLBinaryExpression(LTLExpression):
+    left: LTLExpression
+    right: LTLExpression
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        left_type = self.left.get_type(symbols)
+        right_type = self.right.get_type(symbols)
+        if left_type == BaseType.FLOAT or right_type == BaseType.FLOAT:
+            return BaseType.FLOAT
+        elif left_type == BaseType.INT and right_type == BaseType.INT:
+            return BaseType.INT
+        else:
+            raise TypeError("Operator requires numeric operands")
+
+@dataclass
+class LTLAddExpression(LTLBinaryExpression):
+    def to_str(self) -> str:
+        return f"({self.left.to_str()} + {self.right.to_str()})"
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return self.left.to_smt(env) + self.right.to_smt(env)
+
+    def evaluate(self, env: Environment) -> Union[int, float]:
+        return self.left.evaluate(env) + self.right.evaluate(env)
+
+
+@dataclass
+class LTLSubExpression(LTLBinaryExpression):
+    def to_str(self) -> str:
+        return f"({self.left.to_str()} - {self.right.to_str()})"
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return self.left.to_smt(env) - self.right.to_smt(env)
+
+    def evaluate(self, env: Environment) -> Union[int, float]:
+        return self.left.evaluate(env) - self.right.evaluate(env)
+
+
+@dataclass
+class LTLMulExpression(LTLBinaryExpression):
+    def to_str(self) -> str:
+        return f"({self.left.to_str()} * {self.right.to_str()})"
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return self.left.to_smt(env) * self.right.to_smt(env)
+
+    def evaluate(self, env: Environment) -> Union[int, float]:
+        return self.left.evaluate(env) * self.right.evaluate(env)
+
+
+@dataclass
+class LTLDivExpression(LTLBinaryExpression):
+    def to_str(self) -> str:
+        return f"({self.left.to_str()} / {self.right.to_str()})"
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return self.left.to_smt(env) / self.right.to_smt(env)
+
+    def evaluate(self, env: Environment) -> Union[int, float]:
+        return self.left.evaluate(env) / self.right.evaluate(env)
+
+
+@dataclass
 class LTLIDExpression(LTLExpression):
     """x"""
 
@@ -384,6 +447,25 @@ class LTLStringExpression(LTLExpression):
 
     def get_type(self, symbols: SymbolTable) -> FieldType:
         return BaseType.STRING
+
+
+@dataclass
+class LTLParenExpression(LTLExpression):
+    """ (x+3)*y"""
+
+    expr: LTLExpression
+
+    def to_str(self):
+        return f'({self.expr.to_str()})'
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        return self.expr.to_smt(env)
+
+    def evaluate(self, env: Environment) -> str:
+        return self.expr.evaluate(env)
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        return self.expr.get_type(symbols)
 
 
 @dataclass

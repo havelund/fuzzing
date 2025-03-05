@@ -604,7 +604,9 @@ rule nameN : FN
 
 In the following tables we explain the possible formulas.
 
-#### Capturing Commands and their Arguments
+#### Capturing Commands and their Arguments using Command Patterns
+
+The following command patterns can be used to match commands and their arguments:
 
 |      Formula       | Explanation                                                                                   |
 |:------------------:|-----------------------------------------------------------------------------------------------|
@@ -636,8 +638,10 @@ referred to in F. There are four kinds of constraints, each constraining a field
 |     e1 op e2     | For op being one of: <, <=, =, !=, >, >=. A relation between the values of two expressions. |
 | e1 op1 e2 op2 e3 | Equivalent to: (e1 op1 e2) and (e2 op2 e3).                                                 |
 
-An expression can be an identifier (e.g. x) introduced elsewhere in the formula, 
-a number (e.g. -4 or 42), or a string (e.g. "hot").
+An expression can be an identifier (e.g. x) introduced in a command pattern elsewhere in the formula, 
+a number (e.g. an integer -4 or a floating point number 42.5), a string (e.g. "hot"), or an arithmetic
+expression using the standard arithmetic operators (+, -, *, /) with infix notation
+(e.g. (a + b) / (2 * c)).
 
 #### Future Time Temporal Logic Operators
 

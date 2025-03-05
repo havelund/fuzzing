@@ -98,6 +98,12 @@ def test_time2():
     """, 2)
 
 
+def test_time3():
+    run("""
+    rule p: always any(time=t1?) => wnext any(time=t2?) => t2 > t1 + 10
+    """)
+
+
 def test_empty_spec():
     run('')
 
@@ -124,3 +130,8 @@ def test_float_constraints():
     rule p2: eventually TURN(angle=-20.5)
     """)
 
+def test_arithmetic():
+    run("""
+    rule p1: eventually MOVE(speed=a?) &> eventually MOVE(speed=b?) &> b = (a + 4) / 2
+    rule p2: eventually TURN(angle=a?) &> eventually TURN(angle=b?) &> a = b / 2 = 2.5
+    """)

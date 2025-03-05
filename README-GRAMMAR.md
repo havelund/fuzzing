@@ -16,7 +16,7 @@ The grammar for the temporal logic uses the following notation:
 ## The Grammar
 
 ```python
-<spec>::= <rule>*
+<spec> ::= <rule>*
 
 <rule> ::= RULE ID ":" <formula>
 
@@ -39,8 +39,8 @@ The grammar for the temporal logic uses the following notation:
         | PREV <formula>  
         | WPREV <formula>  
         | NOT <formula> 
-        | <expression> RELOP <expression>
-        | <expression> RELOP <expression> RELOP <expression>
+        | <expr> RELOP <expr>
+        | <expr> RELOP <expr> RELOP <exp>
         | "(" <formula> ")"
         | "true"
         | "false"
@@ -51,16 +51,18 @@ The grammar for the temporal logic uses the following notation:
         | <formula THEN <formula>
         | <formula AFTER <formula>
         
-<expression> ::= ID | INT | FLOAT | STRING
+<expr> ::= ID | INT | FLOAT | STRING 
+         | <expr> ("+"|"-"|"*"|"/") <expr> 
+         | "(" <expr> ")"
 
 <constraints> ::= <constraint> ("," <constraint>)*
 
 <constraint> ::= 
-            ID "=" ID
-          | ID "=" ID "?" 
-          | ID "=" INT 
-          | ID "=" FLOAT
-          | ID "=" STRING
+             ID "=" ID
+           | ID "=" ID "?" 
+           | ID "=" INT 
+           | ID "=" FLOAT
+           | ID "=" STRING
 ```
 
 ## Table of Keywords and Symbols
