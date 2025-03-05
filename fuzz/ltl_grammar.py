@@ -336,11 +336,10 @@ def parse_spec(spec: str) -> LTLSpec:
         tree = parser.parse(spec)
         if Options.GRAPH_PARSE_TREE:
             visualize_parse_tree(tree)
-        headline('SPECIFICATION')
-        print(spec)
         ast: LTLSpec = FormulaTransformer().transform(tree)
-        headline('AST')
-        ast.pretty_print()
+        # headline('AST')
+        # ast.pretty_print()
+        headline('SPECIFICATION')
         print(ast.to_str())
         if not ast.wellformed():
             print("Specification is not wellformed")

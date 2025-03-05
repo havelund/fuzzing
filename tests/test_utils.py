@@ -6,18 +6,24 @@ TEST_SUITE_SIZE = 1
 TEST_SIZE = 10
 
 
-def run(spec, refinement_strategy=0):
+def run(spec, refinement_strategy: int = 0):
     if refinement_strategy == 0:
-        print('Refinement using evaluate')
-        run_test(spec, RefinementStrategy.PYTHON)
         print('Refinement using to_smt')
         run_test(spec, RefinementStrategy.SMT)
+        print('Refinement using evaluate')
+        run_test(spec, RefinementStrategy.EVAL)
+        print('Refinement using evaluate per arg')
+        run_test(spec, RefinementStrategy.EVAL_PER_ARG)
     elif refinement_strategy == 1:
-        print('Refinement using evaluate')
-        run_test(spec, RefinementStrategy.PYTHON)
-    elif refinement_strategy == 2:
         print('Refinement using to_smt')
         run_test(spec, RefinementStrategy.SMT)
+    elif refinement_strategy == 2:
+        print('Refinement using evaluate')
+        run_test(spec, RefinementStrategy.EVAL)
+    elif refinement_strategy == 3:
+        print('Refinement using evaluate per arg')
+        run_test(spec, RefinementStrategy.EVAL_PER_ARG)
+
 
 
 def run_test(spec, refinement_strategy: RefinementStrategy):

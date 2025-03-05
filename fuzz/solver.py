@@ -127,6 +127,10 @@ def refine_solver_using_to_smt(ast: LTLSpec, solver: Solver, end_time: int) -> T
 def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) -> Test:
     """Refines a test, and returns a resulting test.
 
+    The refinement is performed at the command level: each command in the test is attempted replaced
+    by a random command (including random arguments). If the new random command makes the
+    specification fail the old command is kept and we move on to the next command.
+
     :param ast: the specifiation of constraints.
     :param solver: the solver.
     :param end_time: the end time of the timeline.
@@ -136,13 +140,53 @@ def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) ->
     test = extract_and_verify_test(ast, solver.model(), end_time).copy()
     for i in range(end_time):
         old_command = test[i]
-        command = command_dictionary.generate_random_dict_command()
-        test[i] = command
+        new_command = command_dictionary.generate_random_dict_command()
+        test[i] = new_command
         if ast.evaluate(test):
-            print(f'-- refinement step {i}: changed=True')
+            print(f'-- refinement step {i}: replacing {old_command} with {new_command}')
         else:
-            print(f'refinement step {i}: changed=False')
+            print(f'refinement step {i}: keeping {old_command}')
             test[i] = old_command
+    if not ast.evaluate(test):
+        raise AssertionError('Model not satisfiable as expected')
+    print_test(test)
+    return test
+
+
+def refine_solver_using_evaluate_per_arg(ast: LTLSpec, solver: Solver, end_time: int) -> Test:
+    """Refines a test, and returns a resulting test.
+
+    The refinement is performed at the argyment level: each command in the test is attempted replaced
+    by a random command (including random arguments). If the new random command makes the
+    specification fail, then it is attempted to randomize each argument, keeping the command name.
+
+    :param ast: the specifiation of constraints.
+    :param solver: the solver.
+    :param end_time: the end time of the timeline.
+    :return: the final test.
+    """
+    print('Refining solution')
+    test = extract_and_verify_test(ast, solver.model(), end_time).copy()
+    for i in range(end_time):
+        print('---')
+        old_command = test[i]
+        new_command = command_dictionary.generate_random_dict_command()
+        test[i] = new_command
+        if ast.evaluate(test):
+            print(f'-- refinement step {i}: replacing {old_command} with {new_command}')
+        else:
+            print(f'refinement step {i}: keeping {old_command}, now trying argument by argument')
+            test[i] = old_command
+            random_args = command_dictionary.generate_random_arguments_for_command(test[i]['name'])
+            for arg_name, arg_value in random_args.items():
+                old_value = test[i][arg_name]
+                test[i][arg_name] = arg_value
+                print(f'refining {arg_name} from {old_value} to {arg_value} -> {test[i]}')
+                if not ast.evaluate(test):
+                    print(f'that did not work, restoring old value {old_value}')
+                    test[i][arg_name] = old_value
+                else:
+                    print('that worked')
     if not ast.evaluate(test):
         raise AssertionError('Model not satisfiable as expected')
     print_test(test)
@@ -175,7 +219,6 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
         except:
             raise ValueError(f"Specification file {spec_path} cannot be read or does not exist.")
     spec = config_spec + '\n\n' + (spec or '')
-    debug(spec)
     if test_suite_size is None:
         test_suite_size: int = command_dictionary.test_suite_size
         if test_suite_size is None:
@@ -214,8 +257,10 @@ def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
         extract_and_verify_test(ast, solver.model(), end_time)
-        if Options.REFINEMENT_STRATEGY == RefinementStrategy.PYTHON:
+        if Options.REFINEMENT_STRATEGY == RefinementStrategy.EVAL:
             test = refine_solver_using_evaluate(ast, solver, end_time)
+        elif Options.REFINEMENT_STRATEGY == RefinementStrategy.EVAL_PER_ARG:
+            test = refine_solver_using_evaluate_per_arg(ast, solver, end_time)
         else:
             test = refine_solver_using_to_smt(ast, solver, end_time)
         return test

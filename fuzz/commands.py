@@ -251,7 +251,7 @@ class FSWCommandDictionary:
         spec_path: path to file containing specification of constraints.
         test_suite_size: the number of tests to be generated.
         test_size: the number of commands in a single test.
-        commands:
+        commands: the commands defined in the XML file, represented as class objects.
     """
 
     def __init__(self, enum_dict: dict, cmd_dict: dict, spec_path: Optional[str], test_suite_size: Optional[int], test_size: Optional[int]):
@@ -372,6 +372,26 @@ class FSWCommandDictionary:
         arguments = {arg.name: arg.random_python_value() for arg in fsw_command.arguments}
         command = {**command_name, **arguments}
         return command
+
+    def find_fsw_command(self, cmd_name: str) -> FSWCommand:
+        """Finds and returns the FSW command with the given name.
+
+        :param cmd_name: the command name.
+        :return: the FSW command represention of the contents of the XML file for that command.
+        """
+        for fsw_cmd in self.commands:
+            if fsw_cmd.name == cmd_name:
+                return fsw_cmd
+        raise ValueError(f'command name {cmd_name} not found')
+
+    def generate_random_arguments_for_command(self, cmd_name: str) -> dict:
+        """ Returns random argument values for arguments of a command.
+
+        :param cmd_name: the name of the command.
+        :return: mapping from argument names to random values.
+        """
+        fsw_command: FSWCommand = self.find_fsw_command(cmd_name)
+        return {arg.name: arg.random_python_value() for arg in fsw_command.arguments}
 
     def get_argument_type(self, cmd_name: str, arg_name: str) -> SortRef:
         """Returns the Z3 type corresponding to an argument to a command.

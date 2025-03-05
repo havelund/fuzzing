@@ -15,7 +15,7 @@ spec = """
     rule align_followed_by_turn: 
       always ALIGN(angle=a?) => next (! ALIGN(angle=a) until MOVE())
 
-    rule time_moves_forward:
+    norule time_moves_forward:
       always any(time=t1?) => wnext any(time=t2?) => t1 < t2
     """
 
