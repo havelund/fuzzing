@@ -13,8 +13,16 @@ class RefinementStrategy(Enum):
     EVAL_PER_ARG = 3 # each refinement is manually constructed by editing the test, argument by argument
 
 class Options:
+    # Debugging level
+    # 0 : no debugging information
+    # 1 : minimal debugging information
+    # 2 : medium debugging information
+    # 3 : maximum debugging information
+    DEBUG_LEVEL: int = 0
+
     # If true a graph of the parse tree is generated.
     GRAPH_PARSE_TREE: bool = False
 
     # Drives how the refinement of a test is performed.
     REFINEMENT_STRATEGY: RefinementStrategy = RefinementStrategy.EVAL_PER_ARG
+

@@ -25,7 +25,6 @@ spec = """
 
 
 if __name__ == '__main__':
-    # Options.REFINEMENT_STRATEGY = RefinementStrategy.SMT
     Options.REFINEMENT_STRATEGY = RefinementStrategy.EVAL
     tests = generate_tests(spec, test_suite_size=1, test_size=10)
     print_tests(tests)

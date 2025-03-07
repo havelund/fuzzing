@@ -472,11 +472,27 @@ class LTLParenExpression(LTLExpression):
 class LTLConstraint(ASTNode,ABC):
     """Base class for all command parameter constraints."""
 
+    command_name: str
+    field: str  # id
+
     def to_str(self):
         """Returns a pretty printed version of the constraint.
         :return: the pretty printed constraint.
         """
         raise NotImplementedError("Subclasses should implement this!")
+
+    def get_any_args(self) -> set[str]:
+        """Returns all argument names mentioned in any-match formulas.
+        That is, formulas of the form:
+        ```
+        any(...,arg=...,...) =>/&> ...
+        ```
+        :return: argument names mentioned in any-match formulas.
+        """
+        if self.command_name == 'any':
+            return set([self.field])
+        else:
+            return set([])
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         """Returns a Z3 representation of the constraint.
@@ -510,8 +526,6 @@ class LTLConstraint(ASTNode,ABC):
 class LTLVariableConstraint(LTLConstraint):
     """cmd(id=x)"""
 
-    command_name: str
-    field: str  # id
     variable: str  # x
 
     def to_str(self):
@@ -547,8 +561,6 @@ class LTLVariableConstraint(LTLConstraint):
 class LTLVariableBinding(LTLConstraint):
     """cmd(id=x?)"""
 
-    command_name: str
-    field: str  # id
     variable: str  # x
 
     def to_str(self):
@@ -577,8 +589,6 @@ class LTLVariableBinding(LTLConstraint):
 class LTLNumberConstraint(LTLConstraint):
     """cmd(id=42)"""
 
-    command_name: str
-    field: str
     value: int
 
     def to_str(self):
@@ -609,8 +619,6 @@ class LTLNumberConstraint(LTLConstraint):
 class LTLFloatConstraint(LTLConstraint):
     """cmd(id=42.5)"""
 
-    command_name: str
-    field: str
     value: float
 
     def to_str(self):
@@ -641,8 +649,6 @@ class LTLFloatConstraint(LTLConstraint):
 class LTLStringConstraint(LTLConstraint):
     """cmd(id="abc")"""
 
-    command_name: str
-    field: str
     value: str
 
     def to_str(self):
@@ -686,6 +692,16 @@ class LTLFormula(ASTNode,ABC):
         :return: the pretty printed formula.
         """
         raise NotImplementedError("Subclasses should implement this!")
+
+    def get_any_args(self) -> set[str]:
+        """Returns all argument names mentioned in any-match formulas.
+        That is, formulas of the form:
+        ```
+        any(...,arg=...,...) =>/&> ...
+        ```
+        :return: argument names mentioned in any-match formulas.
+        """
+        return set([])
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         """Returns a Z3 representation of the formula.
@@ -853,6 +869,11 @@ class LTLCommandMatch(LTLFormula):
         result += self.subformula.to_str(indent + 1)
         return result
 
+    def get_any_args(self) -> set[str]:
+        constraint_args = set([arg for constraint in self.constraints for arg in constraint.get_any_args()])
+        formula_args = self.subformula.get_any_args()
+        return constraint_args | formula_args
+
     def required(self) -> bool:
         return str(self.arrow) in ["&>", "andthen"]
 
@@ -914,6 +935,9 @@ class LTLNot(LTLFormula):
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, '!', self.subformula)
 
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Not(self.subformula.to_smt(env, t, end_time))
 
@@ -933,6 +957,9 @@ class LTLAnd(LTLFormula):
 
     def to_str(self, indent: int = 0):
         return binary_to_str(indent, self.left, 'and', self.right)
+
+    def get_any_args(self) -> set[str]:
+        return self.left.get_any_args() | self.right.get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And(self.left.to_smt(env, t, end_time), self.right.to_smt(env, t, end_time))
@@ -956,6 +983,9 @@ class LTLOr(LTLFormula):
     def to_str(self, indent: int = 0):
         return binary_to_str(indent, self.left, 'or', self.right)
 
+    def get_any_args(self) -> set[str]:
+        return self.left.get_any_args() | self.right.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or(self.left.to_smt(env, t, end_time), self.right.to_smt(env, t, end_time))
 
@@ -978,6 +1008,9 @@ class LTLImplies(LTLFormula):
     def to_str(self, indent: int = 0):
         return binary_to_str(indent, self.left, '->', self.right)
 
+    def get_any_args(self) -> set[str]:
+        return self.left.get_any_args() | self.right.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Implies(self.left.to_smt(env, t, end_time), self.right.to_smt(env, t, end_time))
 
@@ -998,6 +1031,9 @@ class LTLEventually(LTLFormula):
 
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'eventually', self.subformula)
+
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([self.subformula.to_smt(env, t_prime, end_time) for t_prime in range(t, end_time)])
@@ -1020,6 +1056,9 @@ class LTLAlways(LTLFormula):
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'always', self.subformula)
 
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And([self.subformula.to_smt(env, t_prime, end_time) for t_prime in range(t, end_time)])
 
@@ -1039,6 +1078,9 @@ class LTLNext(LTLFormula):
 
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'next', self.subformula)
+
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t + 1 < end_time:
@@ -1061,6 +1103,9 @@ class LTLWeakNext(LTLFormula):
 
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'wnext', self.subformula)
+
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t + 1 < end_time:
@@ -1085,6 +1130,9 @@ class LTLUntil(LTLFormula):
 
     def to_str(self, indent: int = 0):
         return binary_to_str(indent, self.left, 'until', self.right)
+
+    def get_any_args(self) -> set[str]:
+        return self.left.get_any_args() | self.right.get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([And(self.right.to_smt(env, t_prime, end_time),
@@ -1113,6 +1161,9 @@ class LTLOnce(LTLFormula):
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'once', self.subformula)
 
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([self.subformula.to_smt(env, t_prime, end_time) for t_prime in range(0, t + 1)])
 
@@ -1134,6 +1185,9 @@ class LTLSofar(LTLFormula):
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'sofar', self.subformula)
 
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return And([self.subformula.to_smt(env, t_prime, end_time) for t_prime in range(0, t + 1)])
 
@@ -1154,6 +1208,9 @@ class LTLPrevious(LTLFormula):
 
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'prev', self.subformula)
+
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t - 1 >= 0:
@@ -1178,6 +1235,9 @@ class LTLWeakPrevious(LTLFormula):
     def to_str(self, indent: int = 0):
         return unary_to_str(indent, 'wprev', self.subformula)
 
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         if t - 1 >= 0:
             return self.subformula.to_smt(env, t - 1, end_time)
@@ -1201,6 +1261,9 @@ class LTLSince(LTLFormula):
 
     def to_str(self, indent: int = 0):
         return binary_to_str(indent, self.left, 'since', self.right)
+
+    def get_any_args(self) -> set[str]:
+        return self.left.get_any_args() | self.right.get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return Or([And(self.right.to_smt(env, t_prime, end_time),
@@ -1234,6 +1297,9 @@ class LTLParen(LTLFormula):
         result += TAB * indent + ')'
         return result
 
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
+
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return self.subformula.to_smt(env, t, end_time)
 
@@ -1255,6 +1321,9 @@ class LTLCountFuture(LTLFormula):
     def to_str(self, indent: int = 0):
         oper = f'count({self.min},{self.max})'
         return unary_to_str(indent, oper, self.subformula)
+
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
 
     def count(self, env: Environment, test: Test, index: int) -> int:
         if within(index, test):
@@ -1296,6 +1365,9 @@ class LTLCountPast(LTLFormula):
     def to_str(self, indent: int = 0):
         oper = f'countpast({self.min},{self.max})'
         return unary_to_str(indent, oper, self.subformula)
+
+    def get_any_args(self) -> set[str]:
+        return self.subformula.get_any_args()
 
     def count(self, env: Environment, test: Test, index: int) -> int:
         if within(index, test):
@@ -1339,6 +1411,9 @@ class LTLDerivedFormula(LTLFormula):
     def expand(self) -> LTLFormula:
         """Expland a formula to a formula representing its meaning."""
         raise NotImplementedError("Subclasses should implement this!")
+
+    def get_any_args(self) -> set[str]:
+        return self.expand().get_any_args()
 
     def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
         return self.expand().to_smt(env, t, end_time)
@@ -1492,6 +1567,16 @@ class LTLRule(ASTNode):
         result += f'{self.formula.to_str(1)}'
         return result
 
+    def get_any_args(self) -> set[str]:
+        """Returns all argument names mentioned in any-match formulas in the rule.
+        That is, formulas of the form:
+        ```
+        any(...,arg=...,...) =>/&> ...
+        ```
+        :return: argument names mentioned in any-match formulas.
+        """
+        return self.formula.get_any_args()
+
     def active(self) -> bool:
         return self.kw == 'rule'
 
@@ -1520,17 +1605,35 @@ class LTLRule(ASTNode):
                 return True
 
 
-@dataclass
 class LTLSpec(ASTNode):
-    """collection of rules."""
+    """Collection of rules.
 
-    rules: list[LTLRule]
+    Attributes:
+        any_args: set of argument names mentioned in command match formulas
+        where the command name is `any`.
+    """
+
+    def __init__(self, rules: list[LTLRule]):
+        self.rules = rules
+        self.any_args: set[str] = None
 
     def to_str(self):
         result = ''
         for rule in self.rules:
             result += f'{rule.to_str()}\n\n'
         return result
+
+    def get_any_args(self) -> set[str]:
+        """Returns all argument names mentioned in any-match formulas in any rule.
+        That is, formulas of the form:
+        ```
+        any(...,arg=...,...) =>/&> ...
+        ```
+        :return: argument names mentioned in any-match formulas.
+        """
+        if not self.any_args:
+            self.any_args = set([arg for rule in self.rules for arg in rule.get_any_args()])
+        return self.any_args
 
     def to_smt(self, end_time: int) -> BoolRef:
         smt_formulas: list[BoolRef] = [rule.to_smt(end_time) for rule in self.rules]
@@ -1548,12 +1651,3 @@ class LTLSpec(ASTNode):
             report(f'duplicate rule names: {duplicates}')
         ok_rules = all([rule.wellformed() for rule in self.rules])
         return ok_names and ok_rules
-
-
-
-
-
-
-
-
-

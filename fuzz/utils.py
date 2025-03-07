@@ -8,7 +8,14 @@ from typing import Callable, List, Union, Dict
 from dotmap import DotMap
 
 import z3
+from fuzz.options import Options
 
+# ======
+# Colors
+# ======
+
+DEBUG_COLOR = "\033[93m"  # Yellow
+RESET_COLOR = "\033[0m"
 
 # =====
 # Types
@@ -84,16 +91,33 @@ def headline(text: str):
     print(line)
 
 
-def debug(msg: str, doit: bool = True):
-    """Used for debugging, prints a message.
+def debug(level: int, msg: str):
+    """Emits debugging information depending on level.
+
+    Whether message is printed depends on `Options.DEBUG_LEVEL`.
+    :param level: 1=minimum, 2=medium, 3=maximum
+    :param msg: message to be printed
+    """
+    assert level in [1,2,3], f'wrong debugging level {level}'
+    if Options.DEBUG_LEVEL >= level:
+        print('****************************')
+        print(f"{DEBUG_COLOR}[DEBUG] {msg} {RESET_COLOR}")
+        print('****************************')
+
+
+def inspect(msg: str, doit: bool = True, stop: bool = False):
+    """Used for here and now debugging, prints a message.
 
     :param msg: message to be printed.
     :param doit: flag indicating whether to print debug message or not.
+    :param stop: flag indicating whether to stop and let the user use enter key to continue
     """
     if doit:
         print('****************************')
         print(msg)
         print('****************************')
+        if stop:
+            input('press RETURN to continue')
 
 
 def error(msg: str):

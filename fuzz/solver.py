@@ -6,7 +6,7 @@ from typing import Optional, List
 
 from fuzz.options import *
 from fuzz.ltl_grammar import *
-from fuzz.utils import debug, error, convert_z3_value, lookup_dict
+from fuzz.utils import inspect, debug, error, convert_z3_value
 
 
 def print_model(model: ModelRef, end_time: int):
@@ -88,7 +88,8 @@ def solve_formula(solver: Solver, formula: BoolRef, end_time: int) -> Optional[M
     solver.add(formula)
     if solver.check() == sat:
         model = solver.model()
-        print_model(model, end_time)
+        if Options.DEBUG_LEVEL >= 1:
+            print_model(model, end_time)
         return model
     else:
         print("No solution found.")
@@ -103,24 +104,25 @@ def refine_solver_using_to_smt(ast: LTLSpec, solver: Solver, end_time: int) -> T
     :param end_time: the end time of the timeline.
     :return: the test extracted from the final extracted model.
     """
-    print('Refining solution')
+    debug(3, 'Refining solution')
     for i in range(end_time):
         solver.push()
         command = command_dictionary.generate_random_smt_command()
         solver.add(timeline(i) == command)
         if solver.check() == sat:
-            print(f'-- refinement step {i}: changed=True')
+            debug(3, f'-- refinement step {i}: changed=True')
             extract_and_verify_test(ast, solver.model(), end_time)
             solver.pop()  # Undo temporary changes
             solver.add(timeline(i) == command)  # Keep the satisfiable constraint
         else:
-            print(f'refinement step {i}: changed=False')
+            debug(3, f'refinement step {i}: changed=False')
             solver.pop()  # Remove unsatisfiable constraint
     if solver.check() != sat:
         raise AssertionError('Model not satisfiable as expected')
     refined_model = solver.model()
     test = extract_and_verify_test(ast, refined_model, end_time)
-    print_test(test)
+    if Options.DEBUG_LEVEL >= 1:
+        print_test(test)
     return test
 
 
@@ -136,20 +138,21 @@ def refine_solver_using_evaluate(ast: LTLSpec, solver: Solver, end_time: int) ->
     :param end_time: the end time of the timeline.
     :return: the final test.
     """
-    print('Refining solution')
+    debug(3, 'Refining solution')
     test = extract_and_verify_test(ast, solver.model(), end_time).copy()
     for i in range(end_time):
         old_command = test[i]
         new_command = command_dictionary.generate_random_dict_command()
         test[i] = new_command
         if ast.evaluate(test):
-            print(f'-- refinement step {i}: replacing {old_command} with {new_command}')
+            debug(3, f'-- refinement step {i}: replacing {old_command} with {new_command}')
         else:
-            print(f'refinement step {i}: keeping {old_command}')
+            debug(3, f'refinement step {i}: keeping {old_command}')
             test[i] = old_command
     if not ast.evaluate(test):
         raise AssertionError('Model not satisfiable as expected')
-    print_test(test)
+    if Options.DEBUG_LEVEL >= 1:
+        print_test(test)
     return test
 
 
@@ -165,31 +168,44 @@ def refine_solver_using_evaluate_per_arg(ast: LTLSpec, solver: Solver, end_time:
     :param end_time: the end time of the timeline.
     :return: the final test.
     """
-    print('Refining solution')
+    debug(3, 'Refining solution')
     test = extract_and_verify_test(ast, solver.model(), end_time).copy()
     for i in range(end_time):
-        print('---')
+        debug(3, '---')
         old_command = test[i]
-        new_command = command_dictionary.generate_random_dict_command()
-        test[i] = new_command
-        if ast.evaluate(test):
-            print(f'-- refinement step {i}: replacing {old_command} with {new_command}')
+        replaced_whole_command: bool = False
+        for x in range(2):
+            new_command = command_dictionary.generate_random_dict_command()
+            for field in ast.get_any_args():
+                new_command[field] = old_command[field]
+            test[i] = new_command
+            if ast.evaluate(test):
+                replaced_whole_command = True
+                break
+            else:
+                debug(3, f'failed replacing {old_command} with {new_command}')
+        if replaced_whole_command:
+            debug(3, f'-- refinement step {i}: replacing {old_command} with {new_command}')
         else:
-            print(f'refinement step {i}: keeping {old_command}, now trying argument by argument')
+            debug(3, f'refinement step {i}: keeping {old_command}, rejecting {new_command}, now trying argument by argument')
             test[i] = old_command
             random_args = command_dictionary.generate_random_arguments_for_command(test[i]['name'])
             for arg_name, arg_value in random_args.items():
-                old_value = test[i][arg_name]
-                test[i][arg_name] = arg_value
-                print(f'refining {arg_name} from {old_value} to {arg_value} -> {test[i]}')
-                if not ast.evaluate(test):
-                    print(f'that did not work, restoring old value {old_value}')
-                    test[i][arg_name] = old_value
+                if arg_name in ast.get_any_args():
+                    debug(3, f'not replacing any-field {arg_name}')
                 else:
-                    print('that worked')
+                    old_value = test[i][arg_name]
+                    test[i][arg_name] = arg_value
+                    debug(3, f'refining {arg_name} from {old_value} to {arg_value} -> {test[i]}')
+                    if not ast.evaluate(test):
+                        debug(3, f'that did not work, restoring old value {old_value}')
+                        test[i][arg_name] = old_value
+                    else:
+                        debug(3, 'that worked')
     if not ast.evaluate(test):
         raise AssertionError('Model not satisfiable as expected')
-    print_test(test)
+    if Options.DEBUG_LEVEL >= 1:
+        print_test(test)
     return test
 
 
@@ -278,7 +294,6 @@ def extract_and_verify_test(ast: LTLSpec, model: ModelRef, end_time: int) -> Tes
     :return: the resulting test.
     """
     test = [extract_command(model.eval(timeline(i)), model) for i in range(end_time)]
-    print('checking generated test against semantics')
     if not ast.evaluate(test):
         error(f"*** generated test does not satisfy LTL semantics:\n {test}")
     return test

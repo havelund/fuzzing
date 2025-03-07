@@ -24,7 +24,7 @@ from pprint import pprint
 from z3 import *
 
 from fuzz.gencmds import generate_commands
-from fuzz.utils import debug, error, headline
+from fuzz.utils import inspect, error, headline
 
 # ==================================================================
 # Minimal and maximal values used when command arguments are defined
