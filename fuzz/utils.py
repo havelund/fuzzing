@@ -100,9 +100,7 @@ def debug(level: int, msg: str):
     """
     assert level in [1,2,3], f'wrong debugging level {level}'
     if Options.DEBUG_LEVEL >= level:
-        print('****************************')
         print(f"{DEBUG_COLOR}[DEBUG] {msg} {RESET_COLOR}")
-        print('****************************')
 
 
 def inspect(msg: str, doit: bool = True, stop: bool = False):
