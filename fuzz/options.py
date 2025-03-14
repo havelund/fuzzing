@@ -18,7 +18,7 @@ class Options:
     # 1 : minimal debugging information
     # 2 : medium debugging information
     # 3 : maximum debugging information
-    DEBUG_LEVEL: int = 0
+    DEBUG_LEVEL: int = 3
 
     # If true a graph of the parse tree is generated.
     GRAPH_PARSE_TREE: bool = False

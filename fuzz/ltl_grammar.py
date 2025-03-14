@@ -23,6 +23,8 @@ grammar = """
 
 ?formula: formula IMPLIES formula           -> implies
         | ID "(" constraints? ")" (IFTHEN | ANDTHEN) formula -> commandmatch
+        | "[" ID "(" constraints? ")" "]" formula -> commandmatch_ifthen
+        | "<" ID "(" constraints? ")" ">" formula -> commandmatch_andthen
         | formula OR formula                -> or_
         | formula AND formula               -> and_
         | ID "(" constraints? ")"           -> predicate
@@ -147,6 +149,36 @@ class FormulaTransformer(Transformer):
         for constraint in constraints:
             constraint.command_name = id_
         return LTLCommandMatch(id_, constraints, kw, formula)
+
+    # ---\
+
+    def commandmatch_ifthen(self, id_, *args):
+        if len(args) == 1:
+            constraints = []
+            formula = args[0]
+        elif len(args) == 2:
+            constraints = args[0]
+            formula = args[1]
+        else:
+            raise ValueError("Unexpected number of arguments in commandmatch_ifthen")
+        for constraint in constraints:
+            constraint.command_name = id_
+        return LTLCommandMatchIfThen(id_, constraints, formula)
+
+    def commandmatch_andthen(self, id_, *args):
+        if len(args) == 1:
+            constraints = []
+            formula = args[0]
+        elif len(args) == 2:
+            constraints = args[0]
+            formula = args[1]
+        else:
+            raise ValueError("Unexpected number of arguments in commandmatch_andthen")
+        for constraint in constraints:
+            constraint.command_name = id_
+        return LTLCommandMatchAndThen(id_, constraints, formula)
+
+    # ---/
 
     def or_(self, left, kw, right):
         return LTLOr(left, right)

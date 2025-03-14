@@ -622,6 +622,18 @@ referred to in F. There are four kinds of constraints, each constraining a field
 - f = 42     : f must be a number and have the value 42 (example).
 - f = "hot"  : f must be a string or an enumerated type and have the value "hot" (example).
 
+#### Alternative syntax for command patterns
+
+Two alternative syntaxes for command patterns are supported as shown below, together with their
+semantics expressed in terms of the command patterns introduced above.
+
+|       Formula       | Explanation |
+|:-------------------:|--|
+| [ ID(c1,...,cn) ] F | ID(c1,...,cn) => F |
+| < ID(c1,...,cn) > F | ID(c1,...,cn) &> F |
+
+This notation is closer in style to that of modal logics, with _[A]F_ meaning: if _A_ holds, then _F_ holds, and 
+_\<A\>F_ meaning _A_ holds and _F_ holds (after that).
 
 #### Boolean Logic Operators
 
@@ -642,6 +654,10 @@ An expression can be an identifier (e.g. x) introduced in a command pattern else
 a number (e.g. an integer -4 or a floating point number 42.5), a string (e.g. "hot"), or an arithmetic
 expression using the standard arithmetic operators (+, -, *, /) with infix notation
 (e.g. (a + b) / (2 * c)).
+
+**Note**: + applies to strings, meaning concatenation, as well as to numbers. However, the string + is very inefficient,
+and should be avoided. Likewise, <, <=, >, >= can be applied to strings (lexiographic
+ordering) as well as to numbers , but these string comparisons are also inefficent and should be avoided.
 
 #### Future Time Temporal Logic Operators
 

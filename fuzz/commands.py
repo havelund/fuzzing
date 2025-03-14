@@ -184,6 +184,7 @@ class FSWStringArgument(FSWArgument):
 
     def __init__(self, name: str, length: int):
         super().__init__(name, length)
+        self.ascii = [StringVal(chr(c)) for c in range(128)]
 
     def random_python_value(self) -> str:
         characters = string.ascii_letters + string.digits

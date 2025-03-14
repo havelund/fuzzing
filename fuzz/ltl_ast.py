@@ -336,6 +336,14 @@ class LTLAddExpression(LTLBinaryExpression):
     def evaluate(self, env: Environment) -> Union[int, float]:
         return self.left.evaluate(env) + self.right.evaluate(env)
 
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        left_type = self.left.get_type(symbols)
+        right_type = self.right.get_type(symbols)
+        if left_type == BaseType.STRING and right_type == BaseType.STRING:
+            return BaseType.STRING
+        else:
+            return super().get_type(symbols)
+
 
 @dataclass
 class LTLSubExpression(LTLBinaryExpression):
@@ -831,7 +839,7 @@ class LTLRelation(LTLFormula):
     def wellformed(self, symbols: SymbolTable) -> bool:
         ty1 = self.exp1.get_type(symbols)
         ty2 = self.exp2.get_type(symbols)
-        arithmetic_operators = ["<", "<=", ">", ">="]
+        comparison_operators = ["<", "<=", ">", ">="]
         number_types = [BaseType.INT, BaseType.FLOAT]
         same_types = (
             ty1 == ty2 or
@@ -842,8 +850,9 @@ class LTLRelation(LTLFormula):
         if not same_types:
             report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not have compatible types')
         comparable_types = (
-                self.oper not in arithmetic_operators or
-                (ty1 in number_types and ty2 in number_types)
+                self.oper not in comparison_operators or
+                (ty1 in number_types and ty2 in number_types) or
+                (ty1 == BaseType.STRING and ty2 == BaseType.STRING)
         )
         if not comparable_types:
             report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not match the operator {self.oper}')
@@ -1423,6 +1432,51 @@ class LTLDerivedFormula(LTLFormula):
 
     def wellformed(self, symbols: SymbolTable) -> bool:
         return self.expand().wellformed(symbols)
+
+# ---\
+
+@dataclass
+class LTLCommandMatchIfThen(LTLDerivedFormula):
+    """Derived construct for [ID(...)] F, interpreted as ID(...) => F."""
+    command_name: str
+    constraints: list[LTLConstraint]
+    subformula: LTLFormula
+
+    def to_str(self, indent: int = 0):
+        result = TAB * indent
+        result += '['
+        result += f'{self.command_name}('
+        result += ','.join(c.to_str() for c in self.constraints)
+        result += ')'
+        result += ']\n'
+        result += self.subformula.to_str(indent + 1)
+        return result
+
+    def expand(self) -> LTLFormula:
+        return LTLCommandMatch(self.command_name, self.constraints, '=>', self.subformula)
+
+
+@dataclass
+class LTLCommandMatchAndThen(LTLDerivedFormula):
+    """Derived construct for <ID(...)> F, interpreted as ID(...) &> F."""
+    command_name: str
+    constraints: list[LTLConstraint]
+    subformula: LTLFormula
+
+    def to_str(self, indent: int = 0):
+        result = TAB * indent
+        result += '<'
+        result += f'{self.command_name}('
+        result += ','.join(c.to_str() for c in self.constraints)
+        result += ')'
+        result += '>\n'
+        result += self.subformula.to_str(indent + 1)
+        return result
+
+    def expand(self) -> LTLFormula:
+        return LTLCommandMatch(self.command_name, self.constraints, '&>', self.subformula)
+
+# ---/
 
 
 @dataclass

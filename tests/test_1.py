@@ -135,3 +135,28 @@ def test_arithmetic():
     rule p1: eventually MOVE(speed=a?) &> eventually MOVE(speed=b?) &> b = (a + 4) / 2
     rule p2: eventually TURN(angle=a?) &> eventually TURN(angle=b?) &> a = b / 2 = 2.5
     """)
+
+def test_string_lt_comparison():
+    norun("""
+    rule p1: MOVE()
+    rule p2: always MOVE(message=m1?) => 
+               wnext eventually MOVE(message=m2?) &> m1 < m2
+    """, 3)
+
+def test_string_concatenation():
+    norun("""
+    rule p1: eventually MOVE(message=m1?) &> 
+               (m1 != "" and
+               next
+                 eventually MOVE(message=m2?) &> 
+                   (m2 != "" and
+                   next
+                     eventually MOVE(message=m3?) &>
+                       m3 = m2))
+    """)
+
+def test_modal_logic_notation():
+    run("""
+    rule p1: always [MOVE(distance=a?)] 5 < a < 8
+    rule p2: next next <MOVE(number=x?)> next LOG(number = x)
+    """)

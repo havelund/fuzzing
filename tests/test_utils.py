@@ -3,7 +3,12 @@ from fuzz import *
 
 
 TEST_SUITE_SIZE = 1
+# TEST_SIZE = 10
 TEST_SIZE = 10
+
+
+def norun(spec, refinement_strategy: int = 0):
+    pass
 
 
 def run(spec, refinement_strategy: int = 0):
