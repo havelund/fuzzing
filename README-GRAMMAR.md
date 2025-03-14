@@ -23,6 +23,8 @@ The grammar for the temporal logic uses the following notation:
 <formula> ::= 
           <formula> IMPLIES <formula>  
         | ID "(" <constraints>? ")" (IFTHEN | ANDTHEN) <formula>
+        | "[" ID "(" constraints? ")" "]" formula 
+        | "<" ID "(" constraints? ")" ">" formula 
         | <formula> OR <formula>
         | <formula> AND <formula> 
         | ID "(" <constraints>? ")" 
