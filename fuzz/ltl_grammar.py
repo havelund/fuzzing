@@ -150,8 +150,6 @@ class FormulaTransformer(Transformer):
             constraint.command_name = id_
         return LTLCommandMatch(id_, constraints, kw, formula)
 
-    # ---\
-
     def commandmatch_ifthen(self, id_, *args):
         if len(args) == 1:
             constraints = []
@@ -177,8 +175,6 @@ class FormulaTransformer(Transformer):
         for constraint in constraints:
             constraint.command_name = id_
         return LTLCommandMatchAndThen(id_, constraints, formula)
-
-    # ---/
 
     def or_(self, left, kw, right):
         return LTLOr(left, right)
