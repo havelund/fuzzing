@@ -13,31 +13,15 @@ The objective of fuzzing is to invoke unlikely, untried, command sequences on th
 software in an attempt to break it.
 
 The function `generate_tests` takes as input a description of possible commands in XML format,
-a description of what particular flight software modules should be tested (areas),
-and an optional specification of constraints, which limits the amount of randomness,
+including a description of what particular flight software modules should be tested (areas),
+and a specification of constraints (which can be empty), which limits the amount of randomness,
 allowing to avoid unrealistic command sequences or to focus on specific command sequences of interest. 
 It returns a _test suite_ (a list of tests), generated using a constraint 
 solver ([z3](https://github.com/Z3Prover/z3)).
 
-```
-+--------------------------------------------------+
-|                The fuzz Module                   |
-|                                                  |
-|  +------------------+   +--------------------+   |
-|  | commands + areas |   |    constraints     |   |
-|  +--------+---------+   +---------+----------+   |
-|           |                       |              |
-|           V                       V              |
-|        /-----------------------------\           |
-|       |         generate_tests        |          |
-|        \-----------------------------/           |
-|                        |                         |
-|                        V                         |
-|  +-----------------------------------------+     |
-|  |       test suite = list of tests        |     |
-|  +-----------------------------------------+     |
-+--------------------------------------------------+
-```
+<center>
+  <img src="material/images/arc-diagram.png" alt="diagram" width="300"/>
+</center>
 
 A generated test suite is a list of tests, each being a list of commands,
 each being represented as  a dictionary containing the name of the command and any arguments.
