@@ -861,6 +861,29 @@ class LTLRelation(LTLFormula):
 
 
 @dataclass
+class LTLInRegExp(LTLFormula):
+    """x < 10"""
+    exp: LTLExpression
+    regexp_constraint: ReRef
+    regexp_string: str  # just used for printing
+
+    def to_str(self, indent: int = 0):
+        result = TAB * indent
+        result += f'{self.exp.to_str()} matches {self.regexp_string}'
+        return result
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        value = self.exp.to_smt(env)
+        return z3.InRe(value, self.regexp_constraint)
+
+    def evaluate(self, env: Environment, t: int, end_time: int) -> bool:
+        return True
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        return self.exp.get_type(symbols) == BaseType.STRING
+
+
+@dataclass
 class LTLCommandMatch(LTLFormula):
     """cmd ?|! (field1=42,field2=x,field3=y?) => formula"""
 
@@ -1433,7 +1456,6 @@ class LTLDerivedFormula(LTLFormula):
     def wellformed(self, symbols: SymbolTable) -> bool:
         return self.expand().wellformed(symbols)
 
-# ---\
 
 @dataclass
 class LTLCommandMatchIfThen(LTLDerivedFormula):
@@ -1475,8 +1497,6 @@ class LTLCommandMatchAndThen(LTLDerivedFormula):
 
     def expand(self) -> LTLFormula:
         return LTLCommandMatch(self.command_name, self.constraints, '&>', self.subformula)
-
-# ---/
 
 
 @dataclass

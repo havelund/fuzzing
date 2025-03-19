@@ -14,7 +14,8 @@ from fuzz.options import Options
 # Colors
 # ======
 
-DEBUG_COLOR = "\033[93m"  # Yellow
+DEBUG_COLOR = "\033[93m"    # Yellow
+INSPECT_COLOR = "\033[31m"  # Standard red
 RESET_COLOR = "\033[0m"
 
 # =====
@@ -111,9 +112,7 @@ def inspect(msg: str, doit: bool = True, stop: bool = False):
     :param stop: flag indicating whether to stop and let the user use enter key to continue
     """
     if doit:
-        print('****************************')
-        print(msg)
-        print('****************************')
+        print(f"{INSPECT_COLOR}[DEBUG] {msg} {RESET_COLOR}")
         if stop:
             input('press RETURN to continue')
 

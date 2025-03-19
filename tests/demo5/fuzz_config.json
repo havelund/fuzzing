@@ -1,0 +1,8 @@
+
+{
+    "fsw_path": "fsw",
+    "fsw_areas": ["dwn"],
+    "spec_path": "spec.txt",
+    "test_suite_size": 2,
+    "test_size": 10
+}

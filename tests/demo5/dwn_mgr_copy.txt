@@ -1,0 +1,200 @@
+
+<command_dictionary>
+        <header mission_name="EUROPA_CLIPPER" schema_version="1.0" version="10.1.0.2">
+          <spacecraft_ids>
+            <spacecraft_id value="159"/>
+          </spacecraft_ids>
+        </header>
+        <uplink_file_types>
+          <file_type extension="dat" file_format_spec="None" id="0" name="generic"/>
+          <file_type extension="lgo" file_format_spec="File Format SIS: Sequence Files D-102376" id="2" name="load_and_go"/>
+          <file_type extension="seq" file_format_spec="File Format SIS: Sequence Files D-102376" id="1" name="sequence"/>
+        </uplink_file_types>
+        <enum_definitions>
+          <enum_table name="dwn_framing_packet_buffer">
+            <values>
+              <enum numeric="0" symbol="REALTIME_EHA_1"/>
+              <enum numeric="1" symbol="FATAL_EVR"/>
+              <enum numeric="2" symbol="WARNING_HI_EVR"/>
+              <enum numeric="3" symbol="CFDP_CLASS_2"/>
+              <enum numeric="4" symbol="WARNING_LO_EVR"/>
+              <enum numeric="5" symbol="REALTIME_EHA_2"/>
+              <enum numeric="6" symbol="CMD_EVR"/>
+              <enum numeric="7" symbol="ACTIVITY_HI_EVR"/>
+              <enum numeric="8" symbol="ACTIVITY_LO_EVR"/>
+              <enum numeric="9" symbol="REALTIME_EHA_3"/>
+              <enum numeric="10" symbol="DATA_PRODUCTS"/>
+              <enum numeric="11" symbol="DIAGNOSTIC_EVR"/>
+              <enum numeric="12" symbol="REALTIME_EHA_4"/>
+            </values>
+          </enum_table>
+          <enum_table name="enable_disable">
+            <values>
+              <enum numeric="0" symbol="DISABLE"/>
+              <enum numeric="1" symbol="ENABLE"/>
+            </values>
+          </enum_table>
+          </enum_definitions>
+        <command_definitions>
+          <fsw_command class="FSW" opcode="0xFBA1" stem="TIME_CORR_REQUEST">
+            <arguments>
+              <unsigned_arg bit_length="32" name="tc_generation_duration" units="seconds">
+                <range_of_values>
+                  <include max="86400" min="1"/>
+                </range_of_values>
+                <description>How long to generate Time Correlation packets/frames.</description>
+              </unsigned_arg>
+              <unsigned_arg bit_length="16" name="tc_spacing" units="seconds">
+                <range_of_values>
+                  <include max="3600" min="1"/>
+                </range_of_values>
+                <description>Spacing between successive sets of consecutive time correlation frames.</description>
+              </unsigned_arg>
+              <unsigned_arg bit_length="8" name="tc_consecutive_frames" units="downlink frames">
+                <range_of_values>
+                  <include max="10" min="1"/>
+                </range_of_values>
+                <description>The number of consecutive (back to back) time correlation frames to provide.</description>
+              </unsigned_arg>
+            </arguments>
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>TIME</ops_category>
+            </categories>
+            <description>Generate Time Correlation (TC) Packets with the specified cadence. For example to have FSW generate a TC frame every 10 minutes for 4 hours and 3 frames back-to-back the command arguments will be: duration period=14400 sec, TC spacing=600 sec, TC consecutive frames=3. FSW will cancel a previous time correlation command if a new one comes in before the active one has completed.</description>
+            <completion>Complete when TC packets are being produced at the commanded cadence.</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <prime_string_restriction prime_string_only="Yes" prime_string_restrict_reason="Only prime ECE can command devices."/>
+            </restricted_modes>
+          </fsw_command>
+          <fsw_command class="FSW" opcode="0xFBBB" stem="DDM_CLEAR_DWN_DP_BUFFER">
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>DDM</ops_category>
+            </categories>
+            <description>Clears the data product downlink packet buffer. Products cleared from this buffer will be marked as "UNSENT" in the data product catalog.</description>
+            <completion>When the data product downlink buffer has been cleared.</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <prime_string_restriction prime_string_only="No"/>
+            </restricted_modes>
+          </fsw_command>
+          <fsw_command class="FSW" opcode="0xFBBC" stem="DDM_MANAGE_DWN_PB">
+            <arguments>
+              <enum_arg bit_length="8" enum_name="dwn_framing_packet_buffer" name="dwn_framing_packet_buffer">
+                <description>This specifies the downlink framing priority packet buffer to be enabled/disabled.</description>
+              </enum_arg>
+              <enum_arg bit_length="8" enum_name="enable_disable" name="dwn_framing_pb_enable_disable">
+                <description>enable or disable selection</description>
+              </enum_arg>
+            </arguments>
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>DDM</ops_category>
+            </categories>
+            <description>Enable or disable the data flowing into the specified downlink framing priority queue packet buffer.</description>
+            <completion>specified packet buffer is enabled/disabled for downlink</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <prime_string_restriction prime_string_only="No"/>
+            </restricted_modes>
+          </fsw_command>
+          <fsw_command class="FSW" opcode="0xFBBD" stem="DDM_SET_DWN_TZ_CONFIG">
+            <arguments>
+              <unsigned_arg bit_length="32" name="dwn_rate" units="bps">
+                <range_of_values>
+                  <include max="2000000" min="10"/>
+                </range_of_values>
+                <description>The rate at which to downlink at the TZ (Time Zero, launch vehicle) interface.</description>
+              </unsigned_arg>
+            </arguments>
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>DDM</ops_category>
+            </categories>
+            <description>Enables the TZ (Time Zero) interface and sets the specified rate. </description>
+            <completion>When the specified rate has been requested.</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <prime_string_restriction prime_string_only="No"/>
+            </restricted_modes>
+          </fsw_command>
+          <fsw_command class="FSW" opcode="0xFBBE" stem="DDM_ENABLE_DWN_PB_ENTRY_GATE">
+            <arguments>
+              <enum_arg bit_length="8" enum_name="dwn_framing_packet_buffer" name="dwn_framing_packet_buffer">
+                <description>This lists the downlink framing priority packet buffers that can be enabled/disabled</description>
+              </enum_arg>
+              <enum_arg bit_length="8" enum_name="enable_disable" name="dwn_framing_pb_entry_gate_enable_disable">
+                <description>enable or disable selection</description>
+              </enum_arg>
+            </arguments>
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>DDM</ops_category>
+            </categories>
+            <description>This command will enable or disable the entry gate of the specified buffer. The downlink manager can still be producing packets, but if this entry gate is disabled, packets can not be placed into the buffer and will be dropped.</description>
+            <completion>When the specified buffer entry gate has been toggled.</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_RCS" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_RWA" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_SAFE" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_JOI" reason="Meant to be used in test mode only"/>
+              <prime_string_restriction prime_string_only="No"/>
+            </restricted_modes>
+          </fsw_command>
+          <fsw_command class="FSW" opcode="0xFBBF" stem="DDM_ENABLE_DWN_PB_EXIT_GATE">
+            <arguments>
+              <enum_arg bit_length="8" enum_name="dwn_framing_packet_buffer" name="dwn_framing_packet_buffer">
+                <description>This lists the downlink framing priority packet buffers that can be enabled/disabled</description>
+              </enum_arg>
+              <enum_arg bit_length="8" enum_name="enable_disable" name="enable_disable">
+                <description>enable or disable selection</description>
+              </enum_arg>
+            </arguments>
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>DDM</ops_category>
+            </categories>
+            <description>This command will enable or disable the exit gate of the specified buffer. The downlink manager can still be producing packets, but if this exit gate is disabled, packets can get dropped or overwritten, depending on the buffer type (ring vs fifo).</description>
+            <completion>When the specified buffer exit gate has been toggled.</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_RCS" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_RWA" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_SAFE" reason="Meant to be used in test mode only"/>
+              <mode mode_name="SYS_JOI" reason="Meant to be used in test mode only"/>
+              <prime_string_restriction prime_string_only="No"/>
+            </restricted_modes>
+          </fsw_command>
+          <fsw_command class="FSW" opcode="0xFD85" stem="DDM_CLEAR_DWN_PACKET_BUFFER">
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>DDM</ops_category>
+            </categories>
+            <description>Clears all data in the downlink packet buffers (the downlink framing priority queues). </description>
+            <completion>When the data has been cleared from the packet buffers.</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <prime_string_restriction prime_string_only="No"/>
+            </restricted_modes>
+          </fsw_command>
+          <fsw_command class="FSW" opcode="0xFED0" stem="DDM_CLEAR_DWN_BUFFER">
+            <categories>
+              <module>dwn_mgr</module>
+              <ops_category>DDM</ops_category>
+            </categories>
+            <description>Clears all data from the downlink buffer, real-time and recorded.</description>
+            <completion>When all data from the entire downlink buffer has been cleared.</completion>
+            <fsw_specification command_priority="Nominal" custom_validation_required="No"/>
+            <restricted_modes>
+              <prime_string_restriction prime_string_only="No"/>
+            </restricted_modes>
+          </fsw_command>
+        </command_definitions>
+      </command_dictionary>

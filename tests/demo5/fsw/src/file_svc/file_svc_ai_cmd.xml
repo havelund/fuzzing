@@ -1,0 +1,949 @@
+<command_dictionary>
+  <header mission_name="EUROPA_CLIPPER" version="10.4.3.0" schema_version="1.0">
+    <spacecraft_ids>
+      <spacecraft_id value="159"/>
+    </spacecraft_ids>
+  </header>
+  <uplink_file_types>
+    <file_type name="generic" id="0" extension="dat" file_format_spec="None"/>
+    <file_type name="load_and_go" id="2" extension="lgo" file_format_spec="File Format SIS: Sequence Files D-102376"/>
+    <file_type name="sequence" id="1" extension="seq" file_format_spec="File Format SIS: Sequence Files D-102376"/>
+  </uplink_file_types>
+  <enum_definitions>
+    <enum_table name="boolean">
+      <values>
+        <enum symbol="FALSE" numeric="0"/>
+        <enum symbol="TRUE" numeric="1"/>
+      </values>
+    </enum_table>
+    <enum_table name="clone_direction">
+      <values>
+        <enum symbol="DMR_side_A-to-DMR_side_B" numeric="0"/>
+        <enum symbol="DMR_side_B-to-DMR_side_A" numeric="1"/>
+      </values>
+    </enum_table>
+    <enum_table name="emem_DMR_side">
+      <values>
+        <enum symbol="A" numeric="0"/>
+        <enum symbol="B" numeric="1"/>
+      </values>
+    </enum_table>
+    <enum_table name="emem_bb_state">
+      <values>
+        <enum symbol="good" numeric="0"/>
+        <enum symbol="bad" numeric="1"/>
+      </values>
+    </enum_table>
+    <enum_table name="true_false">
+      <values>
+        <enum symbol="FALSE" numeric="0"/>
+        <enum symbol="TRUE" numeric="1"/>
+      </values>
+    </enum_table>
+    <enum_table name="which_efs_catalog">
+      <values>
+        <enum symbol="DDR2_CATALOG" numeric="0"/>
+        <enum symbol="MRAM_CATALOG" numeric="1"/>
+      </values>
+    </enum_table>
+    <enum_table name="which_emem_volume">
+      <values>
+        <enum symbol="all" numeric="0"/>
+        <enum symbol="eng0" numeric="1"/>
+        <enum symbol="eng1" numeric="2"/>
+        <enum symbol="dp" numeric="3"/>
+      </values>
+    </enum_table>
+    <enum_table name="which_emem_volume_for_dp">
+      <values>
+        <enum symbol="eng0" numeric="1"/>
+        <enum symbol="eng1" numeric="2"/>
+        <enum symbol="dp" numeric="3"/>
+      </values>
+    </enum_table>
+    <enum_table name="which_format_type">
+      <values>
+        <enum symbol="logical" numeric="0"/>
+        <enum symbol="physical" numeric="1"/>
+        <enum symbol="factory_restore" numeric="2"/>
+      </values>
+    </enum_table>
+    <enum_table name="which_nand_power_state">
+      <values>
+        <enum symbol="NAND_OFF" numeric="0"/>
+        <enum symbol="NAND_ON" numeric="1"/>
+      </values>
+    </enum_table>
+  </enum_definitions>
+  <command_definitions>
+    <fsw_command opcode="0xFBC0" stem="DDM_COPY_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="source_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the source file (path as well)</description>
+        </var_string_arg>
+        <var_string_arg name="destination_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the destination file (path as well).</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Copy source file to destination within same unit. The files may be on different file system partitions. This is within EFS only.</description>
+      <completion>When the copy finishes.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC1" stem="DDM_LS_DMP" class="FSW">
+      <arguments>
+        <enum_arg name="recursive" bit_length="8" enum_name="true_false">
+          <description>When the argument is true, list of the contents of subdirectories recursively; when false, list the top-level directory</description>
+        </enum_arg>
+        <var_string_arg name="path" prefix_bit_length="8" max_bit_length="1024">
+          <description>The fully-qualified name of the directory to list (path)</description>
+        </var_string_arg>
+        <unsigned_arg name="dp_priority" bit_length="8" units="nil">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Packetization priority of the resultant data product. priority of 0 will cause the active data product configuration table assigned priority to be used.</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Create a data product listing the contents and structure of a given filesystem directory</description>
+      <completion>When the data has been written to a data product.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC2" stem="DDM_CONCAT_FILES" class="FSW">
+      <arguments>
+        <var_string_arg name="source_1_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of source file 1 (path as well)</description>
+        </var_string_arg>
+        <var_string_arg name="source_2_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of source file 2 (path as well)</description>
+        </var_string_arg>
+        <var_string_arg name="destination" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of the destination file (must not already exist) which will be created.</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Concatenate source files source_1 and source_2 into a destination file in the given order. Destination file must not already exist in the file system.</description>
+      <completion>When the new file has been created.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC3" stem="DDM_COMPARE_CHECKSUM_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of file to checksum</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Generate an ACTIVITY_LO EVR containing the 32-bit CRC checksum stored, compared to the 32-bit checksum calculated upon command dispatch, for the file specified by the "path" argument.</description>
+      <completion>When the ACTIVITY_LO EVR has been generated.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC4" stem="DDM_DMP_FILE" class="FSW">
+      <arguments>
+        <integer_arg name="offset" bit_length="32" units="bytes">
+          <range_of_values>
+            <include min="0" max="2147483647"/>
+          </range_of_values>
+          <description>The first byte in the range.  The bytes in a file are numbered 0...size-1.</description>
+        </integer_arg>
+        <integer_arg name="nbytes" bit_length="32" units="bytes">
+          <range_of_values>
+            <include min="-1" max="16777216"/>
+          </range_of_values>
+          <description>Number of bytes to dump. Note that setting the number of bytes to -1 (or a value greater than the file size) will dump all the bytes from the offset up to the end-of-file.</description>
+        </integer_arg>
+        <var_string_arg name="filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of the source file (path)</description>
+        </var_string_arg>
+        <unsigned_arg name="dp_priority" bit_length="8" units="nil">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Packetization priority of the resultant data product. priority of 0 will cause the active data product configuration table assigned priority to be used.</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Dump a range of bytes in a file to a DP. If the combination of offset and number of bytes to dump exceeds the size of the file the dump will contain data from the offset to the end of the file. Note that if the dumped file exceeds the max size of a data product the resulting data product will be a truncated file. </description>
+      <completion>When the file has been written to a data product.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC5" stem="DDM_DEL_DIRECTORY" class="FSW">
+      <arguments>
+        <var_string_arg name="directory" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of the directory to delete (path)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Deletes a directory. The directory must be empty.</description>
+      <completion>Directory deleted</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC6" stem="DDM_RENAME_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="source_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the source file (path as well)</description>
+        </var_string_arg>
+        <var_string_arg name="destination_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the destination file (path as well)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Rename a file. Source and destination must be in the same directory.  </description>
+      <completion>When the file name has been updated.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC7" stem="DDM_DEL_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="source_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the source file (path as well)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Deletes a file.  Can not be used for BDS</description>
+      <completion>When the file has been deleted.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBC8" stem="DDM_MAKE_DIRECTORY" class="FSW">
+      <arguments>
+        <var_string_arg name="directory" prefix_bit_length="8" max_bit_length="1024">
+          <description>Name of the directory to create.</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Create a directory; non-recursive (creates one directory at one level).</description>
+      <completion>When the directory has been created.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBCB" stem="DDM_COMPRESS_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="source_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the source file (path as well)</description>
+        </var_string_arg>
+        <var_string_arg name="destination_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the destination file (path as well)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Compress a file in the file system. The files may be on different file system partitions. This is within EFS only.</description>
+      <completion>When the new compressed file has been created.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBCC" stem="DDM_DECOMPRESS_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="source_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the source file (path as well)</description>
+        </var_string_arg>
+        <var_string_arg name="destination_filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the destination file (path as well)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Decompress a file in the file system. The files may be on different file system partitions. This is within EFS only.</description>
+      <completion>When the new decompressed file has been created.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFBCD" stem="DDM_DMP_METADATA_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="filename" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of the source file (path)</description>
+        </var_string_arg>
+        <unsigned_arg name="dp_priority" bit_length="8" units="nil">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Packetization priority of the resultant data product. Priority of 0 will cause the active data product configuration table assigned priority to be used.</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Creates a data product that list at least the following metadata for the specified file: type (file or directory), size, creation time, name, and crc32 value.</description>
+      <completion>When the metadata has been written to a data product.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFC21" stem="DDM_RADIATION_MAINTENANCE_EFS" class="FSW">
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>This command will initiate NAND radiation maintenance for the EFS. This includes the spare stacks.</description>
+      <completion>When the radiation maintenance has completed, or has been aborted.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFD49" stem="DDM_CREATE_FILE" class="FSW">
+      <arguments>
+        <var_string_arg name="file_path" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the source file (path as well)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Creates an empty file using the specified path/name.</description>
+      <completion>When the file has been created.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFD4A" stem="DDM_FORCE_DEL_DIRECTORY" class="FSW">
+      <arguments>
+        <var_string_arg name="dir_path" prefix_bit_length="8" max_bit_length="1024">
+          <description>Fully-qualified name of the directory to delete (path)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Deletes a directory and any contents (recursive).</description>
+      <completion>When the directory has been deleted.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFD4B" stem="DDM_RENAME_DIRECTORY" class="FSW">
+      <arguments>
+        <var_string_arg name="source" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the source file (path as well)</description>
+        </var_string_arg>
+        <var_string_arg name="dest" prefix_bit_length="8" max_bit_length="1024">
+          <description>fully-qualified name of the destination file (path as well)</description>
+        </var_string_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Renames the provided directory. Source and destination must be in the same directory.  </description>
+      <completion>When the directory has been renamed.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFDEF" stem="AVS_FORMAT_EMEM_NAND" class="FSW">
+      <arguments>
+        <enum_arg name="which_emem_volume" bit_length="8" enum_name="which_emem_volume">
+          <description>Which volume(s) to format. Options are: All, eng0, eng1, or dp</description>
+        </enum_arg>
+        <enum_arg name="which_format_type" bit_length="8" enum_name="which_format_type">
+          <description>What type of format:
+      Logical: Marks the space as unused, but doesn't actually overwrite the contents in NAND.
+      Physical: Erase-verifies the volume, but keeps the accumulated bad block and wear-leveling statistics associated with the volume.
+      Factory_restore: Restores the memory to the factory delivered state and clears all the wear-leveling and sets the bad block statistics to the factory detected values associated with that volume.</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Formats the specified volume and updates the EFS metadata. FSW rejects this command if the volume is currently mounted. Zombie mode does not mount EMEM NAND.
+      
+      FSW will reject this command if the format type is factory_restore and the volume argument is not "all". FSW will rebuild the stripe map after a factory restore. </description>
+      <completion>When formatting completes (or fails)</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Potential loss of data"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Potential loss of data"/>
+        <mode mode_name="SYS_RCS" reason="Potential loss of data"/>
+        <mode mode_name="SYS_RWA" reason="Potential loss of data"/>
+        <mode mode_name="SYS_SAFE" reason="Potential loss of data"/>
+        <mode mode_name="SYS_JOI" reason="Potential loss of data"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFDF1" stem="AVS_SS_READ_CHECK_EMEM_NAND" class="FSW">
+      <arguments>
+        <unsigned_arg name="which_stripe" bit_length="16" units="none">
+          <range_of_values>
+            <include min="0" max="32767"/>
+          </range_of_values>
+          <description>Which stripe to read</description>
+        </unsigned_arg>
+        <unsigned_arg name="start_page" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="63"/>
+          </range_of_values>
+          <description>Which page to start reading</description>
+        </unsigned_arg>
+        <unsigned_arg name="num_pages" bit_length="8" units="none">
+          <range_of_values>
+            <include min="1" max="32"/>
+          </range_of_values>
+          <description>Number of pages to read</description>
+        </unsigned_arg>
+        <enum_arg name="make_dp" bit_length="8" enum_name="boolean">
+          <description>Create a DP or not. </description>
+        </enum_arg>
+        <unsigned_arg name="dp_priority" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Data product priority</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>FSW reads out the contents of 1 to 32 pages of EMEM NAND, computes the CRC32, and writes the data to a DP if make_dp argument is true. The CRC-32 result plus any errors indicated by H/W and the error address is reported in a corresponding EVR(s). FSW will interleave the reads with nominal operations. FSW will fail the command if num_pages+start_page is greater than 63.</description>
+      <completion>After dispatching the EVR</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFDF2" stem="AVS_SS_WRITE_EMEM_NAND" class="FSW">
+      <arguments>
+        <unsigned_arg name="which_stripe" bit_length="16" units="none">
+          <range_of_values>
+            <include min="0" max="32767"/>
+          </range_of_values>
+          <description>Which stripe to write to</description>
+        </unsigned_arg>
+        <integer_arg name="start_page" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="63"/>
+          </range_of_values>
+          <description>Which page to start writing</description>
+        </integer_arg>
+        <unsigned_arg name="num_pages" bit_length="8" units="none">
+          <range_of_values>
+            <include min="1" max="32"/>
+          </range_of_values>
+          <description>The number of pages</description>
+        </unsigned_arg>
+        <unsigned_arg name="bit_pattern" bit_length="32" units="none">
+          <range_of_values>
+            <include min="0" max="4294967295"/>
+          </range_of_values>
+          <description>The pattern to write to the specified page(s).</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>FSW writes the specified pattern to the specified page(s). Operators will need to power on NAND and load the stripe and health tables before using this command. </description>
+      <completion>After requesting the write</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Potential loss of data"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Potential loss of data"/>
+        <mode mode_name="SYS_RCS" reason="Potential loss of data"/>
+        <mode mode_name="SYS_RWA" reason="Potential loss of data"/>
+        <mode mode_name="SYS_SAFE" reason="Potential loss of data"/>
+        <mode mode_name="SYS_JOI" reason="Potential loss of data"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFDF3" stem="AVS_SS_ERASE_EMEM_NAND" class="FSW">
+      <arguments>
+        <enum_arg name="which_DMR_side" bit_length="8" enum_name="emem_DMR_side">
+          <description>Which array to erase</description>
+        </enum_arg>
+        <unsigned_arg name="which_lane" bit_length="8" units="Which lane to erase">
+          <range_of_values>
+            <include min="0" max="5"/>
+          </range_of_values>
+          <description>Which lane to erase</description>
+        </unsigned_arg>
+        <unsigned_arg name="which_die" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="7"/>
+          </range_of_values>
+          <description>which die to erase</description>
+        </unsigned_arg>
+        <unsigned_arg name="which_block" bit_length="16" units="none">
+          <range_of_values>
+            <include min="0" max="4095"/>
+          </range_of_values>
+          <description>which block to erase</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Performs an erase of the specified block. 
+      
+      Note that FSW will handle the erase even if the specified block is the spare.</description>
+      <completion>After erase has completed</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Potential loss of data"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Potential loss of data"/>
+        <mode mode_name="SYS_RCS" reason="Potential loss of data"/>
+        <mode mode_name="SYS_RWA" reason="Potential loss of data"/>
+        <mode mode_name="SYS_SAFE" reason="Potential loss of data"/>
+        <mode mode_name="SYS_JOI" reason="Potential loss of data"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFDF4" stem="AVS_MOUNT_EMEM_NAND" class="FSW">
+      <arguments>
+        <enum_arg name="which_volume" bit_length="8" enum_name="which_emem_volume">
+          <description>Which volume to mount</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Mounts the NAND blocks associated with the specified volume.
+      </description>
+      <completion>Once NAND has been mounted (or attempt fails)</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFDF5" stem="AVS_UNMOUNT_EMEM_NAND" class="FSW">
+      <arguments>
+        <enum_arg name="which_volume" bit_length="8" enum_name="which_emem_volume">
+          <description>Which volume to unmount</description>
+        </enum_arg>
+        <enum_arg name="force_unmount" bit_length="8" enum_name="boolean">
+          <description>Force unmount will unmount regardless of open file descriptors</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Unmounts the NAND blocks associated with the specified volume. Force unmount will unmount regardless of open file descriptors.
+      
+      </description>
+      <completion>Upon unmount</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Need FSW team support"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Need FSW team support"/>
+        <mode mode_name="SYS_RCS" reason="Need FSW team support"/>
+        <mode mode_name="SYS_RWA" reason="Need FSW team support"/>
+        <mode mode_name="SYS_SAFE" reason="Need FSW team support"/>
+        <mode mode_name="SYS_JOI" reason="Need FSW team support"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFE5C" stem="AVS_EMEM_MARK_BLOCK_BAD" class="FSW">
+      <arguments>
+        <enum_arg name="emem_DMR_side" bit_length="8" enum_name="emem_DMR_side">
+          <description>Which side</description>
+        </enum_arg>
+        <unsigned_arg name="which_data_lane" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="5"/>
+          </range_of_values>
+          <description>Which data lane</description>
+        </unsigned_arg>
+        <unsigned_arg name="which_block" bit_length="16" units="none">
+          <range_of_values>
+            <include min="0" max="32767"/>
+          </range_of_values>
+          <description>Which block</description>
+        </unsigned_arg>
+        <enum_arg name="bb_state" bit_length="8" enum_name="emem_bb_state">
+          <description>Which state</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Marks an EMEM NAND block either good or bad. 
+      If operators mark a block "good", FSW will make it good only if the factory setting is not bad. In other words, this command won't undo the factory setting.
+      
+      FSW will update the bad block code of the specified block and update the volume metadata if the block is present in a mounted volume. Else the volume metadata will be updated after mounting.
+      
+      When marking a block bad the volume mount status doesn't matter.
+      
+      When marking a block good, the command will be rejected if the volume is not mounted. 
+      
+      When marking a block good this command updates the wear count to be equal to the maximum wear of any block in the volume which the stripe belongs.</description>
+      <completion>When the block has been updated.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_RCS" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_RWA" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_SAFE" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_JOI" reason="FSW should be involved with these commands"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFE5D" stem="AVS_EMEM_MARK_STRIPE_BAD" class="FSW">
+      <arguments>
+        <unsigned_arg name="which_emem_stripe" bit_length="16" units="none">
+          <range_of_values>
+            <include min="0" max="32767"/>
+          </range_of_values>
+          <description>Which stripe to mark good or bad.
+      </description>
+        </unsigned_arg>
+        <enum_arg name="emem_bb_state" bit_length="8" enum_name="emem_bb_state">
+          <description>Mark the stripe good or bad.</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Marks an EMEM NAND stripe either good or bad. 
+      FSW will update the bad block code of all blocks which compose the stripe and update the volume metadata if the stripe is present in a mounted volume. Else the volume metadata will be updated after mounting.
+      
+      When marking a stripe bad the volume mount status doesn't matter.
+      
+      When marking a stripe good, the command will be rejected if the volume is not mounted. 
+      
+      When marking a stripe good this command updates the stripe wear count to be equal to the maximum wear of any stripe in the volume which the stripe belongs. This updates the wear counts for all blocks which compose the stripe.</description>
+      <completion>When the stripe has been updated</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_RCS" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_RWA" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_SAFE" reason="FSW should be involved with these commands"/>
+        <mode mode_name="SYS_JOI" reason="FSW should be involved with these commands"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFE5E" stem="AVS_DMP_EMEM_BLOCK_REMAP_TABLE" class="FSW">
+      <arguments>
+        <enum_arg name="which_efs_catalog" bit_length="8" enum_name="which_efs_catalog">
+          <description>Which version of the EFS catalog (DDR2 or MRAM)</description>
+        </enum_arg>
+        <unsigned_arg name="dp_priority" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Data product priority</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Dumps the contents of the EMEM block remap table to a data product. This table is the physical block to logical block mapping (the stripes).</description>
+      <completion>When DP has been completely written</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFE5F" stem="AVS_DMP_EMEM_BLOCK_HEALTH_TABLE" class="FSW">
+      <arguments>
+        <enum_arg name="which_efs_catalog" bit_length="8" enum_name="which_efs_catalog">
+          <description>Which version of the EFS catalog (DDR2 or MRAM)</description>
+        </enum_arg>
+        <unsigned_arg name="dp_priority" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Data product priority</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Dumps the contents of the EMEM NAND block health table, that contains the bad block and wear count for each block.</description>
+      <completion>When the DP has completed being written</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFE60" stem="AVS_DMP_EMEM_BAD_BLOCKS" class="FSW">
+      <arguments>
+        <unsigned_arg name="dp_priority" bit_length="8" units="none">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>DP priority</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Only dumps the bad blocks of the EMEM NAND block health table. </description>
+      <completion>When the DP has completed being written</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFEB8" stem="AVS_DMP_EFS_VOLUME_STATS" class="FSW">
+      <arguments>
+        <enum_arg name="which_emem_volume_for_dp" bit_length="8" enum_name="which_emem_volume_for_dp">
+          <description>Specifies which volume to dump.</description>
+        </enum_arg>
+        <unsigned_arg name="dp_priority" bit_length="8" units="nil">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Packetization priority of the resultant data product. Priority of 0 will cause the active data product configuration table assigned priority to be used.</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Makes a data product with block by block information about the engineering file system volumes. </description>
+      <completion>When DP has been requested</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFF17" stem="DDM_ABORT_RAD_MAINTENANCE_EFS" class="FSW">
+      <categories>
+        <module>file_svc</module>
+        <ops_category>DDM</ops_category>
+      </categories>
+      <description>Aborts EFS radiation maintenance if active.</description>
+      <completion>Complete when EFS radiation maintenance has aborted.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFF74" stem="AVS_EMEM_NAND_SET_LANE_SELECTION" class="FSW">
+      <arguments>
+        <enum_arg name="emem_DMR_side" bit_length="8" enum_name="emem_DMR_side">
+          <description>which NAND group</description>
+        </enum_arg>
+        <unsigned_arg name="what_configuration" bit_length="32" units="none">
+          <range_of_values>
+            <include min="0" max="4294967295"/>
+          </range_of_values>
+          <description>See EMEM spec, registers EMEMN_NAND_GR_A/B_LANE_SEL_T for details</description>
+        </unsigned_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Sets the desired selection of the physical NAND devices/lanes used for data, ECC, and the spare. This command sets the desired state in the non-volatile file system metadata, for FSW to use when cloning, erasing, or during FSW initialization at the mount NAND step. At those times, FSW will then set the register in the EMEM board to this value. In other words, there is no change is made to the NAND configuration when this command is executed, but the value is used in subsequent events.
+        
+       
+      See the EMEM spec, registers EMEMN_NAND_GR_A_LANE_SEL_T and EMEMN_NAND_GR_B_LANE_SEL_T. Note that bits 31:23 are ignored in the command.</description>
+      <completion>Once FSW updates the desired state in MRAM.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Need FSW support to construct this command."/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Need FSW support to construct this command."/>
+        <mode mode_name="SYS_RCS" reason="Need FSW support to construct this command."/>
+        <mode mode_name="SYS_RWA" reason="Need FSW support to construct this command."/>
+        <mode mode_name="SYS_SAFE" reason="Need FSW support to construct this command."/>
+        <mode mode_name="SYS_JOI" reason="Need FSW support to construct this command."/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFF76" stem="AVS_EMEM_NAND_DMR_CLONE" class="FSW">
+      <arguments>
+        <enum_arg name="clone_direction" bit_length="8" enum_name="clone_direction">
+          <description>Specifies which direction to clone.</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Configures the EMEM registers with the desired lane selection (from the set_lane_selection cmd), disables DMR, and configures array to partial program. Then FSW migrates the contents of the 'from' DMR side to 'to' side, as specified in the clone_direction argument.</description>
+      <completion>When FSW has completed the migration</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Need FSW approval."/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Need FSW approval."/>
+        <mode mode_name="SYS_RCS" reason="Need FSW approval."/>
+        <mode mode_name="SYS_RWA" reason="Need FSW approval."/>
+        <mode mode_name="SYS_SAFE" reason="Need FSW approval."/>
+        <mode mode_name="SYS_JOI" reason="Need FSW approval."/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFF8D" stem="AVS_POWER_ON_EMEM_NAND" class="FSW">
+      <arguments>
+        <enum_arg name="which_nand_power_state" bit_length="8" enum_name="which_nand_power_state">
+          <description>Which power state</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Powers EMEM NAND on or off. </description>
+      <completion>After NAND state changes</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Potential loss of data if sent incorrectly"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Potential loss of data if sent incorrectly"/>
+        <mode mode_name="SYS_RCS" reason="Potential loss of data if sent incorrectly"/>
+        <mode mode_name="SYS_RWA" reason="Potential loss of data if sent incorrectly"/>
+        <mode mode_name="SYS_SAFE" reason="Potential loss of data if sent incorrectly"/>
+        <mode mode_name="SYS_JOI" reason="Potential loss of data if sent incorrectly"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFF8E" stem="AVS_LOAD_MRAM_STRIPE_HEALTH_TABLE" class="FSW">
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Instructs FSW to retrieve EFS MRAM stripe and health tables for FSW use. 
+      
+      FSW rejects this command if any volume is currently mounted. Zombie mode does not mount EMEM NAND.</description>
+      <completion>After tables have been loaded</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFFC9" stem="AVS_EMEM_NAND_POWER_CYCLE" class="FSW">
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>This command power cycles the EMEM NAND (both banks) in a non-disruptive manner to ongoing file system accesses.  NAND must remain off for at least 1 second.
+      
+      Continue on errors (e.g. if power state does not match expected)
+      
+      Generate WARNING EVR is the detected power state does not match the commanded state.
+      
+      Generate ACTIVITY LO EVR any time the NAND power state is modified.
+      
+      </description>
+      <completion>Command completes after power is restored and file system access is resumed.</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFFD2" stem="AVS_MOUNT_EMEM_NAND_FORCE" class="FSW">
+      <arguments>
+        <enum_arg name="which_volume" bit_length="8" enum_name="which_emem_volume">
+          <description>Which volume to mount</description>
+        </enum_arg>
+      </arguments>
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>Forces mount of NAND blocks associated with the specified volume, and will continue the mount even if there are missing part of the directory structure. This command is primarily for anomaly investigations.
+      </description>
+      <completion>Once NAND has been mounted</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <mode mode_name="SYS_LAUNCH_PRE_SEP" reason="Need FSW team support"/>
+        <mode mode_name="SYS_LAUNCH_POST_SEP" reason="Need FSW team support"/>
+        <mode mode_name="SYS_RCS" reason="Need FSW team support"/>
+        <mode mode_name="SYS_RWA" reason="Need FSW team support"/>
+        <mode mode_name="SYS_SAFE" reason="Need FSW team support"/>
+        <mode mode_name="SYS_JOI" reason="Need FSW team support"/>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+    <fsw_command opcode="0xFFD3" stem="AVS_VALIDATE_EFS_METADATA_MRAM" class="FSW">
+      <categories>
+        <module>file_svc</module>
+        <ops_category>AVS</ops_category>
+      </categories>
+      <description>FSW reads the contents of the Engineering File System (/eng0, /eng1, /dp) metadata MRAM (in a manner that is atomic with respect to concurrent FSW updates to the contents), calculates the checksums, and compare against the stored checksums.  
+      
+      This command can be run concurrently with ongoing data product creation / writing, uplink of files, downlink of data products, file access from other clients (e.g. parameter services, sequence engines) and compression.
+      
+      FSW reports a WARNING_LO for every checksum that doesn't match, and continue validating.
+      
+      This command is supported in zombie and non-zombie modes.
+      
+      The command will complete in less than 1 hour.
+      
+      Command fails if any checksum fails.</description>
+      <completion>After final EVR is output</completion>
+      <fsw_specification custom_validation_required="No" command_priority="Nominal"/>
+      <restricted_modes>
+        <prime_string_restriction prime_string_only="No"/>
+      </restricted_modes>
+    </fsw_command>
+  </command_definitions>
+</command_dictionary>

@@ -14,7 +14,7 @@ from fuzz.ltl_ast import *
 # The grammar.
 # ============
 
-grammar = """
+grammar = r"""
 ?start: specification
 
 ?specification: rule* -> spec
@@ -46,6 +46,7 @@ grammar = """
         | "(" formula ")"                   -> parens
         | "true"                            -> true
         | "false"                           -> false
+        | expression INREG regexp           -> inregexp
         | COUNT "(" INT "," INT ")" formula -> countfuture               // NOT LTL
         | COUNTPAST   "(" INT "," INT ")" formula -> countpast           // NOT LTL
         | COUNT INT  formula              -> countfutureexact            // DERIVED
@@ -68,6 +69,8 @@ grammar = """
         | FLOAT               -> floatexpr
         | STRING              -> stringexpr
         | "(" expression ")"  -> parenexpr
+
+?regexp: REGEX_BODY
 
 constraints: constraint ("," constraint)*   -> constraint_list
 
@@ -106,9 +109,12 @@ AFTER: "after" | "~*>"
 COUNT: "count" | "@"
 COUNTPAST: "countpast" | "@*"
 RELOP: "<" | "<=" | "=" | "!=" | ">=" | ">"
+INREG: "matches" | "|-"
 REQUIRED: "?" | "!"
 
 COMMENT: /\#[^\r\n]*/x 
+
+REGEX_BODY: /\/(?:(\\.)|[^\/\\\s])+(?:(\\.)|[^\/\\\s])*?\//
 
 %import common.CNAME -> ID
 %import common.ESCAPED_STRING -> STRING
@@ -119,6 +125,41 @@ COMMENT: /\#[^\r\n]*/x
 %ignore WS
 %ignore COMMENT
 """
+
+regexp_grammar = r"""
+?start: re_expr
+
+?re_expr: union_expr
+
+?union_expr: concat_expr ("|" concat_expr)* -> re_union_expr
+
+?concat_expr: repeat_expr+ -> re_concat_expr
+
+?repeat_expr: atom_expr quantifier? -> re_repeat_expr
+
+?atom_expr: "(" re_expr ")"    -> re_group
+          | "[" char_range+ "]"  -> re_char_class
+          | DOT                -> re_dot
+          | ESC_SEQ            -> re_escape
+          | CHAR               -> re_char
+
+?quantifier: "*"              -> re_star
+          | "+"               -> re_plus
+          | "?"               -> re_option
+          | "{" NUMBER ("," NUMBER)? "}"  -> re_loop
+
+?char_range: CHAR "-" CHAR  -> re_range_expr
+          | CHAR            -> re_char_expr
+
+ESC_SEQ: /\\[dws]/
+DOT: "."
+CHAR: /[A-Za-z0-9!@#\$%\^&\*_\+=;':",<>\/`~]/
+
+%import common.INT   -> NUMBER
+"""
+
+# This did not work:
+# ESC_SEQ: "\\" ("d" | "w" | "s" | "D" | "W" | "S")
 
 # =====================================
 # Converting the parse tree to our AST.
@@ -303,6 +344,13 @@ class FormulaTransformer(Transformer):
     def parenexpr(self, expr):
         return LTLParenExpression(expr)
 
+    def inregexp(self, expr, kw, regexp):
+        regex_literal = str(regexp)
+        regex_text = regex_literal[1:-1]
+        regex_tree = regexp_parser.parse(regex_text)
+        z3_regex = RegExpTransformer().transform(regex_tree)
+        return LTLInRegExp(expr, z3_regex, regexp)
+
     # Derived constructs:
 
     def then(self, left, kw, right):
@@ -313,6 +361,99 @@ class FormulaTransformer(Transformer):
 
     def multirelation(self, exp1, kw1, exp2, kw2, exp3):
         return LTLMultiRelation(exp1, kw1, exp2, kw2, exp3)
+
+
+@v_args(inline=True)
+class RegExpTransformer(Transformer):
+    def re_union_expr(self, first, *rest):
+        # concat_expr ("|" concat_expr)*
+        r = first
+        for expr in rest:
+            r = z3.Union(r, expr)
+        return r
+
+    def re_concat_expr(self, *exprs):
+        # repeat_expr+
+        r = exprs[0]
+        for expr in exprs[1:]:
+            r = z3.Concat(r, expr)
+        return r
+
+    def re_repeat_expr(self, expr, quantifier=None):
+        # atom_expr quantifier?
+        if quantifier is not None:
+            return quantifier(expr)
+        else:
+            return expr
+
+    def re_group(self, expr):
+        # "(" re_expr ")"
+        return expr
+
+    def re_char_class(self, *children):
+        # "[" char_range+ "]"
+        r = children[0]
+        for child in children[1:]:
+            r = z3.Union(r, child)
+        return r
+
+    def re_dot(self, token):
+        # DOT
+        regex_sort = z3.ReSort(z3.StringSort())
+        return z3.AllChar(regex_sort)
+
+    def re_escape(self, token):
+        # ESC_SEQ
+        esc = str(token)
+        if esc == r"\d":
+            # Digits: 0-9
+            return z3.Range(z3.StringVal("0"), z3.StringVal("9"))
+        elif esc == r"\w":
+            # Word characters: a-z, A-Z, 0-9, underscore.
+            lower = z3.Range(z3.StringVal("a"), z3.StringVal("z"))
+            upper = z3.Range(z3.StringVal("A"), z3.StringVal("Z"))
+            digit = z3.Range(z3.StringVal("0"), z3.StringVal("9"))
+            underscore = z3.Re("_")
+            return z3.Union(lower, z3.Union(upper, z3.Union(digit, underscore)))
+        elif esc == r"\s":
+            # Whitespace: here we simply allow the space character.
+            return z3.Re(" ")
+        # Optionally, add cases for \D, \W, \S.
+        else:
+            # Fallback: treat as literal.
+            return z3.Re(esc)
+
+    def re_char(self, token):
+        # CHAR
+        return z3.Re(str(token))
+
+    def re_star(self):
+        # "*"
+        return lambda r: z3.Star(r)
+
+    def re_plus(self):
+        # "+"
+        return lambda r: z3.Plus(r)
+
+    def re_option(self):
+        # "?"
+        return lambda r: z3.Option(r)
+
+    def re_loop(self, number1, *rest):
+        # "{" NUMBER ("," NUMBER)? "}"
+        m = int(number1)
+        if rest:
+            n = int(rest[0])
+        else:
+            n = m
+        return lambda r: z3.Loop(r, m, n)
+
+    def re_range_expr(self, char1, char2):
+        return z3.Range(z3.StringVal(str(char1)), z3.StringVal(str(char2)))
+
+    def re_char_expr(self, token):
+        return z3.Re(str(token))
+
 
 # ================================
 # Methods for visualizing the AST.
@@ -350,6 +491,8 @@ def visualize_sub_tree(tree: Tree, graph=None, parent=None):
 # =====================
 # The parsing function.
 # =====================
+
+regexp_parser = Lark(regexp_grammar, parser="earley")
 
 def parse_spec(spec: str) -> LTLSpec:
     """Parses the specification, generates an AST,
