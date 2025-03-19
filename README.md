@@ -25,7 +25,7 @@ solver ([z3](https://github.com/Z3Prover/z3)).
   <img src="material/images/arc-diagram.png" alt="diagram" width="200" />
 </div>
 
-> <img src="material/images/arc-diagram.png" alt="diagram" width="200" />
+>             <img src="material/images/arc-diagram.png" alt="diagram" width="200" />
 
 A generated test suite is a list of tests, each being a list of commands,
 each being represented as  a dictionary containing the name of the command and any arguments.
