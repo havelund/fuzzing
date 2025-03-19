@@ -20,7 +20,7 @@ It returns a _test suite_ (a list of tests), generated using a constraint
 solver ([z3](https://github.com/Z3Prover/z3)).
 
 <center>
-  <img src="material/images/arc-diagram.png" alt="diagram" width="300"/>
+  <img src="material/images/arc-diagram.png" alt="diagram" width=200"/>
 </center>
 
 A generated test suite is a list of tests, each being a list of commands,
