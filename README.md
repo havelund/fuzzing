@@ -19,7 +19,11 @@ allowing to avoid unrealistic command sequences or to focus on specific command 
 It returns a _test suite_ (a list of tests), generated using a constraint 
 solver ([z3](https://github.com/Z3Prover/z3)).
 
-<center><img src="material/images/arc-diagram.png" alt="diagram" width=200"/></center>
+<img src="material/images/arc-diagram.png" alt="diagram" width=200"/>
+
+<div style="margin-left: 20px;">
+  <img src="material/images/arc-diagram.png" alt="diagram" width="200" />
+</div>
 
 A generated test suite is a list of tests, each being a list of commands,
 each being represented as  a dictionary containing the name of the command and any arguments.
