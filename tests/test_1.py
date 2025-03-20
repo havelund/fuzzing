@@ -174,3 +174,5 @@ def test_regular_expression():
     rule p8   : next next next next next next next next <MOVE(message=m?)> m matches /\w{2}\s{2}\d{2}/
     rule p9   : next next next next next next next next next <MOVE(message=m?)> m matches /\d{5}\w\w?\w{2}/
     """)
+
+

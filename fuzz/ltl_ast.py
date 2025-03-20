@@ -5,11 +5,10 @@ This includes also type checking (wellformedness check).
 """
 
 from __future__ import annotations
-from abc import ABC
-from enum import Enum
 from typing import Dict, Any
 from dataclasses import dataclass, is_dataclass, fields
 from collections import Counter
+import re
 
 from fuzz.utils import CommandDict, Test, TestSuite
 from fuzz.commands import *
@@ -865,7 +864,7 @@ class LTLInRegExp(LTLFormula):
     """x < 10"""
     exp: LTLExpression
     regexp_constraint: ReRef
-    regexp_string: str  # just used for printing
+    regexp_string: str  # Used by evaluate and for printing
 
     def to_str(self, indent: int = 0):
         result = TAB * indent
@@ -877,7 +876,8 @@ class LTLInRegExp(LTLFormula):
         return z3.InRe(value, self.regexp_constraint)
 
     def evaluate(self, env: Environment, t: int, end_time: int) -> bool:
-        return True
+        value = self.exp.evaluate(env)
+        return re.fullmatch(self.regexp_string, value) is not None
 
     def wellformed(self, symbols: SymbolTable) -> bool:
         return self.exp.get_type(symbols) == BaseType.STRING

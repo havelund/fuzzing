@@ -349,7 +349,7 @@ class FormulaTransformer(Transformer):
         regex_text = regex_literal[1:-1]
         regex_tree = regexp_parser.parse(regex_text)
         z3_regex = RegExpTransformer().transform(regex_tree)
-        return LTLInRegExp(expr, z3_regex, regexp)
+        return LTLInRegExp(expr, z3_regex, regexp[1:-1])
 
     # Derived constructs:
 
