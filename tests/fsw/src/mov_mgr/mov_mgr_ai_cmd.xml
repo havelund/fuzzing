@@ -232,7 +232,7 @@
                 <description>Number of images to send.</description>
               </unsigned_arg>
 
-              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
+              <var_string_arg max_bit_length="20" name="message" prefix_bit_length="8">
                 <description>Message</description>
               </var_string_arg>
 

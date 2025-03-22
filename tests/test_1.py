@@ -161,18 +161,23 @@ def test_modal_logic_notation():
     rule p2: next next <MOVE(number=x?)> next LOG(number = x)
     """)
 
-def test_regular_expression():
+def test_regular_expression1():
     run("""
-    rule p0   : <MOVE(message=m?)> m matches /ab.*/
-    rule p1   : next <MOVE(message=m?)> m matches /abc+.{5}/   # "abcD{5}"
-    rule p2   : next next <MOVE(message=m?)> m matches /(abc){2,3}/
-    rule p3   : next next next <MOVE(message=m?)> m matches /([P-R]|[p-r]){4,5}/   # "(Q"
-    rule p4   : next next next next <MOVE(message=m?)> m matches /[p-r]{4,5}/
-    rule p5   : next next next next next <MOVE(message=m?)> m matches /[pqr]{4,5}/ 
-    rule p6   : next next next next next next <MOVE(message=m?)> m matches /[A-Zp-r]{4,5}/
-    rule p7   : next next next next next next next <MOVE(message=m?)> m matches /[A-Zpqr]{4,5}/
-    rule p8   : next next next next next next next next <MOVE(message=m?)> m matches /\w{2}\s{2}\d{2}/
-    rule p9   : next next next next next next next next next <MOVE(message=m?)> m matches /\d{5}\w\w?\w{2}/
+    rule p0 : <MOVE(message=m?)> m matches /ab.*/
+    rule p1 : next <MOVE(message=m?)> m matches /abc+.{5}/   # "abcD{5}"
+    rule p2 : next next <MOVE(message=m?)> m matches /(abc){2,3}/
+    rule p3 : next next next <MOVE(message=m?)> m matches /([P-R]|[p-r]){4,5}/   # "(Q"
+    rule p4 : next next next next <MOVE(message=m?)> m matches /[p-r]{4,5}/
+    rule p5 : next next next next next <MOVE(message=m?)> m matches /[pqr]{4,5}/ 
+    rule p6 : next next next next next next <MOVE(message=m?)> m matches /[A-Zp-r]{4,5}/
+    rule p7 : next next next next next next next <MOVE(message=m?)> m matches /[A-Zpqr]{4,5}/
+    rule p8 : next next next next next next next next <MOVE(message=m?)> m matches /\w{2}\s{2}\d{2}/
+    rule p9 : next next next next next next next next next <MOVE(message=m?)> m matches /\d{5}\w\w?\w{2}/
     """)
 
+def test_regular_expression2():
+    run("""
+    rule p0 : <SEND(message=m?)> m matches /.*\[[A-Za-z]\w*\/[0-9]{3}\.(data|img)(\.\d{4}\-\d{2}\-\d{2})?\].*/
+    """)
 
+# /.+path\/file[0-9]+(((data)|(img))).*/

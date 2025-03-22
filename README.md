@@ -485,9 +485,10 @@ subsequently present our temporal logic.
 
 ### General Introduction to Temporal Logic
 
-We all know Boolean logic from programming languages: `true`, `false`, `not P` (`!P`), `P and Q` (`P && Q`), 
-`P or Q` (`P || Q`), and `P implies Q` (`!P || Q`). Boolean logic allows to formulate
-statements about objects, e.g. Python dictionaries. Say we want to describe the properties of the dictionary:
+We all know Boolean logic: `true`, `false`, `not P` (`!P`), `P and Q` (`P /\ Q`), 
+`P or Q` (`P \/ Q`), and `P implies Q` (`P -> Q`). Boolean logic allows to formulate
+statements about objects, e.g. Python dictionaries. 
+Say we want to describe a property of the dictionary:
 
 ```python
 d = {'x': 1, 'y': 2}
@@ -502,9 +503,10 @@ It satisfies e.g. the Boolean property:
 Note that there are in fact many dictionaries (in fact infinitely many) that satisfy this property, e.g. also:
 
 ```python
-d = {'x': 10, 'y': 200, 'z': 2, 'p': 2}
+d = {'x': 10, 'y': 20, 'z': 30}
 ```
-Temporal logic allows us to formulate statements about a _sequence_ of things, for example, in our
+
+Temporal logic extends Boolean with additional operators that allows us to formulate statements about a _sequence_ of things, for example, in our
 case, a sequence of dictionaries. Take for example the following sequence of five dictionaries:
 
 ```python
@@ -523,18 +525,18 @@ to the variables, the meaning should be clear):
 
 1. **always** x < y
 2. **eventually** x == 6
-3. **not eventually** x >= 9
-4. **always** x < 9
-5. **always** x == 2 implies **next** x == 4
-5. **always** ((x < 8 **and** x _has a value_ k) **implies next** x == k+2)
+3. **not eventually** x > 8
+4. **always** x <= 8
+5. **always** (x == 2 implies **next** x == 4)
+5. **always** ((x <= 6 **and** x _has a value_ k) **implies next** x == k+2)
 
 For example a sequence satisfies `always F` if F is true in every 
 single position of the sequence.  A sequence satisfies `eventually F` if `F`
 is true at some position in the future. A sequence satisfies `next F` if `F`
 is true at the next future position (and there is a next position).
-Property 6 is stated informally. We shall see its formal form below.
+Property 6 is stated informally. We shall see how this is stated in our logic below.
 
-Note that the above formulas are true at the beginning of the test. Generally
+Note that the above formulas are true at the beginning of the sequence. Generally
 a temporal formula is stated to hold for a particular position in a sequence.
 E.g. the formula `not eventually x == 2` is false at the beginning of the sequence,
 at position 0, but is true at position 3 when x == 6.
@@ -543,6 +545,10 @@ We can evaluate a sequence like the one above and check that it
 satisfies the formulas. As you may have guessed, we can also turn this around
 and from the formulas generate sequences that satisfy them. This is exactly our
 test generation task.
+
+Note that there are many different temporal logics presented in literature.
+The temporal logic shown below is very expressive compared and is designed by 
+combining features from other temporal logics, and by adding new temporal operators.
 
 ### Temporal Logic of Commands
 
@@ -592,14 +598,14 @@ In the following tables we explain the possible formulas.
 
 The following command patterns can be used to match commands and their arguments:
 
-|      Formula       | Explanation                                                                                   |
-|:------------------:|-----------------------------------------------------------------------------------------------|
-|   ID(c1,...,cn)    | The current command has the name ID and has arguments that satisfy the constraints c1,...,cn. |
-| ID(c1,...,cn) => F | If the current command matches ID(c1,...cn) then the formula F must be satisfied.             |
-| ID(c1,...,cn) &> F | The current command matches ID(c1,...cn) and the formula F is satisfied.                      |
+|          Formula           | Explanation                                                                                         |
+|:--------------------------:|-----------------------------------------------------------------------------------------------------|
+|    _ID_(_c1_,...,_cn_)     | The current command has the name _ID_ and has arguments that satisfy the constraints _c1_,...,_cn_. |
+| _ID_(_c1_,...,_cn_) => _F_ | If the current command matches _ID_(_c1_,...,_cn_) then the formula _F_ must be satisfied.          |
+| _ID_(_c1_,...,_cn_) &> _F_ | The current command matches _ID_(_c1_,...,_cn_) and the formula _F_ is satisfied.                   |
 
-The constraints c1,...,cn can constrain the arguments, but they can also bind parameter values, which can then be
-referred to in F. There are four kinds of constraints, each constraining a field, here named f, of the command:
+The constraints _c1_,...,_cn_ can constrain the arguments, but they can also bind parameter values, which can then be
+referred to in _F_. There are four kinds of constraints, each constraining a field, here named f, of the command:
 
 - f = x      : f must have the same value as the variable x introduced by one of the patterns above,
 - f = x?     : f's value is bound to x and is now visible in the formula following => and &> above.
@@ -611,10 +617,10 @@ referred to in F. There are four kinds of constraints, each constraining a field
 Two alternative syntaxes for command patterns are supported as shown below, together with their
 semantics expressed in terms of the command patterns introduced above.
 
-|       Formula       | Explanation |
-|:-------------------:|--|
-| [ ID(c1,...,cn) ] F | ID(c1,...,cn) => F |
-| < ID(c1,...,cn) > F | ID(c1,...,cn) &> F |
+|           Formula           | Explanation                |
+|:---------------------------:|----------------------------|
+| [ _ID_(_c1_,...,_cn_) ] _F_ | _ID_(_c1_,...,_cn_) => _F_ |
+| < _ID_(_c1_,...,_cn_) > _F_ | _ID_(_c1_,...,_cn_) &> _F_ |
 
 This notation is closer in style to that of modal logics, with _[A]F_ meaning: if _A_ holds, then _F_ holds, and 
 _\<A\>F_ meaning _A_ holds and _F_ holds (after that).
@@ -622,17 +628,22 @@ _\<A\>F_ meaning _A_ holds and _F_ holds (after that).
 #### Boolean Logic Operators
 
 
-|     Formula      | Explanation                                                                                 |
-|:----------------:|---------------------------------------------------------------------------------------------|
-|      `true`      | The true formula.                                                                           |
-|     `false`      | The false formula.                                                                          |
-|     `not` F      | True if and only if F is false.                                                             |
-|    F `and` G     | F and G.                                                                                    |
-|     F `or` G     | F or G.                                                                                     |
-|  F `implies` G   | F implies G.                                                                                |
-|       (F)        | True if and only if F is true.                                                              |
-|     e1 op e2     | For op being one of: <, <=, =, !=, >, >=. A relation between the values of two expressions. |
-| e1 op1 e2 op2 e3 | Equivalent to: (e1 op1 e2) and (e2 op2 e3).                                                 |
+|      Formula      | Explanation                       |
+|:-----------------:|-----------------------------------|
+|      `true`       | The true formula.                 |
+|      `false`      | The false formula.                |
+|     `not` _F_     | True if and only if _F_ is false. |
+|   _F_ `and` _G_   | _F_ and _G_.                      |
+|   _F_ `or` _G_    | _F_ or _G_.                       |
+| _F_ `implies` _G_ | _F_ implies _G_.                  |
+|       (_F_)       | True if and only if _F_ is true.  |
+
+#### Arithmetic (Mostly) Predicates
+
+|          Formula           | Explanation                                                                                    |
+|:--------------------------:|------------------------------------------------------------------------------------------------|
+|       _e1_ _op_ _e2_       | For _op_ being one of: <, <=, =, !=, >, >=. A relation between the values of two expressions.  |
+| _e1_ _op1_ _e2_ _op2_ _e3_ | Equivalent to: (_e1_ _op1_ _e2_) `and` (_e2_ _op2_ _e3_).                                      |
 
 An expression can be an identifier (e.g. x) introduced in a command pattern elsewhere in the formula, 
 a number (e.g. an integer -4 or a floating point number 42.5), a string (e.g. "hot"), or an arithmetic
@@ -643,38 +654,47 @@ expression using the standard arithmetic operators (+, -, *, /) with infix notat
 and should be avoided. Likewise, <, <=, >, >= can be applied to strings (lexiographic
 ordering) as well as to numbers , but these string comparisons are also inefficent and should be avoided.
 
+#### Regular Expression Matching
+
+|          Formula           | Explanation                                                                                    |
+|:--------------------------:|------------------------------------------------------------------------------------------------|
+|   _e_ `matches` _regexp_   | The string _e_ matches the regular expression _regexp_.                                        |
+
+This formula is true of the string denoted by the expression _e_ matches the regular expression _regexp_.
+See [regular expressions](README-REGEXP.md) for an explanation of regular expressions.
+
 #### Future Time Temporal Logic Operators
 
-|    Formula     | Explanation                                                                                                        |
-|:--------------:|--------------------------------------------------------------------------------------------------------------------|
-|   `always` F   | F is true now and in in all future positions.                                                                      |
-| `eventually` F | F is true now or in some future position.                                                                          |
-|    `next` F    | F is true in the next position.                                                                                    |
-|   `wnext` F    | F is true in the next position, if there is a next position (weak next)                                            |
-|  F `until` G   | G is true now or in some future position _i_, and for all positions __j_ < _i__ until then F is true               |
-|  F `wuntil` G  | G is true now or in some future position _i_, and for all positions __j_ < _i__ until then F is true, or always F. |
+|     Formula      | Explanation                                                                                                              |
+|:----------------:|--------------------------------------------------------------------------------------------------------------------------|
+|   `always` _F_   | _F_ is true now and in in all future positions.                                                                          |
+| `eventually` _F_ | _F_ is true now or in some future position.                                                                              |
+|    `next` _F_    | _F_ is true in the next position.                                                                                        |
+|   `wnext` _F_    | _F_ is true in the next position, if there is a next position (weak next)                                                |
+| _F_ `until` _G_  | _G_ is true now or in some future position _i_, and for all positions _j_ < _i_ until then _F_ is true.                  |
+| _F_ `wuntil` _G_ | _G_ is true now or in some future position _i_, and for all positions _j_ < _i_ until then _F_ is true, or `always` _F_. |
 
 #### Past Time Temporal Logic Operators
 
-|    Formula     | Explanation                                                                                                     |
-|:--------------:|-----------------------------------------------------------------------------------------------------------------|
-|   `sofar` F    | F is true now and in in all past positions.                                                                     |
-|    `once` F    | F is true now or in some past position.                                                                         |
-|    `prev` F    | F is true in the previous position.                                                                             |
-|   `wprev` F    | F is true in the previous position, if there is a previous position                                             |
-|  F `since` G   | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true              |
-|  F `wsince` G  | G is true now or in some past position _i_, and for all positions __j_ > _i__ since then F is true, or sofar F. |
+|     Formula      | Explanation                                                                                                           |
+|:----------------:|-----------------------------------------------------------------------------------------------------------------------|
+|   `sofar` _F_    | _F_ is true now and in in all past positions.                                                                         |
+|    `once` _F_    | _F_ is true now or in some past position.                                                                             |
+|    `prev` _F_    | _F_ is true in the previous position.                                                                                 |
+|   `wprev` _F_    | _F_ is true in the previous position, if there is a previous position                                                 |
+| _F_ `since` _G_  | _G_ is true now or in some past position _i_, and for all positions _j_ > _i_ since then _F_ is true.                 |
+| _F_ `wsince` _G_ | _G_ is true now or in some past position _i_, and for all positions _j_ > _i_ since then _F_ is true, or `sofar` _F_. |
 
 #### Other Temporal Logic Operators
 
-|            Formula            | Explanation                                                            |
-|:-----------------------------:|------------------------------------------------------------------------|
-|         `count` n  F          | F is satisfied exactly _n_ times from now and in the future.           |
-|       `count` (n1,n2) F       | F is satisfied between _n1_ and _n2_ times from now and in the future. |
-|        `countpast` n F        | F is satisfied exactly _n_ times from now and in the past.             |
-|     `countpast` (n1,n2) F     | F is satisfied between _n1_ and _n2_ times from now and in the past.   |
-|          F `then` G           | Equivalent to: always (F implies eventually G)                         |
-|          F `after` G          | Equivalent to: always (F implies once G)                               |
+|           Formula           | Explanation                                                              |
+|:---------------------------:|--------------------------------------------------------------------------|
+|      `count` _n_  _F_       | _F_ is satisfied exactly _n_ times from now and in the future.           |
+|   `count` (_n1_,_n2_) _F_   | _F_ is satisfied between _n1_ and _n2_ times from now and in the future. |
+|     `countpast` _n_ _F_     | _F_ is satisfied exactly _n_ times from now and in the past.             |
+| `countpast` (_n1_,_n2_) _F_ | _F_ is satisfied between _n1_ and _n2_ times from now and in the past.   |
+|       _F_ `then` _G_        | Equivalent to: `always` (_F_ `implies` `eventually` _G_).                |
+|       _F_ `after` _G_       | Equivalent to: `always` (_F_ `implies` `once` _G_).                      |
 
 A special command name is `any`. This will match any command.
 

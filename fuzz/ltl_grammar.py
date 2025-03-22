@@ -151,7 +151,7 @@ regexp_grammar = r"""
 ?char_range: CHAR "-" CHAR  -> re_range_expr
           | CHAR            -> re_char_expr
 
-ESC_SEQ: /\\[dws]/
+ESC_SEQ: /\\./
 DOT: "."
 CHAR: /[A-Za-z0-9!@#\$%\^&\*_\+=;':",<>\/`~]/
 
@@ -160,6 +160,7 @@ CHAR: /[A-Za-z0-9!@#\$%\^&\*_\+=;':",<>\/`~]/
 
 # This did not work:
 # ESC_SEQ: "\\" ("d" | "w" | "s" | "D" | "W" | "S")
+# ESC_SEQ: /\\[dws\/]/
 
 # =====================================
 # Converting the parse tree to our AST.
@@ -349,6 +350,7 @@ class FormulaTransformer(Transformer):
         regex_text = regex_literal[1:-1]
         regex_tree = regexp_parser.parse(regex_text)
         z3_regex = RegExpTransformer().transform(regex_tree)
+        inspect(z3_regex)
         return LTLInRegExp(expr, z3_regex, regexp[1:-1])
 
     # Derived constructs:
@@ -418,10 +420,9 @@ class RegExpTransformer(Transformer):
         elif esc == r"\s":
             # Whitespace: here we simply allow the space character.
             return z3.Re(" ")
-        # Optionally, add cases for \D, \W, \S.
         else:
             # Fallback: treat as literal.
-            return z3.Re(esc)
+            return z3.Re(esc[1])
 
     def re_char(self, token):
         # CHAR

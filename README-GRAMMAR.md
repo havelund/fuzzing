@@ -116,7 +116,6 @@ the notation "/" <union_expr> "/" are provided solely for
 clarity and should not be typed.
 
 ```python
-
 <regular_expr> ::= "/" <union_expr> "/"
 
 <union_expr> ::= <concat_expr> ("|" <concat_expr>)* 
