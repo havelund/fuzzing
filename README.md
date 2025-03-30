@@ -80,7 +80,7 @@ in the order in which they must be provided (it is an ordered dictionary).
 ]
 ```
 
-The approach is very general and can in principle be applied to any software that is driven by a commands.
+The approach is very general and can in principle be applied to any software that is driven by commands.
 Note that the system **currently** does not check whether the SUT behaves correctly since there is no
 verification of output from the SUT. The sole purpose is to break the SUT. Output verification will be
 added in a later version of the system.
