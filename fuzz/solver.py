@@ -272,6 +272,9 @@ def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
     """
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
+        if Options.PRINT_CONSTRAINTS:
+            headline("CONSTRAINTS")
+            print(solver.assertions())
         extract_and_verify_test(ast, solver.model(), end_time)
         if Options.REFINEMENT_STRATEGY == RefinementStrategy.EVAL:
             test = refine_solver_using_evaluate(ast, solver, end_time)

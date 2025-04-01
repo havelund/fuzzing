@@ -26,3 +26,5 @@ class Options:
     # Drives how the refinement of a test is performed.
     REFINEMENT_STRATEGY: RefinementStrategy = RefinementStrategy.EVAL_PER_ARG
 
+    # If true, the Z3 constraints are printed
+    PRINT_CONSTRAINTS: bool = False
