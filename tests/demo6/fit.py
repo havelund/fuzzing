@@ -2,7 +2,7 @@
 from fuzz import generate_tests, TestSuite, Options
 
 spec = """
-    rule at_least_one_turn_and_two_moves:
+    rule at_least_one_turn_and_send_and_two_moves:
       eventually TURN() and eventually SEND() and count 2 MOVE() 
 
     rule move_stop:
