@@ -60,7 +60,7 @@ and because the regular expression grammar is interpreted differently wrt. white
         | <formula THEN <formula>
         | <formula AFTER <formula>
         
-<expr> ::= ID | INT | FLOAT | STRING 
+<expr> ::= ID | INT | FLOAT | STRING | ID "." ID
          | <expr> ("+"|"-"|"*"|"/") <expr> 
          | "(" <expr> ")"
 
@@ -72,6 +72,7 @@ and because the regular expression grammar is interpreted differently wrt. white
            | ID "=" INT 
            | ID "=" FLOAT
            | ID "=" STRING
+           | ID "=" ID "." ID
 ```
 
 ### Table of Keywords and Symbols

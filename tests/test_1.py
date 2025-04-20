@@ -181,3 +181,25 @@ def test_regular_expression2():
     """)
 
 # /.+path\/file[0-9]+(((data)|(img))).*/
+
+
+def test_enum1():
+    run("""
+     rule p: eventually 
+               <PIC(quality=image_quality.high)> 
+                 next <PIC(quality=q?)> q = image_quality.low
+     """)
+
+def test_enum2():
+    run("""
+     rule p: always 
+               <PIC(quality=image_quality.high)> 
+                 true
+     """)
+
+def test_enum3():
+    run("""
+     rule p: always 
+               <PIC(quality=q?)> 
+                 q = image_quality.low
+     """)

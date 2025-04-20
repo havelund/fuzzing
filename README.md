@@ -180,7 +180,7 @@ the following eight commands.
 ```python
 Commands:
 
-    MOVE(time:uint[0:1000], number:uint[0,100], distance:uint[1,100], speed:uint[1,10], message:string[10])
+    MOVE(time:uint[0:1000], number:uint[0,100], distance:uint[1,100], speed:float[1,10], message:string[10])
     ALIGN(time:uint[0:1000], number:uint[0,100], degrees:float[0,360], message:string[10])
     TURN(time:uint[0:1000], number:uint[0,100], angle:float[-180,180], message:string[10])
     CANCEL(time:uint[0:1000], number:uint[0,100], message:string[10])
@@ -200,12 +200,10 @@ send (`SEND`) pictures to ground, and
 log (`LOG`) data.
 
 Each command carries a time stamp and a command number. Types are indicated as (unsigned) `uint`, `float`, 'string',
-or the name of an enumerated type, in this case `speed` and `image_quality`: 
+or the name of an enumerated type, in this `image_quality`: 
 
 ```python
 Types:
-
-    speed = {"slow", "medium", "fast"}
     image_quality = {"low", "high"}
 ```
 
@@ -605,12 +603,13 @@ The following command patterns can be used to match commands and their arguments
 | _ID_(_c1_,...,_cn_) &> _F_ | The current command matches _ID_(_c1_,...,_cn_) and the formula _F_ is satisfied.                   |
 
 The constraints _c1_,...,_cn_ can constrain the arguments, but they can also bind parameter values, which can then be
-referred to in _F_. There are four kinds of constraints, each constraining a field, here named f, of the command:
+referred to in _F_. There are five kinds of constraints, each constraining a field, here named f, of the command:
 
-- f = x      : f must have the same value as the variable x introduced by one of the patterns above,
 - f = x?     : f's value is bound to x and is now visible in the formula following => and &> above.
+- f = x      : f must have the same value as the variable x introduced by the pattern above.
 - f = 42     : f must be a number and have the value 42 (example).
-- f = "hot"  : f must be a string or an enumerated type and have the value "hot" (example).
+- f = "hot"  : f must be a string and have the value "hot" (example).
+- f = image_quality.high : f must be the value `high` of the enumerated type `image_quality`.
 
 #### Alternative syntax for command patterns
 
@@ -646,7 +645,8 @@ _\<A\>F_ meaning _A_ holds and _F_ holds (after that).
 | _e1_ _op1_ _e2_ _op2_ _e3_ | Equivalent to: (_e1_ _op1_ _e2_) `and` (_e2_ _op2_ _e3_).                                      |
 
 An expression can be an identifier (e.g. x) introduced in a command pattern elsewhere in the formula, 
-a number (e.g. an integer -4 or a floating point number 42.5), a string (e.g. "hot"), or an arithmetic
+a number (e.g. an integer -4 or a floating point number 42.5), a string (e.g. "hot"), 
+an emumerated type value (e.g. image_quality.high), or an arithmetic
 expression using the standard arithmetic operators (+, -, *, /) with infix notation
 (e.g. (a + b) / (2 * c)).
 
