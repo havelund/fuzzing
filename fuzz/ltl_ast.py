@@ -39,15 +39,37 @@ class SymbolTable:
         var_env: variable types updated when variables are bound in a `LTLCommandMatch`.
     """
     def __init__(self):
+        self.enum_env: dict[str, list[str]] = command_dictionary.enum_dict  # TODO
         self.cmd_env: CommandTypeEnvironment = command_dictionary.generate_command_type_env()
         self.var_env: VariableTypeEnvironment = {}
 
     def copy(self) -> SymbolTable:
         """Makes a copy of the symbol table, keeping the `cmd_env` the same."""
         new_instance = SymbolTable.__new__(SymbolTable)  # Create uninitialized instance
-        new_instance.cmd_env = self.cmd_env  # Keep reference to the same cmd_env
+        new_instance.enum_env = self.enum_env  # TODO
+        new_instance.cmd_env = self.cmd_env
         new_instance.var_env = copy.deepcopy(self.var_env)
         return new_instance
+
+    # ---\
+
+    def is_enum_type(self, name: str) -> bool:
+        """Returns True iff. `name` is an enumeration type.
+
+        :param name: the name to check whether it is an enumeration type.
+        :return: True iff. it is an enumeration type.
+        """
+        return name in self.enum_env
+
+    def get_enum_values(self, name: str) -> list[str]:
+        """Returns list of enumeration values for an enumerate type.
+
+        :param name: the name of the enumerated type.
+        :return: the list of enumeration values for the type.
+        """
+        return self.enum_env[name]
+
+    # ---/
 
     def is_command(self, cmd: str) -> bool:
         """A name is a command if it is defined as such or if it is `any`.
@@ -308,6 +330,14 @@ class LTLExpression(ASTNode, ABC):
         """
         raise NotImplementedError("Subclasses should implement this!")
 
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        """Checks if the expression is wellformed. Reports if not.
+
+        :param symbols: the symbol table.
+        :return: True iff there are no errors.
+        """
+        raise NotImplementedError("Subclasses should implement this!")
+
 
 @dataclass
 class LTLBinaryExpression(LTLExpression):
@@ -323,6 +353,12 @@ class LTLBinaryExpression(LTLExpression):
             return BaseType.INT
         else:
             raise TypeError("Operator requires numeric operands")
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        ok1 = self.left.wellformed(symbols)
+        ok2 = self.right.wellformed(symbols)
+        return ok1 and ok2
+
 
 @dataclass
 class LTLAddExpression(LTLBinaryExpression):
@@ -398,6 +434,13 @@ class LTLIDExpression(LTLExpression):
     def get_type(self, symbols: SymbolTable) -> FieldType:
         return symbols.get_variable_type(self.ident)
 
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        if not symbols.is_variable(self.ident):
+            report(f'{self.ident} is not a variable in scope')
+            return False
+        else:
+            return True
+
 
 @dataclass
 class LTLIntExpression(LTLExpression):
@@ -416,6 +459,9 @@ class LTLIntExpression(LTLExpression):
 
     def get_type(self, symbols: SymbolTable) -> FieldType:
         return BaseType.INT
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        return True
 
 
 @dataclass
@@ -436,6 +482,9 @@ class LTLFloatExpression(LTLExpression):
     def get_type(self, symbols: SymbolTable) -> FieldType:
         return BaseType.FLOAT
 
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        return True
+
 
 @dataclass
 class LTLStringExpression(LTLExpression):
@@ -455,6 +504,43 @@ class LTLStringExpression(LTLExpression):
     def get_type(self, symbols: SymbolTable) -> FieldType:
         return BaseType.STRING
 
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        return True
+
+# ---\
+
+@dataclass
+class LTLEnumExpression(LTLExpression):
+    """ type_id.value_it """
+
+    type_id: str
+    value_id: str
+
+    def to_str(self):
+        return f'{self.type_id}.{self.value_id}'
+
+    def to_smt(self, env: Environment) -> ExprRef:
+        enum_type = command_dictionary.get_enum_datatype(self.type_id)
+        return getattr(enum_type, self.value_id)
+
+    def evaluate(self, env: Environment) -> str:
+        return self.value_id
+
+    def get_type(self, symbols: SymbolTable) -> FieldType:
+        enum_values = symbols.get_enum_values(self.type_id)
+        return EnumType(self.type_id, enum_values)
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        ok: bool = True
+        if not symbols.is_enum_type(self.type_id):
+            report(f'{self.type_id} is not an enumeration type')
+            ok = False
+        elif self.value_id not in symbols.get_enum_values(self.type_id):
+            report(f'{self.value_id} is not a value of enumerated type {self.type_id}')
+            ok = False
+        return ok
+
+# ---/
 
 @dataclass
 class LTLParenExpression(LTLExpression):
@@ -473,6 +559,9 @@ class LTLParenExpression(LTLExpression):
 
     def get_type(self, symbols: SymbolTable) -> FieldType:
         return self.expr.get_type(symbols)
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        return self.expr.wellformed(symbols)
 
 
 @dataclass
@@ -668,6 +757,8 @@ class LTLStringConstraint(LTLConstraint):
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
         return cmd[self.field] == self.value
 
+    # ---\
+
     def wellformed(self, symbols: SymbolTable) -> bool:
         ok_field = symbols.is_field(self.command_name, self.field)
         if not ok_field:
@@ -676,17 +767,55 @@ class LTLStringConstraint(LTLConstraint):
             ty = symbols.get_field_type(self.command_name, self.field)
             if ty == BaseType.STRING:
                 ok_type = True
-            elif isinstance(ty, EnumType):
-                if self.value not in ty.values:
-                    report(f'{self.value} is not a member of enumerated type {ty.name}')
-                    ok_type = False
-                else:
-                    ok_type = True
             else:
                 report(f'{self.field}:{ty} does not have string type')
                 ok_type = False
         return ok_field and ok_type
 
+    # ---/
+
+# ---\
+
+@dataclass
+class LTLEnumConstraint(LTLConstraint):
+    """cmd(id=enum_type_id.enum_value_id)"""
+
+    type_id: str
+    value_id: str
+
+    def to_str(self):
+        return f'{self.field} = {self.type_id}.{self.value_id}'
+
+    def to_smt(self, env: Environment, t: int, end_time: int) -> BoolRef:
+        actual_value = extract_field(self.command_name, self.field, timeline(t))
+        enum_type = command_dictionary.get_enum_datatype(self.type_id)
+        required_value = getattr(enum_type, self.value_id)
+        return actual_value == required_value
+
+    def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
+        return cmd[self.field] == self.value_id
+
+    def wellformed(self, symbols: SymbolTable) -> bool:
+        ok_field = symbols.is_field(self.command_name, self.field)
+        if not ok_field:
+            report(f'{self.field} is not a field of command {self.command_name}')
+        else:
+            expected_ty = symbols.get_field_type(self.command_name, self.field)
+            if isinstance(expected_ty, EnumType):
+                if expected_ty.name != self.type_id:
+                    report(f'expected enumerated type {expected_ty.name} differs from encountered enumerated type {self.type_id}')
+                    ok_type = False
+                elif self.value_id not in expected_ty.values:
+                    report(f'{self.value_id} is not member of enumerated type {expected_ty.name} = {expected_ty.values}')
+                    ok_type = False
+                else:
+                    ok_type = True
+            else:
+                report(f'{self.field}:{expected_ty} does not have enum type')
+                ok_type = False
+        return ok_field and ok_type
+
+# ---/
 
 @dataclass
 class LTLFormula(ASTNode,ABC):
@@ -836,6 +965,10 @@ class LTLRelation(LTLFormula):
              return False
 
     def wellformed(self, symbols: SymbolTable) -> bool:
+        ok_exp1 = self.exp1.wellformed(symbols)
+        ok_exp2 = self.exp2.wellformed(symbols)
+        if not ok_exp1 or not ok_exp2:
+            return False
         ty1 = self.exp1.get_type(symbols)
         ty2 = self.exp2.get_type(symbols)
         comparison_operators = ["<", "<=", ">", ">="]
@@ -847,14 +980,14 @@ class LTLRelation(LTLFormula):
             self._enum_string(ty2, ty1, self.exp1)
         )
         if not same_types:
-            report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not have compatible types')
+            report(f'expression {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not have compatible types')
         comparable_types = (
                 self.oper not in comparison_operators or
                 (ty1 in number_types and ty2 in number_types) or
                 (ty1 == BaseType.STRING and ty2 == BaseType.STRING)
         )
         if not comparable_types:
-            report(f'expressions {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not match the operator {self.oper}')
+            report(f'expression {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not match the operator {self.oper}')
         ok_types = same_types and comparable_types
         return ok_types
 

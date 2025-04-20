@@ -15,7 +15,7 @@ from fuzz.options import Options
 # ======
 
 DEBUG_COLOR = "\033[93m"    # Yellow
-INSPECT_COLOR = "\033[31m"  # Standard red
+INSPECT_COLOR = "\033[94m"  # Blue
 RESET_COLOR = "\033[0m"
 
 # =====
@@ -182,6 +182,20 @@ def limits_floating_point(bits: int):
     return min_value, max_value
 
 
+# ---\
+
+def is_datatype_instance(val: z3.ExprRef) -> bool:
+    """Checks whether a Z3 value is a datatype value.
+
+    :param val: the value to test.
+    :return True iff it is a datatype value.
+    """
+    try:
+        return val.sort().kind() == z3.Z3_DATATYPE_SORT
+    except:
+        return False
+
+
 def convert_z3_value(value):
     """
     Converts a Z3 value to a Python-native type.
@@ -197,9 +211,12 @@ def convert_z3_value(value):
         return float(value.as_fraction())
     elif z3.is_string_value(value):
         return value.as_string()
+    elif is_datatype_instance(value):
+        return str(value)  # TODO not sure about this
     else:
         raise TypeError(f"Unsupported Z3 value type: {value}")
 
+# ---/
 
 # pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint
 

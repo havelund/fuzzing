@@ -49,6 +49,7 @@ DEFAULT_MAX_FLOAT64 = 1.7976931348623157e+308
 Command: Datatype = None
 timeline: Function = None
 
+
 # ==================================================================
 # Types of arguments as Python datatypes (in contrast to Z3 types).
 # These types are used for type checking a specification.
@@ -203,28 +204,34 @@ class FSWStringArgument(FSWArgument):
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return Length(value) <= self.length
 
+# ---\
 
 class FSWEnumArgument(FSWArgument):
     """An enumeration type argument."""
 
-    def __init__(self, name: str, length: int, enum_values: list[str]):
+    def __init__(self, name: str, length: int, typ: str, enum_values: list[str]):
         super().__init__(name, length)
+        self.typ = typ
         self.enum_values = enum_values
 
     def random_python_value(self) -> str:
         return random.choice(self.enum_values)
 
     def random_value(self) -> ExprRef:
-        return StringVal(self.random_python_value())
+        value = self.random_python_value()
+        datatype = command_dictionary.get_enum_datatype(self.typ)
+        return getattr(datatype, value)
 
     def smt_type(self) -> Sort:
-        return StringSort()
+        return command_dictionary.get_enum_datatype(self.typ)
 
     def field_type(self) -> FieldType:
-        return EnumType(self.name, self.enum_values)
+        return EnumType(self.typ, self.enum_values)
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
-        return Or([value == StringVal(enum) for enum in self.enum_values])
+        return BoolVal(True)
+
+# ---/
 
 
 # ==================================================================
@@ -252,6 +259,7 @@ class FSWCommandDictionary:
         spec_path: path to file containing specification of constraints.
         test_suite_size: the number of tests to be generated.
         test_size: the number of commands in a single test.
+        enum_types: mapping from names of enumerated types to the Z3 datatypes.  # TODO
         commands: the commands defined in the XML file, represented as class objects.
     """
 
@@ -262,6 +270,7 @@ class FSWCommandDictionary:
         self.test_suite_size = test_suite_size
         self.test_size = test_size
         self._validate_dicts()
+        self.enum_types: dict[str, Datatype] = {}  # TODO
         self.commands: list[FSWCommand] = []
         self._initialize()
 
@@ -310,16 +319,46 @@ class FSWCommandDictionary:
                     argument = FSWStringArgument(name, length)
                 elif typ in self.enum_dict:
                     enum_values = self.enum_dict[typ]
-                    argument = FSWEnumArgument(name, length, enum_values)
+                    argument = FSWEnumArgument(name, length, typ, enum_values)  # TODO
                 else:
                     raise ValueError(f"Unknown type '{typ}' for argument {name} in command {cmd_name}")
                 arguments.append(argument)
             commands.append(FSWCommand(cmd_name, arguments))
         self.commands = commands
 
+    # ---\
+
+    def add_enum_datatype(self, name: str, dt: Datatype):
+        """Adds an enumeration datatype to the enum registry.
+
+        :param name: name of the datatype.
+        :param dt: the datatype.
+        """
+        self.enum_types[name] = dt
+
+    def get_enum_datatype(self, name: str) -> Datatype:
+        """Looks up an enumeration datatype.
+
+        :param name: the name of the datatype.
+        :return: the datatype with that name.
+        """
+        return self.enum_types[name]
+
+    # ---/
+
     def to_smt_type(self) -> Datatype:
         """Creates and returns the `Command` Z3 type representing the type of commands."""
         try:
+            # ---\
+            # Declare enumerated types:
+            for enum_name, enum_values in self.enum_dict.items():
+                enum_type = Datatype(enum_name)
+                for value in enum_values:
+                    enum_type.declare(value)
+                enum_type = enum_type.create()
+                self.add_enum_datatype(enum_name, enum_type)
+            # ---/
+            # Declare commands:
             Command = Datatype('Command')
             for cmd in self.commands:
                 fields = []

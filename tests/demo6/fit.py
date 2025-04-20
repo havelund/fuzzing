@@ -18,7 +18,7 @@ spec = """
       always SEND(message=m?,images=i?) => 
         (
           m matches /\d\d\d\.img/ and
-          once PIC(images=j?, message=m, quality="high") &> j >= i
+          once PIC(images=j?, message=m, quality=image_quality.high) &> j >= i
         )
           
     rule time_increases:

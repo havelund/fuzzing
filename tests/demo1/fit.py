@@ -6,22 +6,22 @@ spec = """
       always
         CMD5(cmd5_arg1=x1?, cmd5_arg5=x5?) =>
           (
-            (x1 = "enum11" or x1 = "enum12")
+            (x1 = enum1.enum11 or x1 = enum1.enum12)
             and
             (45 <= x5 <= 50)
           )
 
     rule response:
-      always CMD2(cmd2_arg1=x?, cmd2_arg2="enum21") =>
+      always CMD2(cmd2_arg1=x?, cmd2_arg2=enum2.enum21) =>
         next (
-          not (CMD2(cmd2_arg1=x, cmd2_arg2="enum21")) 
+          not (CMD2(cmd2_arg1=x, cmd2_arg2=enum2.enum21)) 
             until 
-          CMD2(cmd2_arg1=x, cmd2_arg2="enum22")        
+          CMD2(cmd2_arg1=x, cmd2_arg2=enum2.enum22)        
         )
     
     rule past:
-      always CMD2(cmd2_arg1=x?, cmd2_arg2="enum22") =>
-        once CMD2(cmd2_arg1=x, cmd2_arg2="enum21")
+      always CMD2(cmd2_arg1=x?, cmd2_arg2=enum2.enum22) =>
+        once CMD2(cmd2_arg1=x, cmd2_arg2=enum2.enum21)
     """
 
 if __name__ == '__main__':

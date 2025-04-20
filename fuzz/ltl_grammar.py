@@ -68,6 +68,7 @@ grammar = r"""
         | INT                 -> intexpr
         | FLOAT               -> floatexpr
         | STRING              -> stringexpr
+        | ID "." ID           -> enumexpr
         | "(" expression ")"  -> parenexpr
 
 ?regexp: REGEX_BODY
@@ -79,6 +80,7 @@ constraint: ID "=" ID                       -> varconstraint
           | ID "=" INT                      -> intconstraint
           | ID "=" FLOAT                    -> floatconstraint
           | ID "=" STRING                   -> stringconstraint
+          | ID "=" ID "." ID                -> enumconstraint 
 
 RULE: "rule" | "norule"
 
@@ -300,6 +302,13 @@ class FormulaTransformer(Transformer):
         unquoted_value = value[1:-1]
         return LTLStringConstraint('place_holder_for_command', id_, unquoted_value)
 
+    # ---\
+
+    def enumconstraint(self, id_, id1, id2):
+        return LTLEnumConstraint('place_holder_for_command', id_, id1, id2)
+
+    # ---/
+
     # New constructs:
 
     def countfuture(self, kw, min, max, formula):
@@ -341,6 +350,12 @@ class FormulaTransformer(Transformer):
     def stringexpr(self, string):
         unquoted_value = string[1:-1]
         return LTLStringExpression(unquoted_value)
+
+    # ---\
+
+    def enumexpr(self, type_id, value_id):
+        return LTLEnumExpression(type_id, value_id)
+    # ---/
 
     def parenexpr(self, expr):
         return LTLParenExpression(expr)

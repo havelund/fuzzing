@@ -82,15 +82,39 @@ def test_wrong_type():
         pass
 
 
-def test_enum_string_constraint():
+def test_enum1():
     run("""
-    rule p: PIC(quality="LOW") =>! next SEND() 
+    rule p: PIC(quality=image_quality.HIGH) => always PIC(quality=q?) => q = image_quality.high
     """)
 
 
-def test_enum_string():
+def test_enum2():
     run("""
-    rule p: PIC(quality="high") => always PIC(quality=q?) => q = "HIGH"
+    rule p: PIC(quality=image_quality.high) => always PIC(quality=q?) => q = image_quality.HIGH
+    """)
+
+
+def test_enum3():
+    run("""
+    rule p: PIC(quality="high") => always PIC(quality=q?) => q = image_quality.high
+    """)
+
+
+def test_enum4():
+    run("""
+     rule p: PIC(quality=image_quality.high) => always PIC(quality=q?) => q = "HIGH"
+     """)
+
+
+def test_enum5():
+    run("""
+    rule p: PIC(quality=image_quality.high) => always PIC(quality=q?) => q = speed.slow
+    """)
+
+
+def test_undefined_variable():
+    run("""
+    rule p: PIC(quality=image_quality.high) => always PIC(quality=q?) => q_ups = image_quality.high
     """)
 
 

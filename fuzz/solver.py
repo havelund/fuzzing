@@ -1,7 +1,7 @@
 """
 Z3 solver functions.
 """
-
+import time
 from typing import Optional, List
 
 from fuzz.options import *
@@ -226,6 +226,7 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
     :param test_size: an optional number of commands to generate in each test.
     :return: the testsuite, a list of lists of dictionaries, each representing a command.
     """
+    start_time = time.time()
     config_spec: str = ''
     spec_path = command_dictionary.spec_path
     if spec_path is not None:
@@ -259,6 +260,8 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
     print('\nWriting to file: fuzz-testsuite.json\n')
     with open('fuzz-testsuite.json', 'w') as file:
         json.dump(tests, file, indent=4)
+    end_time = time.time()
+    print(f"Execution time: {end_time - start_time:.3f} seconds")
     return tests
 
 
