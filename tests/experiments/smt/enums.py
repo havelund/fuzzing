@@ -30,11 +30,12 @@ s.add(Command.ALARM_color(c2) == AlarmColor.red)
 
 s.add(Command.ALARM_color(c2) == getattr(AlarmColor, "red"))
 s.add(getattr(Command, "ALARM_color")(c2) == getattr(AlarmColor, "red"))
-
+s.add(str(getattr(Command, "ALARM_color")(c2)) == "red")
 
 if __name__ == '__main__':
     if s.check() == sat:
         model = s.model()
         print(f"Solution found: {model}")
+
     else:
         print("No solution found.")

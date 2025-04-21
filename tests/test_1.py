@@ -177,10 +177,11 @@ def test_regular_expression1():
 
 def test_regular_expression2():
     run("""
-    rule p0 : <SEND(message=m?)> m matches /.*\[[A-Za-z]\w*\/[0-9]{3}\.(data|img)(\.\d{4}\-\d{2}\-\d{2})?\].*/
+    rule p0 : <SEND(message=m?)> m matches /.+path\/file[0-9]+(((data)|(img))).*/
     """)
 
 # /.+path\/file[0-9]+(((data)|(img))).*/
+# /.*\[[A-Za-z]\w*\/[0-9]{3}\.(data|img)(\.\d{4}\-\d{2}\-\d{2})?\].*/
 
 
 def test_enum1():

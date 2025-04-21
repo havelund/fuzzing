@@ -182,8 +182,6 @@ def limits_floating_point(bits: int):
     return min_value, max_value
 
 
-# ---\
-
 def is_datatype_instance(val: z3.ExprRef) -> bool:
     """Checks whether a Z3 value is a datatype value.
 
@@ -216,7 +214,6 @@ def convert_z3_value(value):
     else:
         raise TypeError(f"Unsupported Z3 value type: {value}")
 
-# ---/
 
 # pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint
 

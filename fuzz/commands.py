@@ -204,7 +204,6 @@ class FSWStringArgument(FSWArgument):
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return Length(value) <= self.length
 
-# ---\
 
 class FSWEnumArgument(FSWArgument):
     """An enumeration type argument."""
@@ -230,8 +229,6 @@ class FSWEnumArgument(FSWArgument):
 
     def smt_constraint(self, value: ExprRef) -> BoolRef:
         return BoolVal(True)
-
-# ---/
 
 
 # ==================================================================
@@ -270,7 +267,7 @@ class FSWCommandDictionary:
         self.test_suite_size = test_suite_size
         self.test_size = test_size
         self._validate_dicts()
-        self.enum_types: dict[str, Datatype] = {}  # TODO
+        self.enum_types: dict[str, Datatype] = {}
         self.commands: list[FSWCommand] = []
         self._initialize()
 
@@ -319,14 +316,12 @@ class FSWCommandDictionary:
                     argument = FSWStringArgument(name, length)
                 elif typ in self.enum_dict:
                     enum_values = self.enum_dict[typ]
-                    argument = FSWEnumArgument(name, length, typ, enum_values)  # TODO
+                    argument = FSWEnumArgument(name, length, typ, enum_values)
                 else:
                     raise ValueError(f"Unknown type '{typ}' for argument {name} in command {cmd_name}")
                 arguments.append(argument)
             commands.append(FSWCommand(cmd_name, arguments))
         self.commands = commands
-
-    # ---\
 
     def add_enum_datatype(self, name: str, dt: Datatype):
         """Adds an enumeration datatype to the enum registry.
@@ -344,12 +339,9 @@ class FSWCommandDictionary:
         """
         return self.enum_types[name]
 
-    # ---/
-
     def to_smt_type(self) -> Datatype:
         """Creates and returns the `Command` Z3 type representing the type of commands."""
         try:
-            # ---\
             # Declare enumerated types:
             for enum_name, enum_values in self.enum_dict.items():
                 enum_type = Datatype(enum_name)
@@ -357,7 +349,6 @@ class FSWCommandDictionary:
                     enum_type.declare(value)
                 enum_type = enum_type.create()
                 self.add_enum_datatype(enum_name, enum_type)
-            # ---/
             # Declare commands:
             Command = Datatype('Command')
             for cmd in self.commands:
@@ -448,22 +439,22 @@ class FSWCommandDictionary:
                 error(f'Unknown argument {arg_name} for command {cmd_name}')
         error(f'Unknown command name {cmd_name}')
 
-    def get_argument_type_constructor(self, cmd_name: str, arg_name: str) -> Callable[[str, Context | None], ArithRef]:
-        """Get Python type constructor corresponding to an argument.
-
-        :param cmd_name: the command name.
-        :param arg_name: the argument name.
-        :return: the Python type constructor corresponding to the argument
-        """
-        smt_type = self.get_argument_type(cmd_name, arg_name)
-        if smt_type == IntSort():
-            return Int
-        elif smt_type == RealSort():
-            return Real
-        elif smt_type == StringSort():
-            return String
-        else:
-            raise ValueError(f"Unsupported SMT type for command {cmd_name} and argument {arg_name}")
+    # def get_argument_type_constructor(self, cmd_name: str, arg_name: str) -> Callable[[str, Context | None], ArithRef]:
+    #     """Get Python type constructor corresponding to an argument.
+    #
+    #     :param cmd_name: the command name.
+    #     :param arg_name: the argument name.
+    #     :return: the Python type constructor corresponding to the argument
+    #     """
+    #     smt_type = self.get_argument_type(cmd_name, arg_name)
+    #     if smt_type == IntSort():
+    #         return Int
+    #     elif smt_type == RealSort():
+    #         return Real
+    #     elif smt_type == StringSort():
+    #         return String
+    #     else:  # TODO: it is missing the enumerated type case. But the function is not called.
+    #         raise ValueError(f"Unsupported SMT type for command {cmd_name} and argument {arg_name}")
 
     def generate_command_type_env(self) -> CommandTypeEnvironment:
         """Generate an environment mapping command names to maps, mapping argument names to types."""

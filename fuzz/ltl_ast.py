@@ -39,19 +39,17 @@ class SymbolTable:
         var_env: variable types updated when variables are bound in a `LTLCommandMatch`.
     """
     def __init__(self):
-        self.enum_env: dict[str, list[str]] = command_dictionary.enum_dict  # TODO
+        self.enum_env: dict[str, list[str]] = command_dictionary.enum_dict
         self.cmd_env: CommandTypeEnvironment = command_dictionary.generate_command_type_env()
         self.var_env: VariableTypeEnvironment = {}
 
     def copy(self) -> SymbolTable:
         """Makes a copy of the symbol table, keeping the `cmd_env` the same."""
         new_instance = SymbolTable.__new__(SymbolTable)  # Create uninitialized instance
-        new_instance.enum_env = self.enum_env  # TODO
+        new_instance.enum_env = self.enum_env
         new_instance.cmd_env = self.cmd_env
         new_instance.var_env = copy.deepcopy(self.var_env)
         return new_instance
-
-    # ---\
 
     def is_enum_type(self, name: str) -> bool:
         """Returns True iff. `name` is an enumeration type.
@@ -68,8 +66,6 @@ class SymbolTable:
         :return: the list of enumeration values for the type.
         """
         return self.enum_env[name]
-
-    # ---/
 
     def is_command(self, cmd: str) -> bool:
         """A name is a command if it is defined as such or if it is `any`.
@@ -507,7 +503,6 @@ class LTLStringExpression(LTLExpression):
     def wellformed(self, symbols: SymbolTable) -> bool:
         return True
 
-# ---\
 
 @dataclass
 class LTLEnumExpression(LTLExpression):
@@ -540,7 +535,6 @@ class LTLEnumExpression(LTLExpression):
             ok = False
         return ok
 
-# ---/
 
 @dataclass
 class LTLParenExpression(LTLExpression):
@@ -757,8 +751,6 @@ class LTLStringConstraint(LTLConstraint):
     def evaluate(self, env: Environment, cmd: CommandDict) -> bool:
         return cmd[self.field] == self.value
 
-    # ---\
-
     def wellformed(self, symbols: SymbolTable) -> bool:
         ok_field = symbols.is_field(self.command_name, self.field)
         if not ok_field:
@@ -772,9 +764,6 @@ class LTLStringConstraint(LTLConstraint):
                 ok_type = False
         return ok_field and ok_type
 
-    # ---/
-
-# ---\
 
 @dataclass
 class LTLEnumConstraint(LTLConstraint):
@@ -815,7 +804,6 @@ class LTLEnumConstraint(LTLConstraint):
                 ok_type = False
         return ok_field and ok_type
 
-# ---/
 
 @dataclass
 class LTLFormula(ASTNode,ABC):
@@ -958,12 +946,6 @@ class LTLRelation(LTLFormula):
         else:
             raise ValueError(f"Invalid relational operator: {self.oper}")
 
-    def _enum_string(self, ty1: FieldType, ty2: FieldType, exp2: LTLExpression):
-         if isinstance(ty1, EnumType) and ty2 == BaseType.STRING and isinstance(exp2, LTLStringExpression):
-             return exp2.string in ty1.values
-         else:
-             return False
-
     def wellformed(self, symbols: SymbolTable) -> bool:
         ok_exp1 = self.exp1.wellformed(symbols)
         ok_exp2 = self.exp2.wellformed(symbols)
@@ -975,9 +957,7 @@ class LTLRelation(LTLFormula):
         number_types = [BaseType.INT, BaseType.FLOAT]
         same_types = (
             ty1 == ty2 or
-            (ty1 in number_types and ty2 in number_types) or
-            self._enum_string(ty1, ty2, self.exp2) or
-            self._enum_string(ty2, ty1, self.exp1)
+            (ty1 in number_types and ty2 in number_types)
         )
         if not same_types:
             report(f'expression {self.exp1.to_str()} of type {ty1} and {self.exp2.to_str()} of type{ty2} do not have compatible types')
