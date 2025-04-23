@@ -215,5 +215,49 @@ def convert_z3_value(value):
         raise TypeError(f"Unsupported Z3 value type: {value}")
 
 
+def unsigned_int_bounds(bits: int) -> tuple[int, int]:
+    """
+    Returns (min, max) bounds for an unsigned integer with the given number of bits.
+    """
+    return (0, 2**bits - 1)
+
+
+def signed_int_bounds(bits: int) -> tuple[int, int]:
+    """
+    Returns (min, max) bounds for a signed integer with the given number of bits.
+    """
+    return (-2**(bits - 1), 2**(bits - 1) - 1)
+
+
+# Causes random.uniform(min,max) to return 'inf'.
+# def float_bounds(bits: int) -> tuple[float, float]:
+#     """
+#     Returns (min, max) bounds for IEEE 754 floating-point types based on bit width.
+#     Supports 32 (float) and 64 (double) bits.
+#     """
+#     if bits == 32:
+#         # IEEE 754 single precision float
+#         return (-3.4028235e+38, 3.4028235e+38)
+#     elif bits == 64:
+#         # IEEE 754 double precision float
+#         return (-1.7976931348623157e+308, 1.7976931348623157e+308)
+#     else:
+#         raise ValueError(f"Unsupported float bit width: {bits}")
+
+
+def float_bounds(bits: int) -> tuple[float, float]:
+    """
+    Returns usable float bounds for simulation/testing purposes.
+    Avoids extreme IEEE754 values that cause overflow in computations.
+    """
+    if bits == 32:
+        return (-1e38, 1e38)
+    elif bits == 64:
+        return (-1e300, 1e300)  # Still huge, but avoids overflow
+    else:
+        raise ValueError("Unsupported float bit width")
+
+
+
 # pp = pprint.PrettyPrinter(indent=4,sort_dicts=False).pprint
 

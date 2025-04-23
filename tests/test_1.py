@@ -204,3 +204,8 @@ def test_enum3():
                <PIC(quality=q?)> 
                  q = image_quality.low
      """)
+
+def test_numbers():
+    run("""
+    rule p: always SCAN()
+    """)

@@ -24,24 +24,7 @@ from pprint import pprint
 from z3 import *
 
 from fuzz.gencmds import generate_commands
-from fuzz.utils import inspect, error, headline
-
-# ==================================================================
-# Minimal and maximal values used when command arguments are defined
-# using `None` for minimum and/or maximum.
-# ==================================================================
-
-DEFAULT_MIN_UINT = 0
-DEFAULT_MAX_UINT = 2**32 - 1
-
-DEFAULT_MIN_INT = -(2**31)
-DEFAULT_MAX_INT = 2**31 - 1
-
-DEFAULT_MIN_FLOAT32 = -3.4028235e+38
-DEFAULT_MAX_FLOAT32 = 3.4028235e+38
-
-DEFAULT_MIN_FLOAT64 = -1.7976931348623157e+308
-DEFAULT_MAX_FLOAT64 = 1.7976931348623157e+308
+from fuzz.utils import inspect, error, headline, unsigned_int_bounds, signed_int_bounds, float_bounds
 
 
 # ==================================================================
@@ -116,8 +99,9 @@ class FSWUnassignedIntArgument(FSWArgument):
 
     def __init__(self, name: str, length: int, min: int, max: int):
         super().__init__(name, length)
-        self.min = min if min is not None else DEFAULT_MIN_UINT
-        self.max = max if max is not None else DEFAULT_MAX_UINT
+        default_min, default_max = unsigned_int_bounds(length)
+        self.min = min if min is not None else default_min
+        self.max = max if max is not None else default_max
 
     def random_python_value(self) -> int:
         return random.randint(self.min, self.max)
@@ -140,8 +124,9 @@ class FSWIntArgument(FSWArgument):
 
     def __init__(self, name: str, length: int, min: int, max: int):
         super().__init__(name, length)
-        self.min = min if min is not None else DEFAULT_MIN_INT
-        self.max = max if max is not None else DEFAULT_MAX_INT
+        default_min, default_max = signed_int_bounds(length)
+        self.min = min if min is not None else default_min
+        self.max = max if max is not None else default_max
 
     def random_python_value(self) -> int:
         return random.randint(self.min, self.max)
@@ -164,8 +149,9 @@ class FSWFloat32Argument(FSWArgument):
 
     def __init__(self, name: str, length: int, min: float, max: float):
         super().__init__(name, length)
-        self.min = min if min is not None else DEFAULT_MIN_FLOAT32
-        self.max = max if max is not None else DEFAULT_MAX_FLOAT32
+        default_min, default_max = float_bounds(32)
+        self.min = min if min is not None else default_min
+        self.max = max if max is not None else default_max
 
     def random_python_value(self) -> float:
         return random.uniform(self.min, self.max)
@@ -188,8 +174,9 @@ class FSWFloat64Argument(FSWArgument):
 
     def __init__(self, name: str, length: int, min: float, max: float):
         super().__init__(name, length)
-        self.min = min if min is not None else DEFAULT_MIN_FLOAT64
-        self.max = max if max is not None else DEFAULT_MAX_FLOAT64
+        default_min, default_max = float_bounds(64)
+        self.min = min if min is not None else default_min
+        self.max = max if max is not None else default_max
 
     def random_python_value(self) -> float:
         return random.uniform(self.min, self.max)

@@ -263,6 +263,34 @@
             </arguments>
           </fsw_command>
 
+          <fsw_command class="FSW" opcode="0x0009" stem="SCAN">
+            <arguments>
+
+              <unsigned_arg bit_length="3" name="time" units="seconds">
+                <description>The current time.</description>
+              </unsigned_arg>
+
+              <unsigned_arg bit_length="3" name="number">
+                <description>Command number.</description>
+              </unsigned_arg>
+
+              <float_arg bit_length="32" name="resolution" units="m">
+                <description>How far out to scan.</description>
+              </float_arg>
+
+              <integer_arg bit_length="3" name="passes">
+                <description>How many times to scan.</description>
+              </integer_arg>
+
+              <var_string_arg max_bit_length="10" name="message" prefix_bit_length="8">
+                <description>Message</description>
+              </var_string_arg>
+
+            </arguments>
+
+            <description>Scan command - used for testing number ranges.</description>
+          </fsw_command>
+
         </command_definitions>
 
 </command_dictionary>

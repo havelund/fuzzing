@@ -54,6 +54,5 @@ Todo:
     [x] python your_script.py
 [x] README file installation: different shells
 [x] integer_arg
+[x] make lower and upper limits of unsigned and signed integers be dependent on length.
 -----------------------------------------------------
-[>] make lower and upper limits of unsigned and signed integers be dependent on length.
-[ ] Open source
