@@ -52,3 +52,8 @@ Todo:
 [x] Document package
     [x] export CONFIG_PATH=/etc/myproject/config.json
     [x] python your_script.py
+[x] README file installation: different shells
+[x] integer_arg
+-----------------------------------------------------
+[>] make lower and upper limits of unsigned and signed integers be dependent on length.
+[ ] Open source

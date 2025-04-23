@@ -34,6 +34,9 @@ from fuzz.utils import inspect, error, headline
 DEFAULT_MIN_UINT = 0
 DEFAULT_MAX_UINT = 2**32 - 1
 
+DEFAULT_MIN_INT = -(2**31)
+DEFAULT_MAX_INT = 2**31 - 1
+
 DEFAULT_MIN_FLOAT32 = -3.4028235e+38
 DEFAULT_MAX_FLOAT32 = 3.4028235e+38
 
@@ -115,6 +118,30 @@ class FSWUnassignedIntArgument(FSWArgument):
         super().__init__(name, length)
         self.min = min if min is not None else DEFAULT_MIN_UINT
         self.max = max if max is not None else DEFAULT_MAX_UINT
+
+    def random_python_value(self) -> int:
+        return random.randint(self.min, self.max)
+
+    def random_value(self) -> IntNumRef:
+        return IntVal(self.random_python_value())
+
+    def smt_type(self) -> Sort:
+        return IntSort()
+
+    def field_type(self) -> FieldType:
+        return BaseType.INT
+
+    def smt_constraint(self, value: ExprRef) -> BoolRef:
+        return And(self.min <= value, value <= self.max)
+
+
+class FSWIntArgument(FSWArgument):
+    """An integer argument."""
+
+    def __init__(self, name: str, length: int, min: int, max: int):
+        super().__init__(name, length)
+        self.min = min if min is not None else DEFAULT_MIN_INT
+        self.max = max if max is not None else DEFAULT_MAX_INT
 
     def random_python_value(self) -> int:
         return random.randint(self.min, self.max)
@@ -305,6 +332,8 @@ class FSWCommandDictionary:
                 argument: FSWArgument = None
                 if typ == 'unsigned_arg':
                     argument = FSWUnassignedIntArgument(name, length, min, max)
+                elif typ == 'integer_arg':
+                    argument = FSWIntArgument(name, length, min, max)
                 elif typ == 'float_arg':
                     if length == 32:
                         argument = FSWFloat32Argument(name, length, min, max)

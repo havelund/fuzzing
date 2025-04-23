@@ -107,16 +107,12 @@ There are now two different ways to install it.
 
 Execute the following commands:
 
-```
-cd fuzzing
-# If virtual env has not been created already:
-python -m venv venv
-# if using bash, zshrc, or sh shell:
-source venv/bin/activate 
-# else if using csh or tcsh shell:
-source venv/bin/activate.csh
-pip install .
-```
+1. Enter the directory: `cd fuzzing`
+2. If virtual env has not been created already: `python -m venv venv`
+3. Active the virtual environment:
+   - if using bash, zshrc, or sh shell: `source venv/bin/activate`
+   - else if using csh or tcsh shell: `source venv/bin/activate.csh`
+4. Install fuzz: `pip install .`
 
 This will install `fuzz` with all its dependencies.
 
@@ -130,7 +126,7 @@ python fit.py
 This should print out two generated tests, to be explained in detail below.
 
 
-### Installation Using the `PYTHONPATH`
+### Alternative Installation Using the `PYTHONPATH`
 
 Set the PYTHONPATH environment variable to include the path to fuzzing:
 
