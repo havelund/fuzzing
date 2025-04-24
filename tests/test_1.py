@@ -183,6 +183,15 @@ def test_regular_expression2():
 # /.+path\/file[0-9]+(((data)|(img))).*/
 # /.*\[[A-Za-z]\w*\/[0-9]{3}\.(data|img)(\.\d{4}\-\d{2}\-\d{2})?\].*/
 
+def test_regular_expression3():
+    run("""
+    rule p: (<SEND(message=m?)> m matches /data\-\d{3}\.txt/)
+            and
+            (next <SEND(message=m?)> m matches /data\-\d{3}\.txt/)
+            and 
+            (next next <SEND(message=m?)> m matches /data\-\d{3}\.txt/)
+    """)
+
 
 def test_enum1():
     run("""
