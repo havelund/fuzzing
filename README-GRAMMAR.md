@@ -57,6 +57,8 @@ and because the regular expression grammar is interpreted differently wrt. white
         | COUNTPAST   "(" INT "," INT ")" <formula>
         | COUNT INT  <formula> 
         | COUNTPAST INT <formula>
+        | NEXT INT <formula>
+        | PREV INT <formula>
         | <formula THEN <formula>
         | <formula AFTER <formula>
         

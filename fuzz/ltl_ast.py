@@ -1717,6 +1717,42 @@ class LTLCountPastExact(LTLDerivedFormula):
 
 
 @dataclass
+class LTLNextTimes(LTLDerivedFormula):
+    """next 5 φ."""
+
+    number: int
+    subformula: LTLFormula
+
+    def to_str(self, indent: int = 0):
+        oper = f'next {self.number}'
+        return unary_to_str(indent, oper, self.subformula)
+
+    def expand(self) -> LTLFormula:
+        formula = self.subformula
+        for _ in range(self.number):
+            formula = LTLNext(formula)
+        return formula
+
+
+@dataclass
+class LTLPrevTimes(LTLDerivedFormula):
+    """prev 5 φ."""
+
+    number: int
+    subformula: LTLFormula
+
+    def to_str(self, indent: int = 0):
+        oper = f'prev {self.number}'
+        return unary_to_str(indent, oper, self.subformula)
+
+    def expand(self) -> LTLFormula:
+        formula = self.subformula
+        for _ in range(self.number):
+            formula = LTLPrevious(formula)
+        return formula
+
+
+@dataclass
 class LTLMultiRelation(LTLDerivedFormula):
     """10 < x < 20"""
     exp1: LTLExpression
@@ -1739,6 +1775,9 @@ class LTLMultiRelation(LTLDerivedFormula):
             LTLRelation(self.exp2, self.oper2, self.exp3)
         )
 
+# =========================
+# Rules and specifications:
+# =========================
 
 @dataclass
 class LTLRule(ASTNode):

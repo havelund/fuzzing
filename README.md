@@ -1,6 +1,6 @@
 # fuzz
 
-**Version**: 2.1.1
+**Version**: 2.1.2
 
 ## Introduction
 
@@ -689,6 +689,8 @@ See [regular expressions](README-REGEXP.md) for an explanation of regular expres
 |   `count` (_n1_,_n2_) _F_   | _F_ is satisfied between _n1_ and _n2_ times from now and in the future. |
 |     `countpast` _n_ _F_     | _F_ is satisfied exactly _n_ times from now and in the past.             |
 | `countpast` (_n1_,_n2_) _F_ | _F_ is satisfied between _n1_ and _n2_ times from now and in the past.   |
+|       `next` _n_ _F_        | _F_ is true _n_ positions in the future.                                 |
+|       `prev` _n_ _F_        | _F_ is true _n_ positions in the past.                                   |
 |       _F_ `then` _G_        | Equivalent to: `always` (_F_ `implies` `eventually` _G_).                |
 |       _F_ `after` _G_       | Equivalent to: `always` (_F_ `implies` `once` _G_).                      |
 

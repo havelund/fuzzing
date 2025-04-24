@@ -218,3 +218,10 @@ def test_numbers():
     run("""
     rule p: always SCAN()
     """)
+
+def test_next_prev_times():
+    run("""
+    rule p1: count 1 PIC()
+    rule p2: always PIC() => next 4 SEND()
+    rule p3: always PIC() => prev 2 STOP()
+    """)

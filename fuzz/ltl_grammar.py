@@ -49,10 +49,12 @@ grammar = r"""
         | expression INREG regexp           -> inregexp
         | COUNT "(" INT "," INT ")" formula -> countfuture               // NOT LTL
         | COUNTPAST   "(" INT "," INT ")" formula -> countpast           // NOT LTL
-        | COUNT INT  formula              -> countfutureexact            // DERIVED
-        | COUNTPAST INT formula           -> countpastexact              // DERIVED
-        | formula THEN formula               -> then                     // DERIVED
-        | formula AFTER formula              -> after                    // DERIVED
+        | COUNT INT  formula                -> countfutureexact          // DERIVED
+        | COUNTPAST INT formula             -> countpastexact            // DERIVED
+        | NEXT INT formula                  -> nexttimes                 // DERIVED
+        | PREV INT formula                  -> prevtimes                 // DERIVED      
+        | formula THEN formula              -> then                      // DERIVED
+        | formula AFTER formula             -> after                     // DERIVED
         
 ?expression: sum
 
@@ -302,12 +304,8 @@ class FormulaTransformer(Transformer):
         unquoted_value = value[1:-1]
         return LTLStringConstraint('place_holder_for_command', id_, unquoted_value)
 
-    # ---\
-
     def enumconstraint(self, id_, id1, id2):
         return LTLEnumConstraint('place_holder_for_command', id_, id1, id2)
-
-    # ---/
 
     # New constructs:
 
@@ -351,11 +349,8 @@ class FormulaTransformer(Transformer):
         unquoted_value = string[1:-1]
         return LTLStringExpression(unquoted_value)
 
-    # ---\
-
     def enumexpr(self, type_id, value_id):
         return LTLEnumExpression(type_id, value_id)
-    # ---/
 
     def parenexpr(self, expr):
         return LTLParenExpression(expr)
@@ -369,6 +364,12 @@ class FormulaTransformer(Transformer):
         return LTLInRegExp(expr, z3_regex, regexp[1:-1])
 
     # Derived constructs:
+
+    def nexttimes(self, kw, number, formula):
+        return LTLNextTimes(int(number), formula)
+
+    def prevtimes(self, kw, number, formula):
+        return LTLPrevTimes(int(number), formula)
 
     def then(self, left, kw, right):
         return LTLThen(left, right)

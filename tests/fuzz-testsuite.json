@@ -1,84 +1,70 @@
 [
     [
         {
-            "name": "SCAN",
-            "time": 6,
-            "number": 6,
-            "resolution": -9.612401671981358e+37,
-            "passes": -3,
-            "message": "7N1S2e8Eio"
+            "name": "CANCEL",
+            "time": 71,
+            "number": 32,
+            "message": "FmX5JVT0F3"
         },
         {
-            "name": "SCAN",
-            "time": 1,
-            "number": 0,
-            "resolution": 2.2997480564307547e+37,
-            "passes": 2,
-            "message": "jn1JE5fsYF"
+            "name": "ALIGN",
+            "time": 866,
+            "number": 81,
+            "angle": 59.65949980600308,
+            "message": "MnhDXiRlWI"
         },
         {
-            "name": "SCAN",
-            "time": 0,
-            "number": 0,
-            "resolution": 4.27164858976744e+37,
-            "passes": 0,
-            "message": "EvxmFST5OX"
+            "name": "CANCEL",
+            "time": 158,
+            "number": 38,
+            "message": "rPjqTOctvL"
         },
         {
-            "name": "SCAN",
-            "time": 5,
-            "number": 2,
-            "resolution": -5.38759921394226e+37,
-            "passes": 1,
-            "message": "OsPIW3s3d5"
+            "name": "STOP",
+            "time": 204,
+            "number": 17,
+            "message": "HlorfzLJNj"
         },
         {
-            "name": "SCAN",
-            "time": 1,
-            "number": 0,
-            "resolution": 1.2405528168397376e+37,
-            "passes": -3,
-            "message": "xDkv3obtZK"
+            "name": "SEND",
+            "time": 371,
+            "number": 74,
+            "images": 38,
+            "message": "SUC3vtTkVJZckCTSiCLi"
         },
         {
-            "name": "SCAN",
-            "time": 7,
-            "number": 6,
-            "resolution": -6.027594038065691e+36,
-            "passes": 3,
-            "message": "nFMQbjx2XM"
+            "name": "PIC",
+            "time": 788,
+            "number": 98,
+            "images": 9,
+            "quality": "high",
+            "message": "E1LJ5Olybp"
         },
         {
-            "name": "SCAN",
-            "time": 5,
-            "number": 0,
-            "resolution": -5.059666161155188e+37,
-            "passes": -2,
-            "message": "17aUaDWRsF"
+            "name": "LOG",
+            "time": 601,
+            "number": 26,
+            "message": "78dGAbrhtY"
         },
         {
-            "name": "SCAN",
-            "time": 1,
-            "number": 2,
-            "resolution": 1.0714654923750535e+37,
-            "passes": -3,
-            "message": "pXQCdpNYJ5"
+            "name": "ALIGN",
+            "time": 474,
+            "number": 76,
+            "angle": 17.758056179745324,
+            "message": "J1pYusVDns"
         },
         {
-            "name": "SCAN",
-            "time": 1,
-            "number": 2,
-            "resolution": -2.581547497734888e+37,
-            "passes": 0,
-            "message": "OXodCYm25w"
+            "name": "LOG",
+            "time": 342,
+            "number": 72,
+            "message": "4ySkmI6kMM"
         },
         {
-            "name": "SCAN",
-            "time": 2,
-            "number": 5,
-            "resolution": -8.115734536661596e+37,
-            "passes": -2,
-            "message": "FFs43lI034"
+            "name": "SEND",
+            "time": 773,
+            "number": 79,
+            "images": 79,
+            "message": "gKbQsbotdI67Ai62hG0i"
         }
     ]
 ]
