@@ -14,7 +14,7 @@ from __future__ import unicode_literals
 from builtins import str
 from past.builtins import basestring
 
-from xml.etree import cElementTree as ET
+import defusedxml.ElementTree as ET
 from xml.etree.ElementTree import Element
 from collections import OrderedDict
 import json
@@ -50,9 +50,15 @@ def gen_cmd_file(fswpath, area):
 
     # Get command xml file
     foundFile = False
+    base_dir = os.path.abspath(fswpath)
+
     for fswfmt in CMD_PATH:
         # Find xml cmd definition file
-        cmd_path = os.path.join(fswpath, fswfmt.format(area, area))
+        cmd_path = os.path.abspath(os.path.join(fswpath, fswfmt.format(area, area)))
+
+        # SECURITY CHECK: Ensure cmd_path stays inside fswpath
+        if not cmd_path.startswith(base_dir + os.sep):
+            raise ValueError(f"Unsafe path traversal detected: {cmd_path}")
 
         if os.path.isfile(cmd_path):
             print('INFO: Reading Command XML file: {}'.format(cmd_path))
