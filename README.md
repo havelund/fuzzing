@@ -473,7 +473,9 @@ This example can be found here: [tests/demo4](tests/demo4).
 
 ## Verifying Tests
 
-The user can generate a test manually and then get it verified using the `verify_test` function. As example is shown below.
+The user can generate a test manually and then get it verified using the `verify_test` function. 
+This is effectively the Runtime Verification (RV) problem of checking a trace against a temporal formula.
+As example is shown below.
 
 ```python
 from fuzz import verify_test
@@ -505,6 +507,10 @@ if __name__ == '__main__':
 ```
 
 This will print `True`.
+
+Note, however, that the trace verification algorithm is implemented in the same way one would write 
+a mathematic semantics for this logic in a paper, and it is not performant on very large traces. In fact, it hits a recursion
+stack overflow observed on traces of 1000 commands. But it works for the kinds of tests that can be generated with the constraint solver
 
 ## Constraint Language
 
