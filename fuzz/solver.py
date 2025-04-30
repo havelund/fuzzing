@@ -303,3 +303,34 @@ def extract_and_verify_test(ast: LTLSpec, model: ModelRef, end_time: int) -> Tes
     if not ast.evaluate(test):
         error(f"*** generated test does not satisfy LTL semantics:\n {test}")
     return test
+
+
+def verify_test(test: Test, spec: Optional[str] = None) -> bool:
+    """Verifies that a test satisfies a specification.
+
+    The specification is the concatenation of two specification files:
+    1) the specification extracted from the specification file identified by
+    the configuration file, or "" if not identified.
+    2) the specification provided as argument, if provied, or "" if `None`.
+
+    Note that the constraints provided in the XML command dictionary are not checked,
+    only the specification.
+
+    Note that the function parses the specification.
+
+    :param test: the test to check against the specification.
+    :param spec: an optional specification of constraints.
+    :return: True iff. the test satisfies the specification.
+    """
+    config_spec: str = ''
+    spec_path = command_dictionary.spec_path
+    if spec_path is not None:
+        try:
+            with open(spec_path, "r") as file:
+                config_spec = file.read()
+        except:
+            raise ValueError(f"Specification file {spec_path} cannot be read or does not exist.")
+    spec = config_spec + '\n\n' + (spec or '')
+    ast: LTLSpec = parse_spec(spec)
+    return ast.evaluate(test)
+

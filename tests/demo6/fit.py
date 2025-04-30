@@ -32,3 +32,4 @@ if __name__ == '__main__':
         print(f'RESET_FSW')
         for cmd in test:
             print(cmd)
+

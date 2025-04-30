@@ -1,5 +1,5 @@
 
-from .solver import generate_tests, print_tests, print_test
+from .solver import generate_tests, print_tests, print_test, verify_test
 from .options import Options, RefinementStrategy
 from .utils import CommandDict, Test, TestSuite
 
@@ -11,6 +11,7 @@ __all__ = [
     "Test",
     "TestSuite",
     "Options",
-    "RefinementStrategy"
+    "RefinementStrategy",
+    "verify_test"
 ]
 

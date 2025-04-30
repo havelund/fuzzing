@@ -471,6 +471,41 @@ if __name__ == '__main__':
 
 This example can be found here: [tests/demo4](tests/demo4).
 
+## Verifying Tests
+
+The user can generate a test manually and then get it verified using the `verify_test` function. As example is shown below.
+
+```python
+from fuzz import verify_test
+
+spec = """
+    rule move_stop:
+      always MOVE(number=n?) => eventually STOP(number=n)
+
+    rule stop_move:
+      always STOP(number=n?) => prev !STOP(number=n) since MOVE(number=n)    
+    """
+
+test = [
+    {'name': 'MOVE', 'time': 2, 'number': 79, 'distance': 20, 'speed': 7.328534570408251, 'message': 'trWBEHUPgR'},
+    {'name': 'PIC', 'time': 27, 'number': 74, 'images': 10, 'quality': 'high', 'message': '222.img'},
+    {'name': 'STOP', 'time': 38, 'number': 79, 'message': 'ZQWsNa28Op'},
+    {'name': 'SEND', 'time': 49, 'number': 10, 'images': 7, 'message': '222.img'},
+    {'name': 'MOVE', 'time': 60, 'number': 76, 'distance': 97, 'speed': 3.4806259783535682, 'message': 'w87ZA4ClyI'},
+    {'name': 'STOP', 'time': 71, 'number': 76, 'message': '5Er2pB8U29'},
+    {'name': 'PIC', 'time': 124, 'number': 7, 'images': 3, 'quality': 'low', 'message': 'dZqjDycEYt'},
+    {'name': 'LOG', 'time': 584, 'number': 36, 'message': 'fnOwHLV1Gw'},
+    {'name': 'LOG', 'time': 595, 'number': 96, 'message': '81IH6O7Xwi'},
+    {'name': 'TURN', 'time': 606, 'number': 92, 'angle': -2.0, 'message': 'HBXeRphg3h'}
+]
+
+if __name__ == '__main__':
+    result = verify_test(test, spec)
+    print(result)
+```
+
+This will print `True`.
+
 ## Constraint Language
 
 In this section we dive into a more detailed explanation of the temporal logic.
