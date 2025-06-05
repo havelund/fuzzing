@@ -17,6 +17,8 @@ from past.builtins import basestring
 import defusedxml.ElementTree as ET
 from xml.etree.ElementTree import Element
 from collections import OrderedDict
+import argparse
+from argparse import RawTextHelpFormatter
 import json
 import os
 import sys
@@ -30,12 +32,9 @@ from typing import List,Tuple
 debug0 = False
 debug = False
 
-CMD_PATH = ['src/{}_mgr/{}_mgr_ai_cmd.xml',
-            'src/{}_ctl/{}_ctl_ai_cmd.xml',
-            'src/{}_svc/{}_svc_ai_cmd.xml',
-            'src/{}_exe/{}_exe_ai_cmd.xml',
-            'src/{}_ptm/{}_ptm_ai_cmd.xml']
-
+# This flag is for commands that contain repeat arguments which we aren't
+# handling yet
+skipThisCommand = False
 
 enumEntireList = []
 cmdEntireList = []
@@ -44,33 +43,20 @@ cmdEntireList = []
 #  FUNCTIONS
 ################################################################################
         
-def gen_cmd_file(fswpath, area):
+def gen_cmd_file(cmdfile):
     global enumEntireList
     global cmdEntireList
 
     # Get command xml file
     foundFile = False
-    base_dir = os.path.abspath(fswpath)
 
-    for fswfmt in CMD_PATH:
-        # Find xml cmd definition file
-        cmd_path = os.path.abspath(os.path.join(fswpath, fswfmt.format(area, area)))
-
-        # SECURITY CHECK: Ensure cmd_path stays inside fswpath
-        if not cmd_path.startswith(base_dir + os.sep):
-            raise ValueError(f"Unsafe path traversal detected: {cmd_path}")
-
-        if os.path.isfile(cmd_path):
-            print('INFO: Reading Command XML file: {}'.format(cmd_path))
-            foundFile = True
-            break
-
-    if not foundFile:
-        print('WARNING: Command XML file not found for: {}'.format(area))
+    if not os.path.isfile(cmdfile):
+        print('WARNING: Command XML file not found for: {}'.format(cmdfile))
         return -1
+        
     
     # Parse xml into tree structure
-    tree = ET.parse(cmd_path)
+    tree = ET.parse(cmdfile)
 
     root = tree.getroot()
     enumArray = []
@@ -89,66 +75,68 @@ def gen_cmd_file(fswpath, area):
             enumArray.append(retEnumDict)
 
 
-    pkts = root.find('command_definitions')
+    cmds = root.find('command_definitions')
 
     cmdArray = []
     retCmdDict = {}
-    for pktroot in pkts:
+    for cmdroot in cmds:
 
         # Generate python class definition
-        retCmdDict = write_cmd_packet_class(pktroot)
+        retCmdDict = write_cmd_class(cmdroot)
         if retCmdDict:
             cmdEntireList.append(retCmdDict)
         else:
-            print("WARNING: command dict for {} returned None ".format(pktroot.attrib['stem']))
+            print("INFO: command {} not included in fuzz command dictionary ".format(cmdroot.attrib['stem']))
 
     if debug:
         print("\n\n\n GLOBAL cmdarray")
         for i in cmdEntireList:
             print(i)
 
-    print('CREATED: {}'.format(area))
+    print('PROCESSED: {}'.format(cmdfile))
 
-def write_cmd_packet_class(pktroot):
-    cmdname = pktroot.attrib['stem']
-#    print("cmdname is %s"%cmdname)
-
-    skip_these_commands = ["DDM_DMP_EHA_PERIODIC","DDM_UPDATE_NUM_TSR","DDM_UPDATE_STR_TSR",
-                           "DDM_DMP_EHA_HISTORY","GNC_IMU_WRITE_MEM","SEQ_VAR_CMD",
-                           "SEQ_VAR_SEQ_ACTIVATE","SEQ_VAR_SEQ_LOAD","SEQ_VAR_SEQ_REACTIVATE",
-                           "GNC_SRU_WRITE_MEMORY"]
-    if cmdname in skip_these_commands:
-        return
+def write_cmd_class(cmdroot):
+    global skipThisCommand
+    cmdname = cmdroot.attrib['stem']
     newCmdKey = cmdname
+    skipThisCommand = False
     
     # Name of Command
     outerDict = {}
     innerDict = {}
     # opcode
     # Add opcode field
-    opcode = pktroot.attrib['opcode']
+    opcode = cmdroot.attrib['opcode']
     innerDict['opcode'] = opcode
     
     if debug0:
-        print("pktname is %s, opcode is %s"%(cmdname,opcode))
+        print("cmdname is %s, opcode is %s"%(cmdname,opcode))
 
     # Add arguments
     reserved = []
-    if pktroot.find('arguments'):
-        for field in pktroot.find('arguments'):
+    if cmdroot.find('arguments'):
+        for field in cmdroot.find('arguments'):
             if debug0:
-                print("pktroot arguments %s"%field.tag)
+                print("cmdroot arguments %s"%field.tag)
 
-            name = write_field(field, reserved)
+            commandInfo = write_field(field, reserved)
+            if not skipThisCommand:
+                reserved.append(commandInfo)
+            else:
+                if debug0:
+                    print("name SKIPPED is {} ".format(field.attrib['name']))
 
-            reserved.append(name)
+    if not skipThisCommand:
+        innerDict['args'] = reserved
+        outerDict[cmdname] = innerDict
 
-    innerDict['args'] = reserved
-    outerDict[cmdname] = innerDict
-
-    return outerDict
+        return outerDict
+    else:
+        skipThisCommand = False
+        return None
 
 def write_field(node, reserved=[]):
+    global skipThisCommand
 
     #argument name
     name = node.attrib['name']
@@ -183,7 +171,7 @@ def write_field(node, reserved=[]):
                 
     elif node.tag == "float_arg":
         if debug0:
-            print("TAC TAC this is float arg")
+            print("this is float arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
@@ -198,7 +186,7 @@ def write_field(node, reserved=[]):
 
     elif node.tag == "integer_arg":
         if debug0:
-            print("TAC TAC this is integer arg")
+            print("this is integer arg")
         bit_length = node.attrib['bit_length']
         type = node.tag
         for field in node:
@@ -211,11 +199,9 @@ def write_field(node, reserved=[]):
             if found:
                 break
     elif node.tag == "repeat_arg":
-#        print("TAC TAC TAC This needs work. There are 11 of these. Maybe ignore these commands until we have everything else working.  this is repeat arg")
-        bit_length = node.attrib['bit_length']
-        type = node.tag
-        min = None
-        max = None
+        # This needs work. Ignoring the repeat args
+        skipThisCommand = True
+        return None
     else:
         bit_length = 0
 
@@ -224,13 +210,13 @@ def write_field(node, reserved=[]):
     tmpDict['length'] = int(bit_length)
     tmpDict['range_min'] = int(min) if min else None
     tmpDict['range_max'] = int(max) if max else None
-        
+
     return tmpDict
 
 
-def write_enum_dicts(pktroot):
+def write_enum_dicts(cmdroot):
 
-    enumname = pktroot.attrib['name']
+    enumname = cmdroot.attrib['name']
     newEnumKey = enumname
     if debug0:
         print("enum name is %s"%enumname)
@@ -238,9 +224,9 @@ def write_enum_dicts(pktroot):
     # Add values
     enumVals = []
     newEnumDef = {}
-    if pktroot.find('values'):
+    if cmdroot.find('values'):
 
-        for field in pktroot.find('values'):
+        for field in cmdroot.find('values'):
             if debug0:
                 print("enumroot arguments %s"%field.tag)
 
@@ -255,7 +241,6 @@ def write_enum_dicts(pktroot):
 def write_enum(node, enumName):
 
     #argument name
-#    name = node.attrib['name']
     enumValue = node.attrib['symbol']
     if debug0:
         print("this is in write_enum with enumname %s and enumvalue %s"%(enumName,enumValue))
@@ -263,6 +248,7 @@ def write_enum(node, enumName):
     return enumValue
 
 
+#def generate_commands(areas):
 def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
     """
     Generates the enumeration type and command dictionary from the XML files.
@@ -275,15 +261,7 @@ def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
     global cmdEntireList
 
     # This function  generates python enum and command dictionaries that 
-    # contain commands for a specified fsw area and the using the following xml 
-    # definition files:
-    # src/<fsw area>_mgr/<fsw area>_mgr_ai_cmd.xml',
-    # src/<fsw area>_ctl/<fsw area>_ctl_ai_cmd.xml
-    # src/<fsw area>_svc/<fsw area>_svc_ai_cmd.xml
-    # src/<fsw area>_exe/<fsw area>_exe_ai_cmd.xml
-    # src/<fsw area>_ptm/<fsw area>_ptm_ai_cmd.xml
-    
-    # fsw_path - path to the desired fsw version directory
+    # contain commands for a specified command xml file
     
     # This function will print the following to stdout:
     # INFO: informational message
@@ -293,13 +271,10 @@ def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
     # -- when the input XML file for a specified FSW area is not found
     # ERROR: error message
     # -- when the tool was not able to run successfully
+    arealist = [areas]
 
-    if not os.path.exists(fsw_path):
-        print('ERROR: Path not found: {}'.format(fsw_path))
-        exit(-1)
-
-    for i in areas:
-        gen_cmd_file(fsw_path, i)
+    for i in arealist:
+        gen_cmd_file(i)
 
     d1 = {}
     for i in enumEntireList:
@@ -310,5 +285,4 @@ def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
         d2.update(j)
     
     return d1,d2
-
 
