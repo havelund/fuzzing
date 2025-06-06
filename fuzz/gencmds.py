@@ -248,7 +248,7 @@ def write_enum(node, enumName):
     return enumValue
 
 
-def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
+def generate_commands(areas: List[str]) -> Tuple[dict, dict]:
     """
     Generates the enumeration type and command dictionary from the XML files.
 
