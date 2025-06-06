@@ -497,16 +497,13 @@ def initialize():
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
     with open(config_path, "r") as config_file:
         config = json.load(config_file)
-    fsw_path = config.get("fsw_path")
-    if not fsw_path:
-        raise ValueError("'fsw_path' not defined in configuration file {config}\nlocated at {config_path}")
     fsw_areas = config.get("fsw_areas")
     if not fsw_areas:
         raise ValueError("'fsw_areas' not defined in configuration file {config}\nlocated at {config_path}")
     spec_path = config.get("spec_path")
     test_suite_size = config.get("test_suite_size")
     test_size = config.get("test_size")
-    enum_dict, cmd_dict = generate_commands(fsw_path, fsw_areas)
+    enum_dict, cmd_dict = generate_commands(fsw_areas)
     command_dictionary = FSWCommandDictionary(enum_dict, cmd_dict, spec_path, test_suite_size, test_size)
     command_dictionary.print_dictionaries()
     Command = command_dictionary.to_smt_type()

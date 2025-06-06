@@ -1,6 +1,5 @@
 
 {
-    "fsw_path": "/Users/clark/bridgetask/fuzzing/tests/demo4/fsw",
     "fsw_areas": ["/Users/clark/bridgetask/fuzzing/tests/demo4/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml"],
     "spec_path": "spec.txt",
     "test_suite_size": 2,
