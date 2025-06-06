@@ -248,12 +248,11 @@ def write_enum(node, enumName):
     return enumValue
 
 
-def generate_commands(areas: List[str]) -> Tuple[dict, dict]:
+def generate_commands(cmd_files: List[str]) -> Tuple[dict, dict]:
     """
     Generates the enumeration type and command dictionary from the XML files.
 
-    :param fsw_path: file path to the XML fsw directory.
-    :param areas: the fsw areas to generate commands from.
+    :param cmd_files: the fsw areas to generate commands from.
     :return: the dictionaries representing resp. enumeration types and commands.
     """
     global enumEntireList
@@ -271,7 +270,7 @@ def generate_commands(areas: List[str]) -> Tuple[dict, dict]:
     # ERROR: error message
     # -- when the tool was not able to run successfully
 
-    for i in areas:
+    for i in cmd_files:
         gen_cmd_file(i)
 
     d1 = {}

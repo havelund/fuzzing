@@ -215,7 +215,7 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
     The specification is the concatenation of two specification files:
     1) the specification extracted from the specification file identified by
     the configuration file, or "" if not identified.
-    2) the specification provided as argument, if provied, or "" if `None`.
+    2) the specification provided as argument, if provided, or "" if `None`.
     The test suite size and test size are extracted
     from the configuration file if `None`.
 
@@ -228,13 +228,13 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
     """
     start_time = time.time()
     config_spec: str = ''
-    spec_path = command_dictionary.spec_path
-    if spec_path is not None:
+    spec_file = command_dictionary.spec_file
+    if spec_file is not None:
         try:
-            with open(spec_path, "r") as file:
+            with open(spec_file, "r") as file:
                 config_spec = file.read()
         except:
-            raise ValueError(f"Specification file {spec_path} cannot be read or does not exist.")
+            raise ValueError(f"Specification file {spec_file} cannot be read or does not exist.")
     spec = config_spec + '\n\n' + (spec or '')
     if test_suite_size is None:
         test_suite_size: int = command_dictionary.test_suite_size
@@ -323,13 +323,13 @@ def verify_test(test: Test, spec: Optional[str] = None) -> bool:
     :return: True iff. the test satisfies the specification.
     """
     config_spec: str = ''
-    spec_path = command_dictionary.spec_path
-    if spec_path is not None:
+    spec_file = command_dictionary.spec_file
+    if spec_file is not None:
         try:
-            with open(spec_path, "r") as file:
+            with open(spec_file, "r") as file:
                 config_spec = file.read()
         except:
-            raise ValueError(f"Specification file {spec_path} cannot be read or does not exist.")
+            raise ValueError(f"Specification file {spec_file} cannot be read or does not exist.")
     spec = config_spec + '\n\n' + (spec or '')
     ast: LTLSpec = parse_spec(spec)
     return ast.evaluate(test)

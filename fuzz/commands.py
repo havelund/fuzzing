@@ -267,17 +267,17 @@ class FSWCommandDictionary:
     Attributes:
         enum_dict: the enumeration type dictionary generated from XML.
         cmd_dict: the command dictionary generated from XML.
-        spec_path: path to file containing specification of constraints.
+        spec_file: path to file containing specification of constraints.
         test_suite_size: the number of tests to be generated.
         test_size: the number of commands in a single test.
         enum_types: mapping from names of enumerated types to the Z3 datatypes.  # TODO
         commands: the commands defined in the XML file, represented as class objects.
     """
 
-    def __init__(self, enum_dict: dict, cmd_dict: dict, spec_path: Optional[str], test_suite_size: Optional[int], test_size: Optional[int]):
+    def __init__(self, enum_dict: dict, cmd_dict: dict, spec_file: Optional[str], test_suite_size: Optional[int], test_size: Optional[int]):
         self.enum_dict = enum_dict
         self.cmd_dict = cmd_dict
-        self.spec_path = spec_path
+        self.spec_file = spec_file
         self.test_suite_size = test_suite_size
         self.test_size = test_size
         self._validate_dicts()
@@ -497,14 +497,14 @@ def initialize():
         raise FileNotFoundError(f"Configuration file not found at {config_path}")
     with open(config_path, "r") as config_file:
         config = json.load(config_file)
-    fsw_areas = config.get("fsw_areas")
-    if not fsw_areas:
-        raise ValueError("'fsw_areas' not defined in configuration file {config}\nlocated at {config_path}")
-    spec_path = config.get("spec_path")
+    cmd_files = config.get("cmd_files")
+    if not cmd_files:
+        raise ValueError("'cmd_files' not defined in configuration file {config}\nlocated at {config_path}")
+    spec_file = config.get("spec_file")
     test_suite_size = config.get("test_suite_size")
     test_size = config.get("test_size")
-    enum_dict, cmd_dict = generate_commands(fsw_areas)
-    command_dictionary = FSWCommandDictionary(enum_dict, cmd_dict, spec_path, test_suite_size, test_size)
+    enum_dict, cmd_dict = generate_commands(cmd_files)
+    command_dictionary = FSWCommandDictionary(enum_dict, cmd_dict, spec_file, test_suite_size, test_size)
     command_dictionary.print_dictionaries()
     Command = command_dictionary.to_smt_type()
     timeline = Function('timeline', IntSort(), Command)
