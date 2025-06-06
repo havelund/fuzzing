@@ -1,8 +1,7 @@
 
 {
-    "fsw_path": "fsw",
-    "fsw_areas": ["mov"],
-    "spec_path": null,
+    "cmd_files": ["xml/rover_commands.xml"],
+    "spec_file": null,
     "test_suite_size": 10,
     "test_size": 10
 }

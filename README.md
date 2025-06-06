@@ -225,7 +225,7 @@ the enumeration types:
 </command_dictionary>
 ```
 
-The complete XML file for our example is shown [here](tests/demo2/fsw/src/mov_mgr/mov_mgr_ai_cmd.xml).
+The complete XML file for our example is shown [here](tests/demo2/xml/rover_commands.xml).
 These files must be stored in a folder, here named `fsw` with the following structure:
 
 ```
