@@ -248,7 +248,6 @@ def write_enum(node, enumName):
     return enumValue
 
 
-#def generate_commands(areas):
 def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
     """
     Generates the enumeration type and command dictionary from the XML files.
@@ -271,9 +270,8 @@ def generate_commands(fsw_path: str, areas: List[str]) -> Tuple[dict, dict]:
     # -- when the input XML file for a specified FSW area is not found
     # ERROR: error message
     # -- when the tool was not able to run successfully
-    arealist = [areas]
 
-    for i in arealist:
+    for i in areas:
         gen_cmd_file(i)
 
     d1 = {}
