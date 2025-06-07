@@ -1,23 +1,23 @@
 # fuzz
 
-**Version**: 2.1.2
+**Version**: 2.2.0
 
 ## Introduction
 
 This repository contains a library `fuzz` for fuzz testing
-flight software. The main function, `generate_tests`, provided by the library, generates a test suite,
+software that is operated by commands during its continous operation. 
+The main function, `generate_tests`, provided by the library, generates a test suite,
 which is a list of tests. Each test is a list of commands (a named data record), which can be sent
-to the flight software, referred to as the _System Under Test_ (SUT), from a FIT script. Each test is randomly generated, optionally
+to the software, referred to as the _System Under Test_ (SUT), from a script. Each test is randomly generated, optionally
 restricted by user provided constraints written in an expressive temporal logic.
-The objective of fuzzing is to invoke unlikely, untried, command sequences on the flight
+The objective of fuzzing is to invoke unlikely, untried, command sequences on the
 software in an attempt to break it.
 
 The function `generate_tests` takes as input a description of possible commands in XML format,
-including a description of what particular flight software modules should be tested (areas),
 and a specification of constraints (which can be empty), which limits the amount of randomness,
-allowing to avoid unrealistic command sequences or to focus on specific command sequences of interest. 
-It returns a _test suite_ (a list of tests), generated using a constraint 
-solver ([z3](https://github.com/Z3Prover/z3)).
+allowing to avoid unrealistic command sequences or to focus on specific command sequences (scenarios) 
+of interest. It returns a _test suite_ (a list of tests), generated using  the
+[z3](https://github.com/Z3Prover/z3) constraint solver.
 
 <p align="center">
   <img src="material/images/arc-diagram.png" width="200" alt="Description of image">
@@ -37,53 +37,80 @@ test_suite =
   ]
 ```
 
-Below is an example of a generated test suite consisting of two tests, each containing three commands.
-The name of the command is denoted by `"name"`, and the rest of the fields in a command are the arguments,
-in the order in which they must be provided (it is an ordered dictionary).
+Below is an example of a generated test suite consisting of two tests, each containing four commands. The name of the command is denoted by `"name"`, and the rest of the fields in a command are the arguments, in the order in which they must be provided (it is an ordered dictionary).
+Each test satisfies the constraint that there must be a `PIC` command with a number `images`
+and then later there must be a `SEND` command with the same number of images. We shall later explain how to write such constraints formaly. 
 
 ```python
 [
     [
         {
-            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
-            "dwn_framing_packet_buffer": "DIAGNOSTIC_EVR",
-            "enable_disable": "ENABLE"
+            "name": "PIC",
+            "time": 711,
+            "number": 4,
+            "images": 6,
+            "quality": "high",
+            "message": "EngCGoT0iF"
         },
         {
-            "name": "GNC_SRU_SET_EXT_OH_REF_FRAME",
-            "which_sru_eu": "NON_PRIME_SRU_EU",
-            "which_sru_oh": "BOTH"
+            "name": "SEND",
+            "time": 166,
+            "number": 86,
+            "images": 6,
+            "message": "ePVJca59jO"
         },
         {
-            "name": "GNC_SRU_READ_DIAG_DATA",
-            "which_sru_eu": "SRU_EU_B"
+            "name": "PIC",
+            "time": 384,
+            "number": 59,
+            "images": 3,
+            "quality": "low",
+            "message": "2uzbGNSrOj"
+        },
+        {
+            "name": "PIC",
+            "time": 573,
+            "number": 28,
+            "images": 5,
+            "quality": "high",
+            "message": "IFfjnebApe"
         }
     ],
     [
         {
-            "name": "DDM_CLOSE_OPEN_CONT_DP"
+            "name": "TURN",
+            "time": 238,
+            "number": 70,
+            "angle": -83.23905652328844,
+            "message": "c34RfXN40h"
         },
         {
-            "name": "DDM_DEL_DP",
-            "apid": 268,
-            "time_type": "DVT",
-            "filter_time_start": 2262188308,
-            "filter_time_end": 1622977556,
-            "sent_status": "ALL"
+            "name": "CANCEL",
+            "time": 932,
+            "number": 47,
+            "message": "FtC3ox08Os"
         },
         {
-            "name": "DDM_ENABLE_DWN_PB_EXIT_GATE",
-            "dwn_framing_packet_buffer": "REALTIME_EHA_4",
-            "enable_disable": "ENABLE"
+            "name": "PIC",
+            "time": 815,
+            "number": 16,
+            "images": 1,
+            "quality": "low",
+            "message": "jHche5f6TE"
+        },
+        {
+            "name": "SEND",
+            "time": 339,
+            "number": 22,
+            "images": 1,
+            "message": "jCDBWMTP86"
         }
     ]
 ]
 ```
 
-The approach is very general and can in principle be applied to any software that is driven by commands.
-Note that the system **currently** does not check whether the SUT behaves correctly since there is no
-verification of output from the SUT. The sole purpose is to break the SUT. Output verification will be
-added in a later version of the system.
+Note that `fuzz` currently does not check whether the SUT behaves correctly since there is no
+verification of output from the SUT. The sole purpose is to break the SUT. Output verification may be added in a later version of the system.
 
 ## Installation
 
@@ -126,33 +153,12 @@ python fit.py
 This should print out two generated tests, to be explained in detail below.
 
 
-### Alternative Installation Using the `PYTHONPATH`
-
-Set the PYTHONPATH environment variable to include the path to fuzzing:
-
-```bash
-export PYTHONPATH=/path/to/fuzzing:$PYTHONPATH
-```
-
-Then install dependencies that `fuzz` uses. if not already installed.
-These can be installed e.g. with pip as follows:
-
-```
-pip install dotmap
-pip install graphviz
-pip install future
-pip install z3-solver
-pip install lark
-```
-
 ## Usage
 
 A complete demo example is shown in [tests/demo2](tests/demo2), which shall be
 our throughgoing example.  
 
-The folder contains a folder `fsw` with the definitions of commands, a configuration file `fuzz_config.json`,
-a file `spec.txt` containing constraints, and finally the script `fit.py` which generates test cases.
-Run the script to test the installation:
+The folder contains a folder `xml` with the definitions of commands, a configuration file `fuzz_config.json`, a file `spec.txt` containing constraints, and finally the script `fit.py` which generates test cases. Run the script to test the installation:
 
 ```
 python fit.py
@@ -162,14 +168,12 @@ It will print two generated test cases, each consisting of 10 commands.
 
 ## The Command Dictionary
 
-The test generation is based on a _command dictionary_
+The test generation is based on one or more XML files (named the _command dictionary_)
 describing what commands can be submitted to the SUT,
-including types and ranges of their arguments. This command dictionary is provided
-as one or more XML files, as is common for some JPL flight missions.
-In this section we shall describe how this looks like. Some knowledge of this approach
-will be beneficial, but the explanation should be self-contained. 
+including types and ranges of their arguments. 
+In this section we shall describe how this looks like. 
 
-We base our description on an artificial example with commands for operating a rover.
+We base our description on a made up example with commands for operating a rover.
 Using an informal succinct notation (in contrast to XML which is quite verbose), we consider
 the following eight commands.
 
@@ -195,8 +199,7 @@ take a picture (`PIC`),
 send (`SEND`) pictures to ground, and
 log (`LOG`) data.
 
-Each command carries a time stamp and a command number. Types are indicated as (unsigned) `uint`, `float`, 'string',
-or the name of an enumerated type, in this `image_quality`: 
+Each command carries a time stamp and a command number. Types are indicated as (unsigned) `uint`, `float`, 'string', or the name of an enumerated type, in this case `image_quality`: 
 
 ```python
 Types:
@@ -208,8 +211,7 @@ between square brackets. For strings the length is indicated between square brac
 
 These commands are formally represented as a collection of XML files, each of which 
 has the following format, defining an entry of enumeration
-types and an entry of command definitions, with arguments having types which include
-the enumeration types:
+types and an entry of command definitions:
 
 ```xml
 <command_dictionary>
@@ -226,41 +228,6 @@ the enumeration types:
 ```
 
 The complete XML file for our example is shown [here](tests/demo2/xml/rover_commands.xml).
-These files must be stored in a folder, here named `fsw` with the following structure:
-
-```
-fsw
-  |__ src
-        |___ aaa_xxx
-        |    |___ aaa_xxx_ai_cmd.xml
-        |
-        |____aaa_yyy
-        |    |___ aaa_yyy_ai_cmd.xml
-        |
-        |___ bbb_xxx
-        |    |___ bbb_xxx_ai_cmd.xml
-        |
-        |____bbb_yyy
-        |    |___ bbb_yyy_ai_cmd.xml 
-        |
-        |___ ccc_xxx
-        |    |___ ccc_xxx_ai_cmd.xml
-        |
-        |____ccc_yyy
-             |___ ccc_yyy_ai_cmd.xml  
-```
-
-Where `aaa`, `bbb`, and `ccc` are areas, and
-where `xxx`, `yyy`, `zzz` is each one of `mgr`, `ctl`, `svc`, `exe`, and `ptm`.
-
-In our case, the `fsw` folder has the following structure containing one single XML file:
-
-```
-fsw
-  |__ src
-        |___ mov_mgr
-             |___ mov_mgr_ai_cmd.xml
-```
 
 ## The Configuration File
 
@@ -269,9 +236,8 @@ In our case it looks as follows.
 
 ```json
 {
-    "fsw_path": "fsw",
-    "fsw_areas": ["mov"],
-    "spec_path": "spec.txt",
+    "cmd_files": ["xml/rover_commands.xml"],
+    "spec_file": "spec.txt",
     "test_suite_size": 10,
     "test_size": 10
 }
@@ -279,13 +245,12 @@ In our case it looks as follows.
 
 Explanation:
 
-- **fsw_path**: the path to the folder containing the command definitions.
-- **fsw_areas**: a list of the areas for which commands should be generated.
-- **spec_path**: the path to the specification of constraints. 
+- **cmd_files**: a list of the XML files defining enumerated types and commands.
+- **spec_file**: the path to the specification of constraints. 
 - **test_suite_size**: the number of tests to be generated.
 - **test_size**: the number of commands in each test.
 
-Note that `spec_path`, `test_suite_size`, and `test_size` can be left out and instead
+Note that `spec_file`, `test_suite_size`, and `test_size` can be left out and instead
 provided in the test script as arguments to the `generate_tests` function. 
 If a specification is provided both via the configuration file
 and the script, the two are combined (concatenated as text strings). The `test_suite_size` 
@@ -296,8 +261,8 @@ using the following environment variable: `FUZZ_CONFIG_PATH`.
 
 ## The Test Script
 
-The folder contains the following script `fit.py`, which underneath reads the configuration file,
-and then the XML command dictionary indicated in the configuration file.
+The folder contains the following script `fit.py`, which reads the configuration file,
+and then the XML command definition files indicated in the configuration file.
 
 ```python
 from fuzz import generate_tests, TestSuite
@@ -324,7 +289,7 @@ spec = """
 if __name__ == '__main__':
     tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
     for test in tests:
-        print(f'RESET_FSW')
+        print(f'RESET SUT')
         for cmd in test:
             print(cmd)
 ```
@@ -464,7 +429,7 @@ import json
 if __name__ == '__main__':
     with open('fuzz-testsuite.json', 'r') as file: tests = json.load(file)
     for test in tests:
-        print(f'RESET_FSW')
+        print(f'RESET SUT')
         for cmd in test:
             print(cmd)
 ```
@@ -749,6 +714,6 @@ can alternatively be written as:
 
 ## Contributing
 
-- Tracy Clark (348B)
-- Klaus Havelund (348B)
-- Vivek Reddy (348B)
+- Tracy Clark
+- Klaus Havelund
+- Vivek Reddy

@@ -30,7 +30,7 @@ if __name__ == '__main__':
     print_tests(tests)
     for test in tests:
         print('=========')
-        print('reset fsw')
+        print('reset sut')
         print('=========')
         for cmd in test:
             print(f'send {cmd}')

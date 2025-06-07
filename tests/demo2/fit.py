@@ -19,10 +19,9 @@ spec = """
       always any(time=t1?) => wnext any(time=t2?) =>  t1 < t2
     """
 
-
 if __name__ == '__main__':
     tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=10)
     for test in tests:
-        print(f'RESET_FSW')
+        print(f'RESET SUT')
         for cmd in test:
             print(cmd)
