@@ -4,7 +4,7 @@
 
 ## Introduction
 
-This repository contains a library `fuzz` for fuzz testing
+This repository contains the Python library `fuzz` for fuzz testing
 software that is operated by commands during its continous operation. 
 The main function, `generate_tests`, provided by the library, generates a test suite,
 which is a list of tests. Each test is a list of commands (a named data record), which can be sent
