@@ -479,9 +479,8 @@ stack overflow observed on traces of 1000 commands. But it works for the kinds o
 
 ## Constraint Language
 
-In this section we dive into a more detailed explanation of the temporal logic.
-We first provide a very quick introduction to the general principles of temporal logic, and then
-subsequently present our temporal logic.
+In this section we dive into a more detailed explanation of the temporal logic, named MaTL (Matching Temporal Logic).
+We first provide a very quick introduction to the general principles of temporal logic for the reader not familiar with the concept, and then subsequently present our temporal logic.
 
 ### General Introduction to Temporal Logic
 
@@ -546,16 +545,9 @@ satisfies the formulas. As you may have guessed, we can also turn this around
 and from the formulas generate sequences that satisfy them. This is exactly our
 test generation task.
 
-Note that there are many different temporal logics presented in literature.
-The temporal logic shown below is very expressive compared and is designed by 
-combining features from other temporal logics, and by adding new temporal operators.
+### The MaTL Temporal Logic of Commands
 
-### Temporal Logic of Commands
-
-The temporal logic has future time operators (referring to the future) and past time
-operators (referring to the past), and binding operators, which enable capturing values 
-of command's arguments in  one part of a formula, and refer to them  in another part of the formula.
-As an example, consider the test (from our previous example):
+The temporal logic, named MaTL (Matching Temporal Logic) has future time operators (referring to the future), past time operators (referring to the past), and match constructs, which enable capturing values of command's arguments, and refer to them  in other parts of the formula (past and/or future). As an example, consider the test (from our previous example):
 
 ```
 [
