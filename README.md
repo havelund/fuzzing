@@ -123,7 +123,7 @@ verification of output from the SUT. The sole purpose is to break the SUT. Outpu
 Clone or copy the fuzzing project to your local machine (cloning done in `HTTPS` mode):
 
 ```
-git clone https://github.jpl.nasa.gov/lars/fuzzing.git
+git clone https://github.com/havelund/fuzzing.git
 ```
 
 This will create a folder `fuzzing` with the project.
