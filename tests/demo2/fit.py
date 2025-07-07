@@ -1,7 +1,7 @@
 
 from fuzz import generate_tests, TestSuite
 
-spec = """
+spec = """      
     rule stop:
       always MOVE(number=n?) => eventually STOP(number=n)
 

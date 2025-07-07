@@ -1,0 +1,72 @@
+[
+    [
+        {
+            "name": "SCRIPT",
+            "number": 1,
+            "time": 1,
+            "script": "TiRJdOyCXbWZW1jNI42u",
+            "file": "ThCf2kEAyUFBdzxk0TzT"
+        },
+        {
+            "name": "PIC",
+            "number": 2,
+            "time": 11,
+            "quality": "high",
+            "images": 10
+        },
+        {
+            "name": "STORE",
+            "number": 3,
+            "time": 21,
+            "file": "pQqjTG8dzezukAf7T23F",
+            "images": 8
+        },
+        {
+            "name": "SEND",
+            "number": 4,
+            "time": 31,
+            "file": "z6i2XV4uaQaYrVBO35Fd"
+        },
+        {
+            "name": "MOVE",
+            "number": 5,
+            "time": 41,
+            "dir": "forward",
+            "distance": 1.0
+        },
+        {
+            "name": "PIC",
+            "number": 6,
+            "time": 51,
+            "quality": "high",
+            "images": 10
+        },
+        {
+            "name": "STORE",
+            "number": 7,
+            "time": 61,
+            "file": "482.img",
+            "images": 7
+        },
+        {
+            "name": "COLLECT",
+            "number": 8,
+            "time": 71,
+            "file": "m",
+            "sample": "m"
+        },
+        {
+            "name": "SCRIPT",
+            "number": 9,
+            "time": 81,
+            "script": "run_m.py",
+            "file": "m"
+        },
+        {
+            "name": "SEND",
+            "number": 10,
+            "time": 91,
+            "file": "482.img"
+        }
+    ]
+]

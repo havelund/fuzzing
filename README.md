@@ -236,7 +236,7 @@ In our case it looks as follows.
 
 ```json
 {
-    "cmd_files": ["xml/rover_commands.xml"],
+    "cmd_files": ["xml/rover_commands_old.xml"],
     "spec_file": "spec.txt",
     "test_suite_size": 10,
     "test_size": 10
