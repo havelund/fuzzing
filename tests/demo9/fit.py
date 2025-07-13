@@ -1,4 +1,5 @@
 from fuzz import generate_tests, TestSuite
+import time
 
 """
 ROTATE(number:uint, time:uint, angle:float) 
@@ -70,10 +71,12 @@ spec = """
 # Missing: or, sofar, ->, next n
 
 if __name__ == '__main__':
-    tests: TestSuite = generate_tests(spec=spec, test_suite_size=1, test_size=10)
+    start_time = time.time()
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=100, test_size=10)
+    end_time = time.time()
     for test in tests:
         print(f'RESET SUT')
         for cmd in test:
             print(cmd)
-
+    print(f'Execution time = {end_time - start_time} seconds.')
 
