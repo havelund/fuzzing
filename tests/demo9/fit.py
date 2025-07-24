@@ -70,9 +70,26 @@ spec = """
 
 # Missing: or, sofar, ->, next n
 
+spec = """     
+  rule required_commands:
+    eventually MOVE(dir=direction.backwards) 
+
+  rule move_backwards:
+    always [MOVE(dir=direction.backwards,distance=d?)] eventually <ROTATE(angle=a?)> a = 45/d
+    """
+
+spec = """
+  rule time_increases:
+    always any(time=t1?) => wnext any(time=t2?) =>  t2 >= t1 + 10
+
+  rule numbers_consecutive:
+    any(number=1) and
+    always any(number=n1?) => wnext any(number=n2?) =>  n2 = n1 + 1
+"""
+
 if __name__ == '__main__':
     start_time = time.time()
-    tests: TestSuite = generate_tests(spec=spec, test_suite_size=100, test_size=10)
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=1, test_size=5)
     end_time = time.time()
     for test in tests:
         print(f'RESET SUT')

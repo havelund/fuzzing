@@ -247,6 +247,11 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
     smt_rng_formula: BoolRef = command_dictionary.generate_smt_constraint(test_size)
     ast: LTLSpec = parse_spec(spec)
     smt_ltl_formula: BoolRef = ast.to_smt(test_size)
+    # ---\
+    print('=== FORMULA ===')
+    print(smt_ltl_formula)
+    print('===============')
+    # ---/
     smt_formula: BoolRef = And(smt_rng_formula, smt_ltl_formula)
     tests: list[Test] = []
     for test_nr in range(test_suite_size):

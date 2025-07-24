@@ -374,6 +374,9 @@ class FSWCommandDictionary:
                     smt_type = arg.smt_type()
                     fields.append((arg_name, smt_type))
                 Command.declare(cmd.name, *fields)
+            print('=== GENERATED COMMAND DATATYPE ===')
+            print(Command)
+            print('==================================')
             Command = Command.create()
             return Command
         except Exception as e:
