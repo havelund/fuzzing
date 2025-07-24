@@ -706,6 +706,6 @@ can alternatively be written as:
 
 ## Contributing
 
+- Klaus Havelund ([klaus.havelund@jpl.nasa.gov](mailto:klaus.havelund@jpl.nasa.gov))
 - Tracy Clark
-- Klaus Havelund
 - Vivek Reddy
