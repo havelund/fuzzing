@@ -247,11 +247,9 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
     smt_rng_formula: BoolRef = command_dictionary.generate_smt_constraint(test_size)
     ast: LTLSpec = parse_spec(spec)
     smt_ltl_formula: BoolRef = ast.to_smt(test_size)
-    # ---\
-    print('=== FORMULA ===')
-    print(smt_ltl_formula)
-    print('===============')
-    # ---/
+    if Options.PRINT_CONSTRAINTS:
+        headline('FORMULA FROM SPEC ONLY')
+        print(smt_ltl_formula)
     smt_formula: BoolRef = And(smt_rng_formula, smt_ltl_formula)
     tests: list[Test] = []
     for test_nr in range(test_suite_size):
@@ -281,7 +279,7 @@ def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
     solver = Solver()
     if solve_formula(solver, smt_formula, end_time) is not None:
         if Options.PRINT_CONSTRAINTS:
-            headline("CONSTRAINTS")
+            headline("ALL CONSTRAINTS")
             print(solver.assertions())
         extract_and_verify_test(ast, solver.model(), end_time)
         if Options.REFINEMENT_STRATEGY == RefinementStrategy.EVAL:

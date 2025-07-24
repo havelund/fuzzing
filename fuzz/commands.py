@@ -25,6 +25,7 @@ from z3 import *
 
 from fuzz.gencmds import generate_commands
 from fuzz.utils import inspect, error, headline, unsigned_int_bounds, signed_int_bounds, float_bounds
+from fuzz.options import Options
 
 
 # ==================================================================
@@ -374,9 +375,9 @@ class FSWCommandDictionary:
                     smt_type = arg.smt_type()
                     fields.append((arg_name, smt_type))
                 Command.declare(cmd.name, *fields)
-            print('=== GENERATED COMMAND DATATYPE ===')
-            print(Command)
-            print('==================================')
+            if Options.PRINT_CONSTRAINTS:
+                headline('GENERATED COMMAND DATATYPE')
+                print(Command)
             Command = Command.create()
             return Command
         except Exception as e:

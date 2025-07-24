@@ -1,4 +1,4 @@
-from fuzz import generate_tests, TestSuite
+from fuzz import generate_tests, TestSuite, Options
 import time
 
 """
@@ -89,7 +89,7 @@ spec = """
 
 if __name__ == '__main__':
     start_time = time.time()
-    tests: TestSuite = generate_tests(spec=spec, test_suite_size=1, test_size=5)
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=5)
     end_time = time.time()
     for test in tests:
         print(f'RESET SUT')
