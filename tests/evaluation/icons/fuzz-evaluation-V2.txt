@@ -1,0 +1,1456 @@
+
+================
+Without strings:
+================
+
+====
+P10:
+====
+10:
+Execution time: 0.156 seconds
+Formula generation time: 0.121 seconds
+Total sat time: 0.033 seconds
+Average sat time: 0.011 seconds
+
+20:
+Execution time: 0.230 seconds
+Formula generation time: 0.160 seconds
+Total sat time: 0.069 seconds
+Average sat time: 0.023 seconds
+
+30:
+Execution time: 0.298 seconds
+Formula generation time: 0.196 seconds
+Total sat time: 0.101 seconds
+Average sat time: 0.034 seconds
+
+40:
+Execution time: 0.360 seconds
+Formula generation time: 0.224 seconds
+Total sat time: 0.135 seconds
+Average sat time: 0.045 seconds
+
+50:
+Execution time: 0.442 seconds
+Formula generation time: 0.269 seconds
+Total sat time: 0.171 seconds
+Average sat time: 0.057 seconds
+
+60:
+Execution time: 0.506 seconds
+Formula generation time: 0.305 seconds
+Total sat time: 0.200 seconds
+Average sat time: 0.067 seconds
+
+70:
+Execution time: 0.558 seconds
+Formula generation time: 0.320 seconds
+Total sat time: 0.236 seconds
+Average sat time: 0.079 seconds
+
+80:
+Execution time: 0.658 seconds
+Formula generation time: 0.381 seconds
+Total sat time: 0.275 seconds
+Average sat time: 0.092 seconds
+
+90:
+Execution time: 0.708 seconds
+Formula generation time: 0.399 seconds
+Total sat time: 0.307 seconds
+Average sat time: 0.102 seconds
+
+100:
+Execution time: 0.782 seconds
+Formula generation time: 0.430 seconds
+Total sat time: 0.350 seconds
+Average sat time: 0.117 seconds
+
+===
+P1:
+===
+
+10:
+Execution time: 0.196 seconds
+Formula generation time: 0.150 seconds
+Total sat time: 0.045 seconds
+Average sat time: 0.015 seconds
+
+20: 
+Execution time: 0.298 seconds
+Formula generation time: 0.192 seconds
+Total sat time: 0.105 seconds
+Average sat time: 0.035 seconds
+
+30:
+Execution time: 0.404 seconds
+Formula generation time: 0.233 seconds
+Total sat time: 0.171 seconds
+Average sat time: 0.057 seconds
+
+40:
+Execution time: 0.474 seconds
+Formula generation time: 0.270 seconds
+Total sat time: 0.203 seconds
+Average sat time: 0.068 seconds
+
+50:
+Execution time: 0.567 seconds
+Formula generation time: 0.311 seconds
+Total sat time: 0.256 seconds
+Average sat time: 0.085 seconds
+
+60:
+Execution time: 0.696 seconds
+Formula generation time: 0.367 seconds
+Total sat time: 0.327 seconds
+Average sat time: 0.109 seconds
+
+70:
+Execution time: 0.830 seconds
+Formula generation time: 0.418 seconds
+Total sat time: 0.410 seconds
+Average sat time: 0.137 seconds
+
+80:
+Execution time: 0.943 seconds
+Formula generation time: 0.456 seconds
+Total sat time: 0.484 seconds
+Average sat time: 0.161 seconds
+
+90:
+Execution time: 1.189 seconds
+Formula generation time: 0.486 seconds
+Total sat time: 0.701 seconds
+Average sat time: 0.234 seconds
+
+100:
+Execution time: 1.144 seconds
+Formula generation time: 0.524 seconds
+Total sat time: 0.618 seconds
+Average sat time: 0.206 seconds
+
+===
+P2:
+===
+
+10:
+Execution time: 0.184 seconds
+Formula generation time: 0.140 seconds
+Total sat time: 0.043 seconds
+Average sat time: 0.014 seconds
+
+20:
+Execution time: 0.289 seconds
+Formula generation time: 0.185 seconds
+Total sat time: 0.103 seconds
+Average sat time: 0.034 seconds
+
+30:
+Execution time: 0.375 seconds
+Formula generation time: 0.235 seconds
+Total sat time: 0.139 seconds
+Average sat time: 0.046 seconds
+
+40:
+Execution time: 0.483 seconds
+Formula generation time: 0.294 seconds
+Total sat time: 0.188 seconds
+Average sat time: 0.063 seconds
+
+50:
+Execution time: 0.541 seconds
+Formula generation time: 0.309 seconds
+Total sat time: 0.231 seconds
+Average sat time: 0.077 seconds
+
+60:
+Execution time: 0.637 seconds
+Formula generation time: 0.353 seconds
+Total sat time: 0.283 seconds
+Average sat time: 0.094 seconds
+
+70:
+Execution time: 0.767 seconds
+Formula generation time: 0.416 seconds
+Total sat time: 0.349 seconds
+Average sat time: 0.116 seconds
+
+80:
+Execution time: 0.856 seconds
+Formula generation time: 0.454 seconds
+Total sat time: 0.400 seconds
+Average sat time: 0.133 seconds
+
+90:
+Execution time: 0.944 seconds
+Formula generation time: 0.493 seconds
+Total sat time: 0.449 seconds
+Average sat time: 0.150 seconds
+
+100:
+Execution time: 1.061 seconds
+Formula generation time: 0.528 seconds
+Total sat time: 0.531 seconds
+Average sat time: 0.177 seconds
+
+===
+P3:
+===
+
+10:
+Execution time: 0.166 seconds
+Formula generation time: 0.131 seconds
+Total sat time: 0.035 seconds
+Average sat time: 0.012 seconds
+
+20:
+Execution time: 0.231 seconds
+Formula generation time: 0.160 seconds
+Total sat time: 0.071 seconds
+Average sat time: 0.024 seconds
+
+30:
+Execution time: 0.304 seconds
+Formula generation time: 0.198 seconds
+Total sat time: 0.105 seconds
+Average sat time: 0.035 seconds
+
+40:
+Execution time: 0.375 seconds
+Formula generation time: 0.234 seconds
+Total sat time: 0.140 seconds
+Average sat time: 0.047 seconds
+
+50:
+Execution time: 0.447 seconds
+Formula generation time: 0.270 seconds
+Total sat time: 0.176 seconds
+Average sat time: 0.059 seconds
+
+60:
+Execution time: 0.522 seconds
+Formula generation time: 0.312 seconds
+Total sat time: 0.209 seconds
+Average sat time: 0.070 seconds
+
+70:
+Execution time: 0.586 seconds
+Formula generation time: 0.340 seconds
+Total sat time: 0.244 seconds
+Average sat time: 0.081 seconds
+
+80:
+Execution time: 0.663 seconds
+Formula generation time: 0.376 seconds
+Total sat time: 0.286 seconds
+Average sat time: 0.095 seconds
+
+90:
+Execution time: 0.753 seconds
+Formula generation time: 0.422 seconds
+Total sat time: 0.330 seconds
+Average sat time: 0.110 seconds
+
+100:
+Execution time: 0.833 seconds
+Formula generation time: 0.451 seconds
+Total sat time: 0.379 seconds
+Average sat time: 0.126 seconds
+
+===
+P4:
+===
+
+10:
+Execution time: 0.160 seconds
+Formula generation time: 0.124 seconds
+Total sat time: 0.035 seconds
+Average sat time: 0.012 seconds
+
+20:
+Execution time: 0.250 seconds
+Formula generation time: 0.176 seconds
+Total sat time: 0.073 seconds
+Average sat time: 0.024 seconds
+
+30:
+Execution time: 0.307 seconds
+Formula generation time: 0.201 seconds
+Total sat time: 0.105 seconds
+Average sat time: 0.035 seconds
+
+40:
+Execution time: 0.375 seconds
+Formula generation time: 0.233 seconds
+Total sat time: 0.141 seconds
+Average sat time: 0.047 seconds
+
+50:
+Execution time: 0.468 seconds
+Formula generation time: 0.285 seconds
+Total sat time: 0.181 seconds
+Average sat time: 0.060 seconds
+
+60:
+Execution time: 0.528 seconds
+Formula generation time: 0.311 seconds
+Total sat time: 0.215 seconds
+Average sat time: 0.072 seconds
+
+70:
+Execution time: 0.588 seconds
+Formula generation time: 0.339 seconds
+Total sat time: 0.247 seconds
+Average sat time: 0.082 seconds
+
+80:
+Execution time: 0.690 seconds
+Formula generation time: 0.390 seconds
+Total sat time: 0.298 seconds
+Average sat time: 0.099 seconds
+
+90:
+Execution time: 0.777 seconds
+Formula generation time: 0.437 seconds
+Total sat time: 0.338 seconds
+Average sat time: 0.113 seconds
+
+100:
+Execution time: 0.852 seconds
+Formula generation time: 0.464 seconds
+Total sat time: 0.386 seconds
+Average sat time: 0.129 seconds
+
+===
+P5:
+===
+
+10:
+Execution time: 0.187 seconds
+Formula generation time: 0.147 seconds
+Total sat time: 0.039 seconds
+Average sat time: 0.013 seconds
+
+20:
+Execution time: 0.299 seconds
+Formula generation time: 0.216 seconds
+Total sat time: 0.083 seconds
+Average sat time: 0.028 seconds
+
+30:
+Execution time: 0.480 seconds
+Formula generation time: 0.341 seconds
+Total sat time: 0.138 seconds
+Average sat time: 0.046 seconds
+
+40:
+Execution time: 0.681 seconds
+Formula generation time: 0.480 seconds
+Total sat time: 0.200 seconds
+Average sat time: 0.067 seconds
+
+50:
+Execution time: 0.904 seconds
+Formula generation time: 0.632 seconds
+Total sat time: 0.270 seconds
+Average sat time: 0.090 seconds
+
+60:
+Execution time: 1.164 seconds
+Formula generation time: 0.809 seconds
+Total sat time: 0.353 seconds
+Average sat time: 0.118 seconds
+
+70:
+Execution time: 1.476 seconds
+Formula generation time: 1.027 seconds
+Total sat time: 0.447 seconds
+Average sat time: 0.149 seconds
+
+80:
+Execution time: 1.836 seconds
+Formula generation time: 1.260 seconds
+Total sat time: 0.574 seconds
+Average sat time: 0.191 seconds
+
+90:
+Execution time: 2.181 seconds
+Formula generation time: 1.530 seconds
+Total sat time: 0.649 seconds
+Average sat time: 0.216 seconds
+
+100:
+Execution time: 2.661 seconds
+Formula generation time: 1.837 seconds
+Total sat time: 0.822 seconds
+Average sat time: 0.274 seconds
+
+===
+P6:
+===
+
+10:
+Execution time: 0.191 seconds
+Formula generation time: 0.153 seconds
+Total sat time: 0.037 seconds
+Average sat time: 0.012 seconds
+
+20:
+Execution time: 0.296 seconds
+Formula generation time: 0.221 seconds
+Total sat time: 0.074 seconds
+Average sat time: 0.025 seconds
+
+30:
+Execution time: 0.395 seconds
+Formula generation time: 0.283 seconds
+Total sat time: 0.110 seconds
+Average sat time: 0.037 seconds
+
+40:
+Execution time: 0.545 seconds
+Formula generation time: 0.389 seconds
+Total sat time: 0.155 seconds
+Average sat time: 0.052 seconds
+
+50:
+Execution time: 0.706 seconds
+Formula generation time: 0.508 seconds
+Total sat time: 0.197 seconds
+Average sat time: 0.066 seconds
+
+60:
+Execution time: 0.894 seconds
+Formula generation time: 0.650 seconds
+Total sat time: 0.243 seconds
+Average sat time: 0.081 seconds
+
+70:
+Execution time: 1.102 seconds
+Formula generation time: 0.808 seconds
+Total sat time: 0.292 seconds
+Average sat time: 0.097 seconds
+
+80:
+Execution time: 1.349 seconds
+Formula generation time: 0.995 seconds
+Total sat time: 0.352 seconds
+Average sat time: 0.117 seconds
+
+90:
+Execution time: 1.590 seconds
+Formula generation time: 1.191 seconds
+Total sat time: 0.397 seconds
+Average sat time: 0.132 seconds
+
+100:
+Execution time: 1.849 seconds
+Formula generation time: 1.380 seconds
+Total sat time: 0.467 seconds
+Average sat time: 0.156 seconds
+
+===
+P7:
+===
+
+10:
+Execution time: 0.236 seconds
+Formula generation time: 0.181 seconds
+Total sat time: 0.054 seconds
+Average sat time: 0.018 seconds
+
+20:
+Execution time: 0.571 seconds
+Formula generation time: 0.426 seconds
+Total sat time: 0.143 seconds
+Average sat time: 0.048 seconds
+
+30:
+Execution time: 1.257 seconds
+Formula generation time: 0.920 seconds
+Total sat time: 0.335 seconds
+Average sat time: 0.112 seconds
+
+40:
+Execution time: 2.374 seconds
+Formula generation time: 1.757 seconds
+Total sat time: 0.616 seconds
+Average sat time: 0.205 seconds
+
+50:
+Execution time: 4.077 seconds
+Formula generation time: 3.152 seconds
+Total sat time: 0.924 seconds
+Average sat time: 0.308 seconds
+
+60:
+Execution time: 6.540 seconds
+Formula generation time: 5.205 seconds
+Total sat time: 1.334 seconds
+Average sat time: 0.445 seconds
+
+70:
+Execution time: 9.527 seconds
+Formula generation time: 7.860 seconds
+Total sat time: 1.665 seconds
+Average sat time: 0.555 seconds
+
+80:
+Execution time: 14.196 seconds
+Formula generation time: 11.400 seconds
+Total sat time: 2.794 seconds
+Average sat time: 0.931 seconds
+
+90:
+Execution time: 19.357 seconds
+Formula generation time: 15.972 seconds
+Total sat time: 3.382 seconds
+Average sat time: 1.127 seconds
+
+100:
+Execution time: 27.685 seconds
+Formula generation time: 21.591 seconds
+Total sat time: 6.092 seconds
+Average sat time: 2.031 seconds
+
+===
+P8:
+===
+
+10:
+Execution time: 0.214 seconds
+Formula generation time: 0.158 seconds
+Total sat time: 0.055 seconds
+Average sat time: 0.018 seconds
+
+20:
+Execution time: 0.501 seconds
+Formula generation time: 0.314 seconds
+Total sat time: 0.187 seconds
+Average sat time: 0.062 seconds
+
+30:
+Execution time: 1.116 seconds
+Formula generation time: 0.651 seconds
+Total sat time: 0.464 seconds
+Average sat time: 0.155 seconds
+
+40:
+Execution time: 1.892 seconds
+Formula generation time: 1.234 seconds
+Total sat time: 0.657 seconds
+Average sat time: 0.219 seconds
+
+50:
+Execution time: 3.770 seconds
+Formula generation time: 2.118 seconds
+Total sat time: 1.650 seconds
+Average sat time: 0.550 seconds
+
+60:
+Execution time: 6.166 seconds
+Formula generation time: 3.319 seconds
+Total sat time: 2.846 seconds
+Average sat time: 0.949 seconds
+
+70:
+Execution time: 8.996 seconds
+Formula generation time: 5.035 seconds
+Total sat time: 3.959 seconds
+Average sat time: 1.320 seconds
+
+80:
+Execution time: 14.073 seconds
+Formula generation time: 7.337 seconds
+Total sat time: 6.734 seconds
+Average sat time: 2.245 seconds
+
+90:
+Execution time: 17.659 seconds
+Formula generation time: 10.170 seconds
+Total sat time: 7.487 seconds
+Average sat time: 2.496 seconds
+
+100:
+Execution time: 21.066 seconds
+Formula generation time: 13.697 seconds
+Total sat time: 7.367 seconds
+Average sat time: 2.456 seconds
+
+===
+P9:
+===
+
+10:
+Execution time: 0.192 seconds
+Formula generation time: 0.148 seconds
+Total sat time: 0.043 seconds
+Average sat time: 0.014 seconds
+
+20:
+Execution time: 0.393 seconds
+Formula generation time: 0.289 seconds
+Total sat time: 0.103 seconds
+Average sat time: 0.034 seconds
+
+30:
+Execution time: 0.804 seconds
+Formula generation time: 0.610 seconds
+Total sat time: 0.193 seconds
+Average sat time: 0.064 seconds
+
+40:
+Execution time: 1.503 seconds
+Formula generation time: 1.147 seconds
+Total sat time: 0.355 seconds
+Average sat time: 0.118 seconds
+
+50:
+Execution time: 2.490 seconds
+Formula generation time: 1.968 seconds
+Total sat time: 0.520 seconds
+Average sat time: 0.173 seconds
+
+60:
+Execution time: 3.907 seconds
+Formula generation time: 3.210 seconds
+Total sat time: 0.695 seconds
+Average sat time: 0.232 seconds
+
+70:
+Execution time: 6.244 seconds
+Formula generation time: 4.941 seconds
+Total sat time: 1.302 seconds
+Average sat time: 0.434 seconds
+
+80:
+Execution time: 9.758 seconds
+Formula generation time: 7.342 seconds
+Total sat time: 2.414 seconds
+Average sat time: 0.805 seconds
+
+90:
+Execution time: 11.827 seconds
+Formula generation time: 10.060 seconds
+Total sat time: 1.766 seconds
+Average sat time: 0.589 seconds
+
+100:
+Execution time: 15.700 seconds
+Formula generation time: 13.236 seconds
+Total sat time: 2.462 seconds
+Average sat time: 0.821 seconds
+
+====
+All:
+====
+
+10:
+Execution time: 0.379 seconds
+Formula generation time: 0.268 seconds
+Total sat time: 0.110 seconds
+Average sat time: 0.037 seconds
+
+20:
+Execution time: 1.275 seconds
+Formula generation time: 0.840 seconds
+Total sat time: 0.433 seconds
+Average sat time: 0.144 seconds
+
+30:
+Execution time: 3.247 seconds
+Formula generation time: 2.028 seconds
+Total sat time: 1.218 seconds
+Average sat time: 0.406 seconds
+
+40:
+Execution time: 6.047 seconds
+Formula generation time: 4.099 seconds
+Total sat time: 1.947 seconds
+Average sat time: 0.649 seconds
+
+50:
+Execution time: 11.083 seconds
+Formula generation time: 7.351 seconds
+Total sat time: 3.730 seconds
+Average sat time: 1.243 seconds
+
+60:
+Execution time: 20.166 seconds
+Formula generation time: 11.988 seconds
+Total sat time: 8.177 seconds
+Average sat time: 2.726 seconds
+
+70:
+Execution time: 29.281 seconds
+Formula generation time: 18.442 seconds
+Total sat time: 10.837 seconds
+Average sat time: 3.612 seconds
+
+80:
+Execution time: 39.065 seconds
+Formula generation time: 26.692 seconds
+Total sat time: 12.371 seconds
+Average sat time: 4.124 seconds
+
+90:
+Execution time: 53.807 seconds
+Formula generation time: 37.341 seconds
+Total sat time: 16.463 seconds
+Average sat time: 5.488 seconds
+
+100:
+Execution time: 84.830 seconds
+Formula generation time: 50.268 seconds
+Total sat time: 34.560 seconds
+Average sat time: 11.520 seconds
+
+-- beyond 100: --
+
+110:
+Execution time: 121.071 seconds
+Formula generation time: 65.805 seconds
+Total sat time: 55.264 seconds
+Average sat time: 18.421 seconds
+
+120:
+Execution time: 165.672 seconds
+Formula generation time: 84.223 seconds
+Total sat time: 81.447 seconds
+Average sat time: 27.149 seconds
+
+130:
+Execution time: 173.875 seconds
+Formula generation time: 107.588 seconds
+Total sat time: 66.284 seconds
+Average sat time: 22.095 seconds
+
+140:
+Execution time: 226.967 seconds
+Formula generation time: 132.296 seconds
+Total sat time: 94.668 seconds
+Average sat time: 31.556 seconds
+
+150:
+Execution time: 586.001 seconds
+Formula generation time: 161.554 seconds
+Total sat time: 424.445 seconds
+Average sat time: 141.482 seconds
+
+160: *** NOT WITHIN 10 min ***
+Execution time: 740.176 seconds
+Formula generation time: 198.512 seconds
+Total sat time: 541.661 seconds
+Average sat time: 180.554 seconds
+
+170:
+Execution time: 507.659 seconds
+Formula generation time: 233.020 seconds
+Total sat time: 274.634 seconds
+Average sat time: 91.545 seconds
+
+180: *** NOT WITHIN 10 min ***
+Execution time: 710.689 seconds
+Formula generation time: 275.260 seconds
+Total sat time: 435.426 seconds
+Average sat time: 145.142 seconds
+
+190: *** NOT WITHIN 10 min ***
+Execution time: 1418.201 seconds
+Formula generation time: 324.467 seconds
+Total sat time: 1093.731 seconds
+Average sat time: 364.577 seconds
+
+200: *** NOT WITHIN 10 min ***
+Execution time: 2611.269 seconds
+Formula generation time: 376.380 seconds
+Total sat time: 2234.885 seconds
+Average sat time: 744.962 seconds
+
+=============
+With strings:
+=============
+
+===
+P10:
+===
+
+10:
+Execution time: 0.163 seconds
+Formula generation time: 0.117 seconds
+Total sat time: 0.045 seconds
+Average sat time: 0.015 seconds
+
+20:
+Execution time: 0.253 seconds
+Formula generation time: 0.165 seconds
+Total sat time: 0.087 seconds
+Average sat time: 0.029 seconds
+
+30:
+Execution time: 0.314 seconds
+Formula generation time: 0.184 seconds
+Total sat time: 0.129 seconds
+Average sat time: 0.043 seconds
+
+40:
+Execution time: 0.435 seconds
+Formula generation time: 0.230 seconds
+Total sat time: 0.204 seconds
+Average sat time: 0.068 seconds
+
+50:
+Execution time: 0.510 seconds
+Formula generation time: 0.250 seconds
+Total sat time: 0.258 seconds
+Average sat time: 0.086 seconds
+
+60:
+Execution time: 0.604 seconds
+Formula generation time: 0.289 seconds
+Total sat time: 0.313 seconds
+Average sat time: 0.104 seconds
+
+70:
+Execution time: 0.714 seconds
+Formula generation time: 0.308 seconds
+Total sat time: 0.405 seconds
+Average sat time: 0.135 seconds
+
+80:
+Execution time: 0.850 seconds
+Formula generation time: 0.333 seconds
+Total sat time: 0.516 seconds
+Average sat time: 0.172 seconds
+
+90:
+Execution time: 0.924 seconds
+Formula generation time: 0.367 seconds
+Total sat time: 0.555 seconds
+Average sat time: 0.185 seconds
+
+100:
+Execution time: 1.043 seconds
+Formula generation time: 0.403 seconds
+Total sat time: 0.638 seconds
+Average sat time: 0.213 seconds
+
+===
+P1:
+===
+
+10:
+Execution time: 0.247 seconds
+Formula generation time: 0.149 seconds
+Total sat time: 0.097 seconds
+Average sat time: 0.032 seconds
+
+20:
+Execution time: 0.296 seconds
+Formula generation time: 0.171 seconds
+Total sat time: 0.124 seconds
+Average sat time: 0.041 seconds
+
+30:
+Execution time: 0.393 seconds
+Formula generation time: 0.213 seconds
+Total sat time: 0.180 seconds
+Average sat time: 0.060 seconds
+
+40:
+Execution time: 0.590 seconds
+Formula generation time: 0.266 seconds
+Total sat time: 0.322 seconds
+Average sat time: 0.107 seconds
+
+50:
+Execution time: 0.798 seconds
+Formula generation time: 0.323 seconds
+Total sat time: 0.474 seconds
+Average sat time: 0.158 seconds
+
+60:
+Execution time: 0.844 seconds
+Formula generation time: 0.357 seconds
+Total sat time: 0.485 seconds
+Average sat time: 0.162 seconds
+
+70:
+Execution time: 0.991 seconds
+Formula generation time: 0.389 seconds
+Total sat time: 0.600 seconds
+Average sat time: 0.200 seconds
+
+80:
+Execution time: 1.211 seconds
+Formula generation time: 0.422 seconds
+Total sat time: 0.787 seconds
+Average sat time: 0.262 seconds
+
+90:
+Execution time: 1.377 seconds
+Formula generation time: 0.458 seconds
+Total sat time: 0.916 seconds
+Average sat time: 0.305 seconds
+
+100:
+Execution time: 1.743 seconds
+Formula generation time: 0.504 seconds
+Total sat time: 1.237 seconds
+Average sat time: 0.412 seconds
+
+===
+P2:
+===
+
+10:
+Execution time: 0.201 seconds
+Formula generation time: 0.146 seconds
+Total sat time: 0.054 seconds
+Average sat time: 0.018 seconds
+
+20:
+Execution time: 0.290 seconds
+Formula generation time: 0.171 seconds
+Total sat time: 0.118 seconds
+Average sat time: 0.039 seconds
+
+30:
+Execution time: 1.020 seconds
+Formula generation time: 0.226 seconds
+Total sat time: 0.793 seconds
+Average sat time: 0.264 seconds
+
+40:
+Execution time: 0.526 seconds
+Formula generation time: 0.255 seconds
+Total sat time: 0.270 seconds
+Average sat time: 0.090 seconds
+
+50:
+Execution time: 1.841 seconds
+Formula generation time: 0.308 seconds
+Total sat time: 1.531 seconds
+Average sat time: 0.510 seconds
+
+60:
+Execution time: 0.901 seconds
+Formula generation time: 0.349 seconds
+Total sat time: 0.551 seconds
+Average sat time: 0.184 seconds
+
+70:
+Execution time: 0.949 seconds
+Formula generation time: 0.391 seconds
+Total sat time: 0.556 seconds
+Average sat time: 0.185 seconds
+
+80:
+Execution time: 1.180 seconds
+Formula generation time: 0.428 seconds
+Total sat time: 0.750 seconds
+Average sat time: 0.250 seconds
+
+90:
+Execution time: 1.368 seconds
+Formula generation time: 0.480 seconds
+Total sat time: 0.886 seconds
+Average sat time: 0.295 seconds
+
+100:
+Execution time: 1.693 seconds
+Formula generation time: 0.507 seconds
+Total sat time: 1.184 seconds
+Average sat time: 0.395 seconds
+
+===
+P3:
+===
+
+10:
+Execution time: 0.178 seconds
+Formula generation time: 0.137 seconds
+Total sat time: 0.041 seconds
+Average sat time: 0.014 seconds
+
+20:
+Execution time: 0.252 seconds
+Formula generation time: 0.162 seconds
+Total sat time: 0.089 seconds
+Average sat time: 0.030 seconds
+
+30:
+Execution time: 0.337 seconds
+Formula generation time: 0.199 seconds
+Total sat time: 0.138 seconds
+Average sat time: 0.046 seconds
+
+40:
+Execution time: 0.438 seconds
+Formula generation time: 0.238 seconds
+Total sat time: 0.199 seconds
+Average sat time: 0.066 seconds
+
+50:
+Execution time: 0.526 seconds
+Formula generation time: 0.263 seconds
+Total sat time: 0.262 seconds
+Average sat time: 0.087 seconds
+
+60:
+Execution time: 0.640 seconds
+Formula generation time: 0.296 seconds
+Total sat time: 0.343 seconds
+Average sat time: 0.114 seconds
+
+70:
+Execution time: 0.752 seconds
+Formula generation time: 0.337 seconds
+Total sat time: 0.413 seconds
+Average sat time: 0.138 seconds
+
+80:
+Execution time: 0.873 seconds
+Formula generation time: 0.377 seconds
+Total sat time: 0.494 seconds
+Average sat time: 0.165 seconds
+
+90:
+Execution time: 0.982 seconds
+Formula generation time: 0.389 seconds
+Total sat time: 0.591 seconds
+Average sat time: 0.197 seconds
+
+100:
+Execution time: 1.101 seconds
+Formula generation time: 0.413 seconds
+Total sat time: 0.686 seconds
+Average sat time: 0.229 seconds
+
+===
+P4:
+===
+
+10:
+Execution time: 0.163 seconds
+Formula generation time: 0.123 seconds
+Total sat time: 0.039 seconds
+Average sat time: 0.013 seconds
+
+20:
+Execution time: 0.258 seconds
+Formula generation time: 0.165 seconds
+Total sat time: 0.091 seconds
+Average sat time: 0.030 seconds
+
+30:
+Execution time: 0.347 seconds
+Formula generation time: 0.202 seconds
+Total sat time: 0.143 seconds
+Average sat time: 0.048 seconds
+
+40:
+Execution time: 0.428 seconds
+Formula generation time: 0.229 seconds
+Total sat time: 0.198 seconds
+Average sat time: 0.066 seconds
+
+50:
+Execution time: 0.520 seconds
+Formula generation time: 0.265 seconds
+Total sat time: 0.254 seconds
+Average sat time: 0.085 seconds
+
+60:
+Execution time: 0.629 seconds
+Formula generation time: 0.301 seconds
+Total sat time: 0.326 seconds
+Average sat time: 0.109 seconds
+
+70:
+Execution time: 0.752 seconds
+Formula generation time: 0.329 seconds
+Total sat time: 0.421 seconds
+Average sat time: 0.140 seconds
+
+80:
+Execution time: 0.839 seconds
+Formula generation time: 0.356 seconds
+Total sat time: 0.482 seconds
+Average sat time: 0.161 seconds
+
+90:
+Execution time: 0.970 seconds
+Formula generation time: 0.384 seconds
+Total sat time: 0.584 seconds
+Average sat time: 0.195 seconds
+
+100:
+Execution time: 1.110 seconds
+Formula generation time: 0.430 seconds
+Total sat time: 0.677 seconds
+Average sat time: 0.226 seconds
+
+===
+P5:
+===
+
+10:
+Execution time: 0.193 seconds
+Formula generation time: 0.145 seconds
+Total sat time: 0.047 seconds
+Average sat time: 0.016 seconds
+
+20:
+Execution time: 0.331 seconds
+Formula generation time: 0.225 seconds
+Total sat time: 0.105 seconds
+Average sat time: 0.035 seconds
+
+30:
+Execution time: 0.500 seconds
+Formula generation time: 0.323 seconds
+Total sat time: 0.176 seconds
+Average sat time: 0.059 seconds
+
+40:
+Execution time: 0.724 seconds
+Formula generation time: 0.444 seconds
+Total sat time: 0.278 seconds
+Average sat time: 0.093 seconds
+
+50:
+Execution time: 0.984 seconds
+Formula generation time: 0.616 seconds
+Total sat time: 0.367 seconds
+Average sat time: 0.122 seconds
+
+60:
+Execution time: 1.288 seconds
+Formula generation time: 0.798 seconds
+Total sat time: 0.488 seconds
+Average sat time: 0.163 seconds
+
+70:
+Execution time: 1.642 seconds
+Formula generation time: 1.012 seconds
+Total sat time: 0.628 seconds
+Average sat time: 0.209 seconds
+
+80:
+Execution time: 2.056 seconds
+Formula generation time: 1.242 seconds
+Total sat time: 0.812 seconds
+Average sat time: 0.271 seconds
+
+90:
+Execution time: 2.463 seconds
+Formula generation time: 1.489 seconds
+Total sat time: 0.972 seconds
+Average sat time: 0.324 seconds
+
+100:
+Execution time: 3.084 seconds
+Formula generation time: 1.813 seconds
+Total sat time: 1.269 seconds
+Average sat time: 0.423 seconds
+
+===
+P6:
+===
+
+10:
+Execution time: 0.173 seconds
+Formula generation time: 0.132 seconds
+Total sat time: 0.041 seconds
+Average sat time: 0.014 seconds
+
+20:
+Execution time: 0.294 seconds
+Formula generation time: 0.206 seconds
+Total sat time: 0.088 seconds
+Average sat time: 0.029 seconds
+
+30:
+Execution time: 0.413 seconds
+Formula generation time: 0.277 seconds
+Total sat time: 0.135 seconds
+Average sat time: 0.045 seconds
+
+40:
+Execution time: 0.596 seconds
+Formula generation time: 0.380 seconds
+Total sat time: 0.215 seconds
+Average sat time: 0.072 seconds
+
+50:
+Execution time: 0.783 seconds
+Formula generation time: 0.499 seconds
+Total sat time: 0.283 seconds
+Average sat time: 0.094 seconds
+
+60:
+Execution time: 0.993 seconds
+Formula generation time: 0.631 seconds
+Total sat time: 0.361 seconds
+Average sat time: 0.120 seconds
+
+70:
+Execution time: 1.241 seconds
+Formula generation time: 0.795 seconds
+Total sat time: 0.444 seconds
+Average sat time: 0.148 seconds
+
+80:
+Execution time: 1.542 seconds
+Formula generation time: 0.964 seconds
+Total sat time: 0.576 seconds
+Average sat time: 0.192 seconds
+
+90:
+Execution time: 1.867 seconds
+Formula generation time: 1.165 seconds
+Total sat time: 0.699 seconds
+Average sat time: 0.233 seconds
+
+100:
+Execution time: 2.196 seconds
+Formula generation time: 1.369 seconds
+Total sat time: 0.825 seconds
+Average sat time: 0.275 seconds
+
+===
+P7:
+===
+
+10:
+Execution time: 0.533 seconds
+Formula generation time: 0.169 seconds
+Total sat time: 0.364 seconds
+Average sat time: 0.121 seconds
+
+20:
+Execution time: 1.994 seconds
+Formula generation time: 0.406 seconds
+Total sat time: 1.587 seconds
+Average sat time: 0.529 seconds
+
+30:
+Execution time: 7.809 seconds
+Formula generation time: 0.916 seconds
+Total sat time: 6.892 seconds
+Average sat time: 2.297 seconds
+
+40:
+Execution time: 18.973 seconds
+Formula generation time: 1.780 seconds
+Total sat time: 17.192 seconds
+Average sat time: 5.731 seconds
+
+50:
+Execution time: 34.053 seconds
+Formula generation time: 3.127 seconds
+Total sat time: 30.925 seconds
+Average sat time: 10.308 seconds
+
+60:
+Execution time: 94.353 seconds
+Formula generation time: 5.099 seconds
+Total sat time: 89.252 seconds
+Average sat time: 29.751 seconds
+
+70:
+Execution time: 107.646 seconds
+Formula generation time: 7.964 seconds
+Total sat time: 99.680 seconds
+Average sat time: 33.227 seconds
+
+80:
+Execution time: 246.082 seconds
+Formula generation time: 11.941 seconds
+Total sat time: 234.139 seconds
+Average sat time: 78.046 seconds
+
+90:
+Execution time: 312.427 seconds
+Formula generation time: 15.983 seconds
+Total sat time: 296.442 seconds
+Average sat time: 98.814 seconds
+
+100: *** NOPE *** (11.55 min)
+Formula generation time: 21.483 seconds
+Generating test number 0
+REF time for this test: 0.087 seconds
+SAT time for this test: 115.610 seconds (including REF time)
+Generating test number 1
+REF time for this test: 0.153 seconds
+SAT time for this test: 96.455 seconds (including REF time)
+Generating test number 2
+No solution found.
+The specification must contain inconsistent constraints!
+
+===
+P8:
+===
+
+10:
+Execution time: 0.846 seconds
+Formula generation time: 0.149 seconds
+Total sat time: 0.696 seconds
+Average sat time: 0.232 seconds
+
+20:
+Execution time: 2.342 seconds
+Formula generation time: 0.313 seconds
+Total sat time: 2.028 seconds
+Average sat time: 0.676 seconds
+
+30:
+Execution time: 4.462 seconds
+Formula generation time: 0.633 seconds
+Total sat time: 3.828 seconds
+Average sat time: 1.276 seconds
+
+40:
+Execution time: 6.631 seconds
+Formula generation time: 1.195 seconds
+Total sat time: 5.435 seconds
+Average sat time: 1.812 seconds
+
+50:
+Execution time: 11.898 seconds
+Formula generation time: 2.064 seconds
+Total sat time: 9.832 seconds
+Average sat time: 3.277 seconds
+
+60:
+Execution time: 14.151 seconds
+Formula generation time: 3.307 seconds
+Total sat time: 10.842 seconds
+Average sat time: 3.614 seconds
+
+70:
+Execution time: 36.793 seconds
+Formula generation time: 5.085 seconds
+Total sat time: 31.706 seconds
+Average sat time: 10.569 seconds
+
+80:
+Execution time: 28.020 seconds
+Formula generation time: 7.307 seconds
+Total sat time: 20.711 seconds
+Average sat time: 6.904 seconds
+
+90:
+Execution time: 48.580 seconds
+Formula generation time: 10.079 seconds
+Total sat time: 38.499 seconds
+Average sat time: 12.833 seconds
+
+100:
+Execution time: 189.204 seconds
+Formula generation time: 13.707 seconds
+Total sat time: 175.495 seconds
+Average sat time: 58.498 seconds
+
+===
+P9:
+===
+
+10:
+Execution time: 0.742 seconds
+Formula generation time: 0.147 seconds
+Total sat time: 0.594 seconds
+Average sat time: 0.198 seconds
+
+20:
+Execution time: 1.900 seconds
+Formula generation time: 0.295 seconds
+Total sat time: 1.604 seconds
+Average sat time: 0.535 seconds
+
+30:
+Execution time: 11.664 seconds
+Formula generation time: 0.585 seconds
+Total sat time: 11.078 seconds
+Average sat time: 3.693 seconds
+
+40:
+Execution time: 17.238 seconds
+Formula generation time: 1.122 seconds
+Total sat time: 16.115 seconds
+Average sat time: 5.372 seconds
+
+50:
+Execution time: 33.754 seconds
+Formula generation time: 1.948 seconds
+Total sat time: 31.805 seconds
+Average sat time: 10.602 seconds
+
+60:
+Execution time: 131.566 seconds
+Formula generation time: 3.146 seconds
+Total sat time: 128.419 seconds
+Average sat time: 42.806 seconds
+
+70: NOPE (10 min)
+Formula generation time: 4.784 seconds
+Generating test number 0
+No solution found.
+The specification must contain inconsistent constraints!
+
+80: *** NOPE *** (15 min)
+
+90: *** NOPE *** (not tried)
+
+100: *** NOPE ***(not tried)
+
+====
+All:
+====
+
+10:
+Execution time: 1.060 seconds
+Formula generation time: 0.286 seconds
+Total sat time: 0.773 seconds
+Average sat time: 0.258 seconds
+
+20:
+Execution time: 24.288 seconds
+Formula generation time: 0.812 seconds
+Total sat time: 23.475 seconds
+Average sat time: 7.825 seconds
+
+30:
+Execution time: 61.618 seconds
+Formula generation time: 1.994 seconds
+Total sat time: 59.624 seconds
+Average sat time: 19.875 seconds
+
+40:
+Execution time: 137.228 seconds
+Formula generation time: 4.092 seconds
+Total sat time: 133.135 seconds
+Average sat time: 44.378 seconds
+
+50: *** NOPE *** (14 min)
+Formula generation time: 7.540 seconds
+Generating test number 0
+No solution found.
+The specification must contain inconsistent constraints!
+
+60: *** NOPE *** (not tried)
+
+70: *** NOPE *** (not tried)
+
+80: *** NOPE *** (not tried)
+
+90: *** NOPE *** (not tried)
+
+100: *** NOPE *** (not tried)
+
+-- beyond 100: ---
+
+...
+

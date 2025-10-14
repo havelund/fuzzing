@@ -1,0 +1,227 @@
+<command_dictionary>
+  <header mission_name="CUSTOM_MISSION" schema_version="1.0" version="1.0.0"/>
+
+  <command_definitions>
+
+    <fsw_command class="FSW" opcode="0x0001" stem="ROTATE">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <float_arg bit_length="64" name="angle" units="degrees">
+          <range_of_values>
+            <include min="-180" max="180"/>
+          </range_of_values>
+          <description>The rotation angle.</description>
+        </float_arg>
+      </arguments>
+    </fsw_command>
+
+    <fsw_command class="FSW" opcode="0x0002" stem="GOTO">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <float_arg bit_length="64" name="x" units="meters">
+          <range_of_values>
+            <include min="-10000" max="10000"/>
+          </range_of_values>
+          <description>X coordinate.</description>
+        </float_arg>
+        <float_arg bit_length="64" name="y" units="meters">
+          <range_of_values>
+            <include min="-10000" max="10000"/>
+          </range_of_values>
+          <description>Y coordinate.</description>
+        </float_arg>
+      </arguments>
+    </fsw_command>
+
+    <fsw_command class="FSW" opcode="0x0003" stem="MOVE">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="dir">
+          <range_of_values>
+            <include min="0" max="1"/>
+          </range_of_values>
+          <description>Direction to move.</description>
+        </unsigned_arg>
+        <float_arg bit_length="64" name="distance" units="meters">
+          <range_of_values>
+            <include min="1" max="1000"/>
+          </range_of_values>
+          <description>Distance to move.</description>
+        </float_arg>
+      </arguments>
+    </fsw_command>
+
+    <fsw_command class="FSW" opcode="0x0004" stem="PIC">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="quality">
+          <range_of_values>
+            <include min="0" max="2"/>
+          </range_of_values>
+          <description>Image quality.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="images">
+          <range_of_values>
+            <include min="1" max="10"/>
+          </range_of_values>
+          <description>Number of images to take.</description>
+        </unsigned_arg>
+      </arguments>
+    </fsw_command>
+
+    <fsw_command class="FSW" opcode="0x0005" stem="STORE">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="file">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>File name.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="images">
+          <range_of_values>
+            <include min="1" max="10"/>
+          </range_of_values>
+          <description>Number of images to store.</description>
+        </unsigned_arg>
+      </arguments>
+    </fsw_command>
+
+    <fsw_command class="FSW" opcode="0x0006" stem="SEND">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="file">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>File to send.</description>
+        </unsigned_arg>
+      </arguments>
+    </fsw_command>
+
+    <fsw_command class="FSW" opcode="0x0007" stem="COLLECT">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="file">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>File to store data.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="sample">
+          <range_of_values>
+            <include min="0" max="5"/>
+          </range_of_values>
+          <description>Sample identifier.</description>
+        </unsigned_arg>
+      </arguments>
+    </fsw_command>
+
+    <fsw_command class="FSW" opcode="0x0008" stem="SCRIPT">
+      <arguments>
+        <unsigned_arg bit_length="32" name="number">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Command number.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="time" units="seconds">
+          <range_of_values>
+            <include min="0" max="1000"/>
+          </range_of_values>
+          <description>The dispatch time.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="script">
+          <range_of_values>
+            <include min="0" max="105"/>
+          </range_of_values>
+          <description>Script content or name.</description>
+        </unsigned_arg>
+        <unsigned_arg bit_length="32" name="file">
+          <range_of_values>
+            <include min="0" max="100"/>
+          </range_of_values>
+          <description>Associated file.</description>
+        </unsigned_arg>
+      </arguments>
+    </fsw_command>
+
+  </command_definitions>
+</command_dictionary>

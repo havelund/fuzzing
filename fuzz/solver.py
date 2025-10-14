@@ -15,7 +15,7 @@ def print_model(model: ModelRef, end_time: int):
     :param model: the model to evaluate the timeline in.
     :param end_time: the end time of the timeline.
     """
-    headline("SOLUTION FOUND")
+    headline("SOLUTION FOUND BY Z3")
     for i in range(end_time):
         try:
             cmd = model.eval(timeline(i), model_completion=False)
@@ -30,7 +30,7 @@ def print_test(test: Test):
 
     :param test: the test to print.
     """
-    headline("SOLUTION FOUND")
+    headline("SOLUTION AFTER REFINEMENT")
     for i, cmd in enumerate(test):
         print(f"{i}: {cmd}")
 
@@ -226,6 +226,7 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
     :param test_size: an optional number of commands to generate in each test.
     :return: the testsuite, a list of lists of dictionaries, each representing a command.
     """
+    sat_times: list[int] = []
     start_time = time.time()
     config_spec: str = ''
     spec_file = command_dictionary.spec_file
@@ -244,6 +245,7 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
         test_size: int = command_dictionary.test_size
         if test_size is None:
             raise ValueError(f"No test size is provided.")
+    gen_start_time = time.time()
     smt_rng_formula: BoolRef = command_dictionary.generate_smt_constraint(test_size)
     ast: LTLSpec = parse_spec(spec)
     smt_ltl_formula: BoolRef = ast.to_smt(test_size)
@@ -251,10 +253,17 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
         headline('FORMULA FROM SPEC ONLY')
         print(smt_ltl_formula)
     smt_formula: BoolRef = And(smt_rng_formula, smt_ltl_formula)
+    gen_end_time = time.time()
+    print(f"Formula generation time: {gen_end_time - gen_start_time:.3f} seconds")
     tests: list[Test] = []
     for test_nr in range(test_suite_size):
         print(f"Generating test number {test_nr}")
-        test = generate_test(ast, smt_formula, test_size)
+        sat_start_time = time.time()
+        test = generate_test(test_nr, ast, smt_formula, test_size)
+        sat_end_time = time.time()
+        sat_time = sat_end_time - sat_start_time
+        sat_times.append(sat_time)
+        print(f"SAT time for this test: {sat_time:.3f} seconds (including REF time)")
         tests.append(test)
     for test_nr, test in enumerate(tests):
         print(f'\n=== test nr. {test_nr} ===\n')
@@ -265,22 +274,28 @@ def generate_tests(spec: Optional[str] = None, test_suite_size: Optional[int] = 
         json.dump(tests, file, indent=4)
     end_time = time.time()
     print(f"Execution time: {end_time - start_time:.3f} seconds")
+    print(f"Formula generation time: {gen_end_time - gen_start_time:.3f} seconds")
+    print(f"Total sat time: {sum(sat_times):.3f} seconds")
+    print(f"Average sat time: {sum(sat_times)/len(sat_times):.3f} seconds")
     return tests
 
 
-def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
+def generate_test(test_nr: int, ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
     """Generates one test.
 
+    :param test_nr: test number.
     :param ast: the specification of constraints.
     :param smt_formula: the formula as a Z3 datatype.
     :param end_time: the end time of the timeline.
     :return: the resulting test.
     """
     solver = Solver()
+    solver.set("random_seed", test_nr)
     if solve_formula(solver, smt_formula, end_time) is not None:
         if Options.PRINT_CONSTRAINTS:
             headline("ALL CONSTRAINTS")
             print(solver.assertions())
+        ref_start_time = time.time()
         extract_and_verify_test(ast, solver.model(), end_time)
         if Options.REFINEMENT_STRATEGY == RefinementStrategy.EVAL:
             test = refine_solver_using_evaluate(ast, solver, end_time)
@@ -288,10 +303,13 @@ def generate_test(ast: LTLSpec, smt_formula: BoolRef, end_time: int) -> Test:
             test = refine_solver_using_evaluate_per_arg(ast, solver, end_time)
         else:
             test = refine_solver_using_to_smt(ast, solver, end_time)
+        ref_end_time = time.time()
+        print(f"REF time for this test: {ref_end_time - ref_start_time:.3f} seconds")
         return test
     else:
         print("The specification must contain inconsistent constraints!")
         sys.exit(1)
+    del solver # NEW, trying it
 
 
 def extract_and_verify_test(ast: LTLSpec, model: ModelRef, end_time: int) -> Test:

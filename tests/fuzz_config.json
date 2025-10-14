@@ -1,6 +1,6 @@
 
 {
-    "cmd_files": ["xml/rover_commands.xml"],
+    "cmd_files": ["xml/rover_commands_number_time.xml"],
     "spec_file": null,
     "test_suite_size": 10,
     "test_size": 10

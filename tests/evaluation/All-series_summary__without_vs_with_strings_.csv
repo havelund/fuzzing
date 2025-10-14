@@ -1,0 +1,29 @@
+length,exec_time,formula_time,total_sat_time,avg_sat_time,note,experiment
+10,0.379,0.268,0.11,0.037,,without_strings
+20,1.275,0.84,0.433,0.144,,without_strings
+30,3.247,2.028,1.218,0.406,,without_strings
+40,6.047,4.099,1.947,0.649,,without_strings
+50,11.083,7.351,3.73,1.243,,without_strings
+60,20.166,11.988,8.177,2.726,,without_strings
+70,29.281,18.442,10.837,3.612,,without_strings
+80,39.065,26.692,12.371,4.124,,without_strings
+90,53.807,37.341,16.463,5.488,,without_strings
+100,84.83,50.268,34.56,11.52,,without_strings
+110,121.071,65.805,55.264,18.421,,without_strings
+120,165.672,84.223,81.447,27.149,,without_strings
+130,173.875,107.588,66.284,22.095,,without_strings
+140,226.967,132.296,94.668,31.556,,without_strings
+150,586.001,161.554,424.445,141.482,,without_strings
+160,740.176,198.512,541.661,180.554,*** NOT WITHIN 10 min ***,without_strings
+170,507.659,233.02,274.634,91.545,,without_strings
+180,710.689,275.26,435.426,145.142,*** NOT WITHIN 10 min ***,without_strings
+190,1418.201,324.467,1093.731,364.577,*** NOT WITHIN 10 min ***,without_strings
+200,2611.269,376.38,2234.885,744.962,*** NOT WITHIN 10 min ***,without_strings
+210,2885.336,434.889,2450.442,816.814,*** NOT WITHIN 10 min ***,without_strings
+250,3649.141,721.795,2927.341,975.78,*** NOT WITHIN 10 min ***,without_strings
+300,8105.692,1263.936,6841.751,2280.584,*** NOT WITHIN 10 min ***,without_strings
+10,1.06,0.286,0.773,0.258,,with_strings
+20,24.288,0.812,23.475,7.825,,with_strings
+30,61.618,1.994,59.624,19.875,,with_strings
+40,137.228,4.092,133.135,44.378,,with_strings
+50,1780.839,7.299,1773.539,591.18,*** NOT WITHIN 10 min ***,with_strings

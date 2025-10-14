@@ -1,73 +1,72 @@
 [
     [
         {
-            "name": "COLLECT",
+            "name": "PIC",
             "number": 1,
-            "time": 363,
-            "file": "DcwesIPfXXyTJFIky7cL",
-            "sample": "PfFSyyisLU3KekpgHDPe"
-        },
-        {
-            "name": "SEND",
-            "number": 2,
-            "time": 373,
-            "file": "7CxenBqpV2CXQaktbwUx"
-        },
-        {
-            "name": "SCRIPT",
-            "number": 3,
-            "time": 383,
-            "script": "E0Jtfen7iXCsxPUMmJ2j",
-            "file": "8GrXRK7fXkI9K9hIeLSu"
+            "time": 625,
+            "quality": "high",
+            "images": 9
         },
         {
             "name": "PIC",
+            "number": 2,
+            "time": 635,
+            "quality": "medium",
+            "images": 4
+        },
+        {
+            "name": "MOVE",
+            "number": 3,
+            "time": 645,
+            "dir": "forward",
+            "distance": 3.0
+        },
+        {
+            "name": "COLLECT",
             "number": 4,
-            "time": 393,
-            "quality": "low",
-            "images": 7
+            "time": 655,
+            "file": "",
+            "sample": ""
+        },
+        {
+            "name": "SCRIPT",
+            "number": 5,
+            "time": 665,
+            "script": "uT8J62aOZTm9SlQha7Xm",
+            "file": "9wNdOGwve9yhB7zfVncb"
         },
         {
             "name": "STORE",
-            "number": 5,
-            "time": 403,
-            "file": "hVxAJkCHG0pQX5OM4bYi",
-            "images": 6
-        }
-    ],
-    [
-        {
-            "name": "SCRIPT",
-            "number": 1,
-            "time": 363,
-            "script": "lE5Q0h3xyF79jO35L31h",
-            "file": "NDpEDkObp2zjNQ9K7gGr"
+            "number": 6,
+            "time": 675,
+            "file": "n",
+            "images": 3
         },
         {
             "name": "SEND",
-            "number": 2,
-            "time": 373,
-            "file": "bEMh5ialAcaibsi9deLg"
-        },
-        {
-            "name": "ROTATE",
-            "number": 3,
-            "time": 383,
-            "angle": 7.190805746406966
+            "number": 7,
+            "time": 685,
+            "file": "n"
         },
         {
             "name": "SCRIPT",
-            "number": 4,
-            "time": 393,
-            "script": "s009OR3joeighomwivca",
-            "file": "poIh5tH2P30T3YyTXpzp"
+            "number": 8,
+            "time": 695,
+            "script": "run_.py",
+            "file": ""
         },
         {
-            "name": "GOTO",
-            "number": 5,
-            "time": 403,
-            "x": -9273.63821147819,
-            "y": 5040.580478188163
+            "name": "ROTATE",
+            "number": 9,
+            "time": 705,
+            "angle": -78.46045286103953
+        },
+        {
+            "name": "SCRIPT",
+            "number": 10,
+            "time": 715,
+            "script": "WKJjpRQPOr4lmsNdpg2I",
+            "file": "xyAvDYOB0ZwR2fUgVFlG"
         }
     ]
 ]

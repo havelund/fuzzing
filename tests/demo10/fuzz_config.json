@@ -1,0 +1,7 @@
+
+{
+    "cmd_files": ["xml/rover_commands_number_time.xml"],
+    "spec_file": "spec.txt",
+    "test_suite_size": 10,
+    "test_size": 10
+}

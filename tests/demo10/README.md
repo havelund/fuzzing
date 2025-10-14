@@ -1,0 +1,3 @@
+
+# Tests without strings
+

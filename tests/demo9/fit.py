@@ -13,44 +13,39 @@ SCRIPT(number:uint, time:uint, script: string, file: string)
 """
 
 spec = """     
-  rule time_increases:
+  rule time_increases: # p1
     always any(time=t1?) => wnext any(time=t2?) =>  t2 >= t1 + 10
 
-  rule numbers_consecutive:
+  rule numbers_consecutive: # p2
     any(number=1) and
     always any(number=n1?) => wnext any(number=n2?) =>  n2 = n1 + 1
         
-  rule rotation_range:   
+  rule rotation_range: # p3  
     always ROTATE(angle=a?) => -90 <= a <= 90
     
-  rule distance_range:
+  rule distance_range: # p4
     always MOVE(distance=d?) => (d = 1 or d = 2 or d = 3)
 
-  rule move_backwards:
-    always [MOVE(dir=direction.backwards,distance=d?)] eventually <ROTATE(angle=a?)> a = 45/d
+  rule move_backwards: # p5
+    # always [MOVE(dir=direction.backwards,distance=d?)] eventually <ROTATE(angle=a?)> a = 45/d
+    always [MOVE(dir=direction.backwards,distance=d?)] eventually <ROTATE(angle=a?)> ((d <= 1 and a = 45) or (d > 1 and a = 20))
 
-  rule goto_path:
+  rule goto_path: # p6
     always GOTO(x=x1?,y=y1?) => 
       always GOTO(x=x2?,y=y2?) => 
         (x2 > x1 and y2 > y1)
 
-  rule required_commands:
-    eventually MOVE() and eventually PIC(quality=image_quality.high) and eventually COLLECT()
-    # eventually MOVE() and eventually COLLECT(sample="soil") and count 1 PIC(quality=image_quality.high) 
-
-  rule image_process_forward:
+  rule image_process_forward: # p7
     always [PIC(quality=image_quality.high, images=i?)]
       eventually <STORE(file=f?, images=j?)>
         (
-          f |- /\d\d\d\.img/ and
+          # f |- /\d\d\d\.img/ and
           0 < j <= i 
           and
           eventually SEND(file=f)
         )
 
-    # f |- /\d\d\d\.img/ and
-
-  rule image_process_backward:
+  rule image_process_backward: # p8
     always [STORE(file=f?,images=j?)]
         prev ( 
           not once STORE(file=f) 
@@ -60,40 +55,72 @@ spec = """
           )
         )
       
-  rule run_script:    
+  rule run_script: # p9   
     always [COLLECT(file=f?, sample=s?)] 
      next (
        not COLLECT()  
-       until <SCRIPT(script = k?, file=f)> k = "run_" + s + ".py"
+       until <SCRIPT(script = k?, file=f)>k = "run_" + s + ".py"
      )
+     
+  rule required_commands: # p10
+    eventually MOVE() and eventually PIC(quality=image_quality.high) and eventually COLLECT()     
     """
-
-# Missing: or, sofar, ->, next n
 
 spec = """     
-  rule required_commands:
-    eventually MOVE(dir=direction.backwards) 
+  rule time_increases: # p1
+    always [any(time=t1?)] wnext [any(time=t2?)] t2 >= t1 + 10
 
-  rule move_backwards:
-    always [MOVE(dir=direction.backwards,distance=d?)] eventually <ROTATE(angle=a?)> a = 45/d
+  rule numbers_consecutive: # p2
+    any(number=1) and
+    always [any(number=n1?)] wnext [any(number=n2?)] n2 = n1 + 1
+
+  rule rotation_range: # p3  
+    always [ROTATE(angle=a?)] -90 <= a <= 90
+
+  rule distance_range: # p4
+    always [MOVE(distance=d?)] (d = 1 or d = 2 or d = 3)
+
+  rule move_backwards: # p5
+    # always [MOVE(dir=direction.backwards,distance=d?)] eventually <ROTATE(angle=a?)> a = 45/d
+    always [MOVE(dir=direction.backwards,distance=d?)] eventually <ROTATE(angle=a?)> ((d <= 1 and a = 45) or (d > 1 and a = 20))
+
+  rule goto_path: # p6
+    always [GOTO(x=x1?,y=y1?)] 
+      always [GOTO(x=x2?,y=y2?)] 
+        (x2 > x1 and y2 > y1)
+
+  rule image_process_forward: # p7
+    always [PIC(quality=image_quality.high, images=i?)]
+      eventually <STORE(file=f?, images=j?)>
+        (
+          # f |- /\d\d\d\.img/ and
+          0 < j <= i 
+          and
+          eventually SEND(file=f)
+        )
+
+  rule image_process_backward: # p8
+    always [STORE(file=f?,images=j?)]
+        prev ( 
+          not once STORE(file=f) 
+          and 
+          (
+            not STORE() since <PIC(images=i?, quality=image_quality.high)> i >= j
+          )
+        )
+
+  rule run_script: # p9   
+    always [COLLECT(file=f?, sample=s?)] 
+     next (
+       not COLLECT()  
+       until <SCRIPT(script = k?, file=f)>k = "run_" + s + ".py"
+     )
+
+  rule required_commands: # p10
+    eventually MOVE() and eventually PIC(quality=image_quality.high) and eventually COLLECT()     
     """
 
-spec = """
-  rule time_increases:
-    always any(time=t1?) => wnext any(time=t2?) =>  t2 >= t1 + 10
-
-  rule numbers_consecutive:
-    any(number=1) and
-    always any(number=n1?) => wnext any(number=n2?) =>  n2 = n1 + 1
-"""
-
 if __name__ == '__main__':
-    start_time = time.time()
-    tests: TestSuite = generate_tests(spec=spec, test_suite_size=2, test_size=5)
-    end_time = time.time()
-    for test in tests:
-        print(f'RESET SUT')
-        for cmd in test:
-            print(cmd)
-    print(f'Execution time = {end_time - start_time} seconds.')
+    Options.PRINT_CONSTRAINTS = True
+    tests: TestSuite = generate_tests(spec=spec, test_suite_size=1, test_size=10)
 
